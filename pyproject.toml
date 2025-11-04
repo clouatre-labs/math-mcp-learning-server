@@ -51,17 +51,55 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 
-[tool.ruff.lint.per-file-ignores]
-"tests/*.py" = ["F401"]  # Allow unused imports in tests for dependency checking
-
 [project.optional-dependencies]
 dev = [
     "pytest>=8.4.2",
     "pytest-asyncio>=0.25.2",
-    "mypy>=1.18.2",
+    "pytest-cov>=4.0.0",
     "ruff>=0.13.1",
 ]
 plotting = [
     "matplotlib>=3.10.6",
     "numpy>=2.3.3",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "S",   # flake8-bandit (security)
+]
+ignore = [
+    "S101",  # Use of assert (common in tests)
+    "S307",  # Use of eval() - controlled and safe for math calculator
+    "E501",  # Line too long - formatter handles most cases
+    "B904",  # raise-without-from - acceptable for this educational project
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "F401"]  # Allow assert + unused imports in tests
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
 ]

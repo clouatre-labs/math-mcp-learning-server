@@ -5,7 +5,11 @@ Provides cross-platform persistent workspace functionality following MCP best pr
 """
 
 from math_mcp.persistence.models import WorkspaceData, WorkspaceVariable
-from math_mcp.persistence.storage import get_workspace_dir, get_workspace_file, ensure_workspace_directory
+from math_mcp.persistence.storage import (
+    ensure_workspace_directory,
+    get_workspace_dir,
+    get_workspace_file,
+)
 from math_mcp.persistence.workspace import WorkspaceManager, _workspace_manager
 
 __all__ = [
@@ -15,5 +19,5 @@ __all__ = [
     "_workspace_manager",
     "get_workspace_dir",
     "get_workspace_file",
-    "ensure_workspace_directory"
+    "ensure_workspace_directory",
 ]

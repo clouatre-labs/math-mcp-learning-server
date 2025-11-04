@@ -13,17 +13,18 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
+from fastmcp import Context, FastMCP
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP, Context
 
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
 from math_mcp import visualization
 
-
 # === PYDANTIC MODELS FOR STRUCTURED OUTPUT ===
+
 
 class CalculationResult(BaseModel):
     """Structured result for mathematical calculations."""
+
     expression: str = Field(description="The original expression")
     result: float = Field(description="The calculated result")
     timestamp: str = Field(description="When the calculation was performed")
@@ -31,6 +32,7 @@ class CalculationResult(BaseModel):
 
 class StatisticsResult(BaseModel):
     """Structured result for statistical calculations."""
+
     operation: str = Field(description="Statistical operation performed")
     input_data: list[float] = Field(description="Input numbers")
     result: float = Field(description="Statistical result")
@@ -39,6 +41,7 @@ class StatisticsResult(BaseModel):
 
 class CompoundInterestResult(BaseModel):
     """Structured result for compound interest calculations."""
+
     principal: float = Field(description="Initial investment")
     rate: float = Field(description="Annual interest rate")
     time: float = Field(description="Investment period in years")
@@ -49,6 +52,7 @@ class CompoundInterestResult(BaseModel):
 
 class UnitConversionResult(BaseModel):
     """Structured result for unit conversions."""
+
     original_value: float = Field(description="Original value")
     original_unit: str = Field(description="Original unit")
     converted_value: float = Field(description="Converted value")
@@ -58,9 +62,11 @@ class UnitConversionResult(BaseModel):
 
 # === APPLICATION CONTEXT ===
 
+
 @dataclass
 class AppContext:
     """Application context with calculation history."""
+
     calculation_history: list[dict[str, Any]]
 
 
@@ -81,11 +87,12 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
 mcp = FastMCP(
     name="Math Learning Server",
     lifespan=app_lifespan,
-    instructions="A comprehensive math server demonstrating MCP fundamentals with tools, resources, and prompts for educational purposes."
+    instructions="A comprehensive math server demonstrating MCP fundamentals with tools, resources, and prompts for educational purposes.",
 )
 
 
 # === SECURITY: SAFE EXPRESSION EVALUATION ===
+
 
 def _validate_expression_syntax(expression: str) -> None:
     """Provide specific error messages for common syntax errors."""
@@ -93,7 +100,9 @@ def _validate_expression_syntax(expression: str) -> None:
 
     # Check for common function syntax issues
     if "pow(" in clean_expr and "," not in clean_expr:
-        raise ValueError("Function 'pow()' requires two parameters: pow(base, exponent). Example: pow(2, 3)")
+        raise ValueError(
+            "Function 'pow()' requires two parameters: pow(base, exponent). Example: pow(2, 3)"
+        )
 
     # Check for empty function calls (functions with no parameters)
     single_param_funcs = ["sin", "cos", "tan", "log", "sqrt", "abs"]
@@ -101,6 +110,7 @@ def _validate_expression_syntax(expression: str) -> None:
         empty_call = f"{func}()"
         if empty_call in clean_expr:
             raise ValueError(f"Function '{func}()' requires one parameter. Example: {func}(3.14)")
+
 
 def safe_eval_expression(expression: str) -> float:
     """Safely evaluate mathematical expressions with restricted scope."""
@@ -118,11 +128,15 @@ def safe_eval_expression(expression: str) -> float:
     dangerous_patterns = ["import", "exec", "__", "eval", "open", "file"]
     if any(pattern in clean_expr.lower() for pattern in dangerous_patterns):
         logging.warning(f"Security: Blocked unsafe expression attempt: {expression[:50]}...")
-        raise ValueError("Expression contains forbidden operations. Only mathematical expressions are allowed.")
+        raise ValueError(
+            "Expression contains forbidden operations. Only mathematical expressions are allowed."
+        )
 
     # Check for unsafe characters
     if not all(c in allowed_chars or c.isalpha() for c in clean_expr):
-        raise ValueError("Expression contains invalid characters. Use only numbers, +, -, *, /, (), and math functions.")
+        raise ValueError(
+            "Expression contains invalid characters. Use only numbers, +, -, *, /, (), and math functions."
+        )
 
     # Replace math functions with safe alternatives
     safe_expr = clean_expr
@@ -142,7 +156,9 @@ def safe_eval_expression(expression: str) -> float:
         raise ValueError("Mathematical error: Result is too large to compute.")
     except ValueError as e:
         if "math domain error" in str(e):
-            raise ValueError("Mathematical error: Invalid input for function (e.g., sqrt of negative number).")
+            raise ValueError(
+                "Mathematical error: Invalid input for function (e.g., sqrt of negative number)."
+            )
         raise ValueError(f"Mathematical expression error: {str(e)}")
     except Exception as e:
         raise ValueError(f"Expression evaluation failed: {str(e)}")
@@ -152,7 +168,7 @@ def convert_temperature(value: float, from_unit: str, to_unit: str) -> float:
     """Convert temperature between Celsius, Fahrenheit, and Kelvin."""
     # Convert to Celsius first
     if from_unit.lower() == "f":
-        celsius = (value - 32) * 5/9
+        celsius = (value - 32) * 5 / 9
     elif from_unit.lower() == "k":
         celsius = value - 273.15
     else:  # Celsius
@@ -160,7 +176,7 @@ def convert_temperature(value: float, from_unit: str, to_unit: str) -> float:
 
     # Convert from Celsius to target
     if to_unit.lower() == "f":
-        return celsius * 9/5 + 32
+        return celsius * 9 / 5 + 32
     elif to_unit.lower() == "k":
         return celsius + 273.15
     else:  # Celsius
@@ -168,6 +184,7 @@ def convert_temperature(value: float, from_unit: str, to_unit: str) -> float:
 
 
 # === TOOLS: COMPUTATIONAL OPERATIONS ===
+
 
 def _classify_expression_difficulty(expression: str) -> str:
     """Classify mathematical expression difficulty for educational annotations."""
@@ -202,17 +219,11 @@ def _classify_expression_topic(expression: str) -> str:
     else:
         return "arithmetic"
 
+
 @mcp.tool(
-    annotations={
-        "title": "Mathematical Calculator",
-        "readOnlyHint": False,
-        "openWorldHint": True
-    }
+    annotations={"title": "Mathematical Calculator", "readOnlyHint": False, "openWorldHint": True}
 )
-async def calculate(
-    expression: str,
-    ctx: Context
-) -> dict[str, Any]:
+async def calculate(expression: str, ctx: Context) -> dict[str, Any]:
     """Safely evaluate mathematical expressions with support for basic operations and math functions.
 
     Supported operations: +, -, *, /, **, ()
@@ -235,7 +246,7 @@ async def calculate(
         "type": "calculation",
         "expression": expression,
         "result": result,
-        "timestamp": timestamp
+        "timestamp": timestamp,
     }
     ctx.request_context.lifespan_context.calculation_history.append(history_entry)
 
@@ -248,25 +259,17 @@ async def calculate(
                 "annotations": {
                     "difficulty": difficulty,
                     "topic": "arithmetic",
-                    "timestamp": timestamp
-                }
+                    "timestamp": timestamp,
+                },
             }
         ]
     }
 
 
 @mcp.tool(
-    annotations={
-        "title": "Statistical Analysis",
-        "readOnlyHint": True,
-        "openWorldHint": False
-    }
+    annotations={"title": "Statistical Analysis", "readOnlyHint": True, "openWorldHint": False}
 )
-async def statistics(
-    numbers: list[float],
-    operation: str,
-    ctx: Context
-) -> dict[str, Any]:
+async def statistics(numbers: list[float], operation: str, ctx: Context) -> dict[str, Any]:
     """Perform statistical calculations on a list of numbers.
 
     Available operations: mean, median, mode, std_dev, variance
@@ -284,7 +287,7 @@ async def statistics(
         "median": stats.median,
         "mode": stats.mode,
         "std_dev": lambda x: stats.stdev(x) if len(x) > 1 else 0,
-        "variance": lambda x: stats.variance(x) if len(x) > 1 else 0
+        "variance": lambda x: stats.variance(x) if len(x) > 1 else 0,
     }
 
     if operation not in operations:
@@ -296,7 +299,13 @@ async def statistics(
     result_float = float(result)  # type: ignore[arg-type]
 
     # Determine difficulty based on operation and data size
-    difficulty = "advanced" if operation in ["std_dev", "variance"] else "intermediate" if len(numbers) > 10 else "basic"
+    difficulty = (
+        "advanced"
+        if operation in ["std_dev", "variance"]
+        else "intermediate"
+        if len(numbers) > 10
+        else "basic"
+    )
 
     return {
         "content": [
@@ -307,8 +316,8 @@ async def statistics(
                     "difficulty": difficulty,
                     "topic": "statistics",
                     "operation": operation,
-                    "sample_size": len(numbers)
-                }
+                    "sample_size": len(numbers),
+                },
             }
         ]
     }
@@ -320,7 +329,7 @@ async def compound_interest(
     rate: float,
     time: float,
     compounds_per_year: int = 1,
-    ctx: Context = None  # type: ignore[assignment]
+    ctx: Context = None,  # type: ignore[assignment]
 ) -> dict[str, Any]:
     """Calculate compound interest for investments.
 
@@ -333,7 +342,9 @@ async def compound_interest(
     """
     # FastMCP 2.0 Context logging - provides visibility into financial calculations
     if ctx:
-        await ctx.info(f"Calculating compound interest: ${principal:,.2f} @ {rate*100}% for {time} years")
+        await ctx.info(
+            f"Calculating compound interest: ${principal:,.2f} @ {rate * 100}% for {time} years"
+        )
 
     if principal <= 0:
         raise ValueError("Principal must be greater than 0")
@@ -357,8 +368,8 @@ async def compound_interest(
                     "difficulty": "intermediate",
                     "topic": "finance",
                     "formula": "A = P(1 + r/n)^(nt)",
-                    "time_years": time
-                }
+                    "time_years": time,
+                },
             }
         ]
     }
@@ -370,7 +381,7 @@ async def convert_units(
     from_unit: str,
     to_unit: str,
     unit_type: str,
-    ctx: Context = None  # type: ignore[assignment]
+    ctx: Context = None,  # type: ignore[assignment]
 ) -> dict[str, Any]:
     """Convert between different units of measurement.
 
@@ -386,12 +397,21 @@ async def convert_units(
     # Conversion tables (to base units)
     conversions = {
         "length": {  # to millimeters
-            "mm": 1, "cm": 10, "m": 1000, "km": 1000000,
-            "in": 25.4, "ft": 304.8, "yd": 914.4, "mi": 1609344
+            "mm": 1,
+            "cm": 10,
+            "m": 1000,
+            "km": 1000000,
+            "in": 25.4,
+            "ft": 304.8,
+            "yd": 914.4,
+            "mi": 1609344,
         },
         "weight": {  # to grams
-            "g": 1, "kg": 1000, "oz": 28.35, "lb": 453.59
-        }
+            "g": 1,
+            "kg": 1000,
+            "oz": 28.35,
+            "lb": 453.59,
+        },
     }
 
     if unit_type == "temperature":
@@ -399,7 +419,9 @@ async def convert_units(
     else:
         conversion_table = conversions.get(unit_type)
         if not conversion_table:
-            raise ValueError(f"Unknown unit type '{unit_type}'. Available: length, weight, temperature")
+            raise ValueError(
+                f"Unknown unit type '{unit_type}'. Available: length, weight, temperature"
+            )
 
         from_factor = conversion_table.get(from_unit.lower())
         to_factor = conversion_table.get(to_unit.lower())
@@ -423,8 +445,8 @@ async def convert_units(
                     "topic": "unit_conversion",
                     "conversion_type": unit_type,
                     "from_unit": from_unit,
-                    "to_unit": to_unit
-                }
+                    "to_unit": to_unit,
+                },
             }
         ]
     }
@@ -434,14 +456,11 @@ async def convert_units(
     annotations={
         "title": "Save Calculation to Workspace",
         "readOnlyHint": False,
-        "openWorldHint": False
+        "openWorldHint": False,
     }
 )
 async def save_calculation(
-    name: str,
-    expression: str,
-    result: float,
-    ctx: Context
+    name: str, expression: str, result: float, ctx: Context
 ) -> dict[str, Any]:
     """Save calculation to persistent workspace (survives restarts).
 
@@ -460,8 +479,10 @@ async def save_calculation(
     if not name.strip():
         raise ValueError("Variable name cannot be empty")
 
-    if not name.replace('_', '').replace('-', '').isalnum():
-        raise ValueError("Variable name must contain only letters, numbers, underscores, and hyphens")
+    if not name.replace("_", "").replace("-", "").isalnum():
+        raise ValueError(
+            "Variable name must contain only letters, numbers, underscores, and hyphens"
+        )
 
     # Get educational metadata from expression classification
     difficulty = _classify_expression_difficulty(expression)
@@ -470,11 +491,12 @@ async def save_calculation(
     metadata = {
         "difficulty": difficulty,
         "topic": topic,
-        "session_id": id(ctx.request_context.lifespan_context)
+        "session_id": id(ctx.request_context.lifespan_context),
     }
 
     # Save to persistent workspace
     from math_mcp.persistence.workspace import _workspace_manager
+
     result_data = _workspace_manager.save_variable(name, expression, result, metadata)
 
     # Also add to session history
@@ -483,7 +505,7 @@ async def save_calculation(
         "name": name,
         "expression": expression,
         "result": result,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
     ctx.request_context.lifespan_context.calculation_history.append(history_entry)
 
@@ -497,18 +519,15 @@ async def save_calculation(
                     "variable_name": name,
                     "is_new": result_data.get("is_new", True),
                     "total_variables": result_data.get("total_variables", 0),
-                    **metadata
-                }
+                    **metadata,
+                },
             }
         ]
     }
 
 
 @mcp.tool()
-async def load_variable(
-    name: str,
-    ctx: Context
-) -> dict[str, Any]:
+async def load_variable(name: str, ctx: Context) -> dict[str, Any]:
     """Load previously saved calculation result from workspace.
 
     Args:
@@ -521,6 +540,7 @@ async def load_variable(
     # FastMCP 2.0 Context logging
     await ctx.info(f"Loading variable '{name}'")
     from math_mcp.persistence.workspace import _workspace_manager
+
     result_data = _workspace_manager.load_variable(name)
 
     if not result_data["success"]:
@@ -537,8 +557,8 @@ async def load_variable(
                     "annotations": {
                         "action": "load_variable_error",
                         "requested_name": name,
-                        "available_count": len(available)
-                    }
+                        "available_count": len(available),
+                    },
                 }
             ]
         }
@@ -549,7 +569,7 @@ async def load_variable(
         "name": name,
         "expression": result_data["expression"],
         "result": result_data["result"],
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
     ctx.request_context.lifespan_context.calculation_history.append(history_entry)
 
@@ -562,25 +582,16 @@ async def load_variable(
                     "action": "load_variable",
                     "variable_name": name,
                     "original_timestamp": result_data["timestamp"],
-                    **result_data.get("metadata", {})
-                }
+                    **result_data.get("metadata", {}),
+                },
             }
         ]
     }
 
 
-@mcp.tool(
-    annotations={
-        "title": "Function Plotter",
-        "readOnlyHint": False,
-        "openWorldHint": False
-    }
-)
+@mcp.tool(annotations={"title": "Function Plotter", "readOnlyHint": False, "openWorldHint": False})
 async def plot_function(
-    expression: str,
-    x_range: tuple[float, float],
-    num_points: int = 100,
-    ctx: Context | None = None
+    expression: str, x_range: tuple[float, float], num_points: int = 100, ctx: Context | None = None
 ) -> dict[str, Any]:
     """Generate mathematical function plots (requires matplotlib).
 
@@ -600,21 +611,24 @@ async def plot_function(
     # Try importing optional dependencies
     try:
         import matplotlib
-        matplotlib.use('Agg')  # Non-interactive backend
+
+        matplotlib.use("Agg")  # Non-interactive backend
         import matplotlib.pyplot as plt
         import numpy as np
     except ImportError:
         return {
-            "content": [{
-                "type": "text",
-                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                "annotations": {
-                    "error": "missing_dependency",
-                    "install_command": "pip install math-mcp-learning-server[plotting]",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+                    "annotations": {
+                        "error": "missing_dependency",
+                        "install_command": "pip install math-mcp-learning-server[plotting]",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
     # FastMCP 2.0 Context logging
@@ -636,91 +650,90 @@ async def plot_function(
         y_values = []
         for x in x_values:
             # Replace x in expression with actual value
-            expr_with_value = expression.replace('x', f'({x})')
+            expr_with_value = expression.replace("x", f"({x})")
             try:
                 y = safe_eval_expression(expr_with_value)
                 y_values.append(y)
             except ValueError:
                 # Handle domain errors (like sqrt of negative)
-                y_values.append(float('nan'))
+                y_values.append(float("nan"))
 
         # Create figure and plot
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(x_values, y_values, linewidth=2, color='#2E86AB')
-        ax.set_xlabel('x', fontsize=12)
-        ax.set_ylabel('f(x)', fontsize=12)
-        ax.set_title(f'Plot of f(x) = {expression}', fontsize=14, fontweight='bold')
+        ax.plot(x_values, y_values, linewidth=2, color="#2E86AB")
+        ax.set_xlabel("x", fontsize=12)
+        ax.set_ylabel("f(x)", fontsize=12)
+        ax.set_title(f"Plot of f(x) = {expression}", fontsize=14, fontweight="bold")
         ax.grid(True, alpha=0.3)
-        ax.axhline(y=0, color='k', linewidth=0.5)
-        ax.axvline(x=0, color='k', linewidth=0.5)
+        ax.axhline(y=0, color="k", linewidth=0.5)
+        ax.axvline(x=0, color="k", linewidth=0.5)
 
         # Save to base64
-        from io import BytesIO
         import base64
+        from io import BytesIO
 
         buffer = BytesIO()
-        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        plt.savefig(buffer, format="png", dpi=100, bbox_inches="tight")
         plt.close(fig)
         buffer.seek(0)
-        image_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+        image_base64 = base64.b64encode(buffer.read()).decode("utf-8")
 
         # Classify difficulty
         difficulty = _classify_expression_difficulty(expression)
 
         return {
-            "content": [{
-                "type": "image",
-                "data": image_base64,
-                "mimeType": "image/png",
-                "annotations": {
-                    "difficulty": difficulty,
-                    "topic": "visualization",
-                    "expression": expression,
-                    "x_range": f"[{x_min}, {x_max}]",
-                    "num_points": num_points,
-                    "educational_note": "Function plotting visualizes mathematical relationships"
+            "content": [
+                {
+                    "type": "image",
+                    "data": image_base64,
+                    "mimeType": "image/png",
+                    "annotations": {
+                        "difficulty": difficulty,
+                        "topic": "visualization",
+                        "expression": expression,
+                        "x_range": f"[{x_min}, {x_max}]",
+                        "num_points": num_points,
+                        "educational_note": "Function plotting visualizes mathematical relationships",
+                    },
                 }
-            }]
+            ]
         }
 
     except ValueError as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Plot Error:** {str(e)}\n\nPlease check your expression and x_range values.",
-                "annotations": {
-                    "error": "plot_error",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Plot Error:** {str(e)}\n\nPlease check your expression and x_range values.",
+                    "annotations": {
+                        "error": "plot_error",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
     except Exception as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Unexpected Error:** {str(e)}",
-                "annotations": {
-                    "error": "unexpected_error",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
 
 @mcp.tool(
-    annotations={
-        "title": "Statistical Histogram",
-        "readOnlyHint": False,
-        "openWorldHint": False
-    }
+    annotations={"title": "Statistical Histogram", "readOnlyHint": False, "openWorldHint": False}
 )
 async def create_histogram(
-    data: list[float],
-    bins: int = 20,
-    title: str = "Data Distribution",
-    ctx: Context | None = None
+    data: list[float], bins: int = 20, title: str = "Data Distribution", ctx: Context | None = None
 ) -> dict[str, Any]:
     """Create statistical histograms (requires matplotlib).
 
@@ -739,21 +752,24 @@ async def create_histogram(
     # Try importing optional dependencies
     try:
         import matplotlib
-        matplotlib.use('Agg')  # Non-interactive backend
+
+        matplotlib.use("Agg")  # Non-interactive backend
         import matplotlib.pyplot as plt
         import numpy  # noqa: F401 - imported for side effects, required by matplotlib
     except ImportError:
         return {
-            "content": [{
-                "type": "text",
-                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                "annotations": {
-                    "error": "missing_dependency",
-                    "install_command": "pip install math-mcp-learning-server[plotting]",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+                    "annotations": {
+                        "error": "missing_dependency",
+                        "install_command": "pip install math-mcp-learning-server[plotting]",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
     # FastMCP 2.0 Context logging
@@ -771,85 +787,96 @@ async def create_histogram(
 
         # Calculate statistics
         import statistics as stats
+
         mean_val = stats.mean(data)
         median_val = stats.median(data)
         std_dev = stats.stdev(data) if len(data) > 1 else 0
 
         # Create histogram
         fig, ax = plt.subplots(figsize=(10, 6))
-        n, bins_edges, patches = ax.hist(data, bins=bins, color='#A23B72', alpha=0.7, edgecolor='black')
+        n, bins_edges, patches = ax.hist(
+            data, bins=bins, color="#A23B72", alpha=0.7, edgecolor="black"
+        )
 
         # Add vertical lines for mean and median
-        ax.axvline(mean_val, color='#F18F01', linestyle='--', linewidth=2, label=f'Mean: {mean_val:.2f}')
-        ax.axvline(median_val, color='#C73E1D', linestyle='-.', linewidth=2, label=f'Median: {median_val:.2f}')
+        ax.axvline(
+            mean_val, color="#F18F01", linestyle="--", linewidth=2, label=f"Mean: {mean_val:.2f}"
+        )
+        ax.axvline(
+            median_val,
+            color="#C73E1D",
+            linestyle="-.",
+            linewidth=2,
+            label=f"Median: {median_val:.2f}",
+        )
 
-        ax.set_xlabel('Value', fontsize=12)
-        ax.set_ylabel('Frequency', fontsize=12)
-        ax.set_title(title, fontsize=14, fontweight='bold')
+        ax.set_xlabel("Value", fontsize=12)
+        ax.set_ylabel("Frequency", fontsize=12)
+        ax.set_title(title, fontsize=14, fontweight="bold")
         ax.legend()
-        ax.grid(True, alpha=0.3, axis='y')
+        ax.grid(True, alpha=0.3, axis="y")
 
         # Save to base64
-        from io import BytesIO
         import base64
+        from io import BytesIO
 
         buffer = BytesIO()
-        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        plt.savefig(buffer, format="png", dpi=100, bbox_inches="tight")
         plt.close(fig)
         buffer.seek(0)
-        image_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+        image_base64 = base64.b64encode(buffer.read()).decode("utf-8")
 
         return {
-            "content": [{
-                "type": "image",
-                "data": image_base64,
-                "mimeType": "image/png",
-                "annotations": {
-                    "difficulty": "intermediate",
-                    "topic": "statistics",
-                    "data_points": len(data),
-                    "bins": bins,
-                    "mean": round(mean_val, 4),
-                    "median": round(median_val, 4),
-                    "std_dev": round(std_dev, 4),
-                    "educational_note": "Histograms show the distribution and frequency of data values"
+            "content": [
+                {
+                    "type": "image",
+                    "data": image_base64,
+                    "mimeType": "image/png",
+                    "annotations": {
+                        "difficulty": "intermediate",
+                        "topic": "statistics",
+                        "data_points": len(data),
+                        "bins": bins,
+                        "mean": round(mean_val, 4),
+                        "median": round(median_val, 4),
+                        "std_dev": round(std_dev, 4),
+                        "educational_note": "Histograms show the distribution and frequency of data values",
+                    },
                 }
-            }]
+            ]
         }
 
     except ValueError as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Histogram Error:** {str(e)}\n\nPlease check your data and parameters.",
-                "annotations": {
-                    "error": "histogram_error",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Histogram Error:** {str(e)}\n\nPlease check your data and parameters.",
+                    "annotations": {
+                        "error": "histogram_error",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
     except Exception as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Unexpected Error:** {str(e)}",
-                "annotations": {
-                    "error": "unexpected_error",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
 
-@mcp.tool(
-    annotations={
-        "title": "Line Chart",
-        "readOnlyHint": False,
-        "openWorldHint": False
-    }
-)
+@mcp.tool(annotations={"title": "Line Chart", "readOnlyHint": False, "openWorldHint": False})
 async def plot_line_chart(
     x_data: list[float],
     y_data: list[float],
@@ -858,7 +885,7 @@ async def plot_line_chart(
     y_label: str = "Y",
     color: str | None = None,
     show_grid: bool = True,
-    ctx: Context | None = None
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create a line chart from data points (requires matplotlib).
 
@@ -883,16 +910,18 @@ async def plot_line_chart(
         import matplotlib  # noqa: F401 - Check if available
     except ImportError:
         return {
-            "content": [{
-                "type": "text",
-                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                "annotations": {
-                    "error": "missing_dependency",
-                    "install_command": "pip install math-mcp-learning-server[plotting]",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+                    "annotations": {
+                        "error": "missing_dependency",
+                        "install_command": "pip install math-mcp-learning-server[plotting]",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
     if ctx:
@@ -906,57 +935,57 @@ async def plot_line_chart(
             x_label=x_label,
             y_label=y_label,
             color=color,
-            show_grid=show_grid
-        ).decode('utf-8')
+            show_grid=show_grid,
+        ).decode("utf-8")
 
         return {
-            "content": [{
-                "type": "image",
-                "data": image_base64,
-                "mimeType": "image/png",
-                "annotations": {
-                    "difficulty": "intermediate",
-                    "topic": "visualization",
-                    "chart_type": "line",
-                    "data_points": len(x_data),
-                    "educational_note": "Line charts show trends and relationships between continuous data points"
+            "content": [
+                {
+                    "type": "image",
+                    "data": image_base64,
+                    "mimeType": "image/png",
+                    "annotations": {
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                        "chart_type": "line",
+                        "data_points": len(x_data),
+                        "educational_note": "Line charts show trends and relationships between continuous data points",
+                    },
                 }
-            }]
+            ]
         }
 
     except ValueError as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Line Chart Error:** {str(e)}\n\nPlease check that x_data and y_data have the same length and contain at least 2 points.",
-                "annotations": {
-                    "error": "line_chart_error",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Line Chart Error:** {str(e)}\n\nPlease check that x_data and y_data have the same length and contain at least 2 points.",
+                    "annotations": {
+                        "error": "line_chart_error",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
     except Exception as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Unexpected Error:** {str(e)}",
-                "annotations": {
-                    "error": "unexpected_error",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
 
-@mcp.tool(
-    annotations={
-        "title": "Scatter Plot",
-        "readOnlyHint": False,
-        "openWorldHint": False
-    }
-)
+@mcp.tool(annotations={"title": "Scatter Plot", "readOnlyHint": False, "openWorldHint": False})
 async def plot_scatter_chart(
     x_data: list[float],
     y_data: list[float],
@@ -965,7 +994,7 @@ async def plot_scatter_chart(
     y_label: str = "Y",
     color: str | None = None,
     point_size: int = 50,
-    ctx: Context | None = None
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create a scatter plot from data points (requires matplotlib).
 
@@ -990,16 +1019,18 @@ async def plot_scatter_chart(
         import matplotlib  # noqa: F401 - Check if available
     except ImportError:
         return {
-            "content": [{
-                "type": "text",
-                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                "annotations": {
-                    "error": "missing_dependency",
-                    "install_command": "pip install math-mcp-learning-server[plotting]",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+                    "annotations": {
+                        "error": "missing_dependency",
+                        "install_command": "pip install math-mcp-learning-server[plotting]",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
     if ctx:
@@ -1013,64 +1044,64 @@ async def plot_scatter_chart(
             x_label=x_label,
             y_label=y_label,
             color=color,
-            point_size=point_size
-        ).decode('utf-8')
+            point_size=point_size,
+        ).decode("utf-8")
 
         return {
-            "content": [{
-                "type": "image",
-                "data": image_base64,
-                "mimeType": "image/png",
-                "annotations": {
-                    "difficulty": "intermediate",
-                    "topic": "visualization",
-                    "chart_type": "scatter",
-                    "data_points": len(x_data),
-                    "educational_note": "Scatter plots reveal correlations and patterns in paired data"
+            "content": [
+                {
+                    "type": "image",
+                    "data": image_base64,
+                    "mimeType": "image/png",
+                    "annotations": {
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                        "chart_type": "scatter",
+                        "data_points": len(x_data),
+                        "educational_note": "Scatter plots reveal correlations and patterns in paired data",
+                    },
                 }
-            }]
+            ]
         }
 
     except ValueError as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Scatter Plot Error:** {str(e)}\n\nPlease check that x_data and y_data have the same length.",
-                "annotations": {
-                    "error": "scatter_plot_error",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Scatter Plot Error:** {str(e)}\n\nPlease check that x_data and y_data have the same length.",
+                    "annotations": {
+                        "error": "scatter_plot_error",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
     except Exception as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Unexpected Error:** {str(e)}",
-                "annotations": {
-                    "error": "unexpected_error",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
 
-@mcp.tool(
-    annotations={
-        "title": "Box Plot",
-        "readOnlyHint": False,
-        "openWorldHint": False
-    }
-)
+@mcp.tool(annotations={"title": "Box Plot", "readOnlyHint": False, "openWorldHint": False})
 async def plot_box_plot(
     data_groups: list[list[float]],
     group_labels: list[str] | None = None,
     title: str = "Box Plot",
     y_label: str = "Values",
     color: str | None = None,
-    ctx: Context | None = None
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create a box plot for comparing distributions (requires matplotlib).
 
@@ -1093,16 +1124,18 @@ async def plot_box_plot(
         import matplotlib  # noqa: F401 - Check if available
     except ImportError:
         return {
-            "content": [{
-                "type": "text",
-                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                "annotations": {
-                    "error": "missing_dependency",
-                    "install_command": "pip install math-mcp-learning-server[plotting]",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+                    "annotations": {
+                        "error": "missing_dependency",
+                        "install_command": "pip install math-mcp-learning-server[plotting]",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
     if ctx:
@@ -1114,63 +1147,65 @@ async def plot_box_plot(
             group_labels=group_labels,
             title=title,
             y_label=y_label,
-            color=color
-        ).decode('utf-8')
+            color=color,
+        ).decode("utf-8")
 
         return {
-            "content": [{
-                "type": "image",
-                "data": image_base64,
-                "mimeType": "image/png",
-                "annotations": {
-                    "difficulty": "advanced",
-                    "topic": "statistics",
-                    "chart_type": "box_plot",
-                    "groups": len(data_groups),
-                    "educational_note": "Box plots display distribution quartiles, median, and outliers for comparison"
+            "content": [
+                {
+                    "type": "image",
+                    "data": image_base64,
+                    "mimeType": "image/png",
+                    "annotations": {
+                        "difficulty": "advanced",
+                        "topic": "statistics",
+                        "chart_type": "box_plot",
+                        "groups": len(data_groups),
+                        "educational_note": "Box plots display distribution quartiles, median, and outliers for comparison",
+                    },
                 }
-            }]
+            ]
         }
 
     except ValueError as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Box Plot Error:** {str(e)}\n\nPlease check that data_groups is not empty and all groups contain at least one value.",
-                "annotations": {
-                    "error": "box_plot_error",
-                    "difficulty": "advanced",
-                    "topic": "statistics"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Box Plot Error:** {str(e)}\n\nPlease check that data_groups is not empty and all groups contain at least one value.",
+                    "annotations": {
+                        "error": "box_plot_error",
+                        "difficulty": "advanced",
+                        "topic": "statistics",
+                    },
                 }
-            }]
+            ]
         }
     except Exception as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Unexpected Error:** {str(e)}",
-                "annotations": {
-                    "error": "unexpected_error",
-                    "difficulty": "advanced",
-                    "topic": "statistics"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "advanced",
+                        "topic": "statistics",
+                    },
                 }
-            }]
+            ]
         }
 
 
 @mcp.tool(
-    annotations={
-        "title": "Financial Line Chart",
-        "readOnlyHint": False,
-        "openWorldHint": False
-    }
+    annotations={"title": "Financial Line Chart", "readOnlyHint": False, "openWorldHint": False}
 )
 async def plot_financial_line(
     days: int = 30,
     trend: str = "bullish",
     start_price: float = 100.0,
     color: str | None = None,
-    ctx: Context | None = None
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Generate and plot synthetic financial price data (requires matplotlib).
 
@@ -1195,16 +1230,18 @@ async def plot_financial_line(
         import matplotlib  # noqa: F401 - Check if available
     except ImportError:
         return {
-            "content": [{
-                "type": "text",
-                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                "annotations": {
-                    "error": "missing_dependency",
-                    "install_command": "pip install math-mcp-learning-server[plotting]",
-                    "difficulty": "intermediate",
-                    "topic": "visualization"
+            "content": [
+                {
+                    "type": "text",
+                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+                    "annotations": {
+                        "error": "missing_dependency",
+                        "install_command": "pip install math-mcp-learning-server[plotting]",
+                        "difficulty": "intermediate",
+                        "topic": "visualization",
+                    },
                 }
-            }]
+            ]
         }
 
     if ctx:
@@ -1219,7 +1256,7 @@ async def plot_financial_line(
         dates, prices = visualization.generate_synthetic_price_data(
             days=days,
             trend=trend,  # type: ignore
-            start_price=start_price
+            start_price=start_price,
         )
 
         # Create financial chart
@@ -1228,61 +1265,69 @@ async def plot_financial_line(
             prices=prices,
             title=f"Synthetic {trend.capitalize()} Price Movement ({days} days)",
             y_label="Price ($)",
-            color=color
-        ).decode('utf-8')
+            color=color,
+        ).decode("utf-8")
 
         # Calculate statistics
         import statistics as stats
+
         price_change = ((prices[-1] - prices[0]) / prices[0]) * 100
         volatility = stats.stdev(prices) if len(prices) > 1 else 0
 
         return {
-            "content": [{
-                "type": "image",
-                "data": image_base64,
-                "mimeType": "image/png",
-                "annotations": {
-                    "difficulty": "advanced",
-                    "topic": "financial_analysis",
-                    "chart_type": "financial_line",
-                    "days": days,
-                    "trend": trend,
-                    "start_price": round(start_price, 2),
-                    "end_price": round(prices[-1], 2),
-                    "price_change_percent": round(price_change, 2),
-                    "volatility": round(volatility, 2),
-                    "educational_note": "Synthetic data generated for educational purposes only - not real market data"
+            "content": [
+                {
+                    "type": "image",
+                    "data": image_base64,
+                    "mimeType": "image/png",
+                    "annotations": {
+                        "difficulty": "advanced",
+                        "topic": "financial_analysis",
+                        "chart_type": "financial_line",
+                        "days": days,
+                        "trend": trend,
+                        "start_price": round(start_price, 2),
+                        "end_price": round(prices[-1], 2),
+                        "price_change_percent": round(price_change, 2),
+                        "volatility": round(volatility, 2),
+                        "educational_note": "Synthetic data generated for educational purposes only - not real market data",
+                    },
                 }
-            }]
+            ]
         }
 
     except ValueError as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Financial Chart Error:** {str(e)}\n\nPlease check your parameters (days >= 2, valid trend, positive start_price).",
-                "annotations": {
-                    "error": "financial_chart_error",
-                    "difficulty": "advanced",
-                    "topic": "financial_analysis"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Financial Chart Error:** {str(e)}\n\nPlease check your parameters (days >= 2, valid trend, positive start_price).",
+                    "annotations": {
+                        "error": "financial_chart_error",
+                        "difficulty": "advanced",
+                        "topic": "financial_analysis",
+                    },
                 }
-            }]
+            ]
         }
     except Exception as e:
         return {
-            "content": [{
-                "type": "text",
-                "text": f"**Unexpected Error:** {str(e)}",
-                "annotations": {
-                    "error": "unexpected_error",
-                    "difficulty": "advanced",
-                    "topic": "financial_analysis"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "advanced",
+                        "topic": "financial_analysis",
+                    },
                 }
-            }]
+            ]
         }
 
 
 # === RESOURCES: DATA EXPOSURE ===
+
 
 @mcp.resource("math://test")
 async def simple_test(ctx: Context) -> str:
@@ -1290,12 +1335,9 @@ async def simple_test(ctx: Context) -> str:
     await ctx.info("Accessing test resource")
     return "Test resource working successfully!"
 
+
 @mcp.resource(
-    "math://constants/{constant}",
-    annotations={
-        "readOnlyHint": True,
-        "idempotentHint": True
-    }
+    "math://constants/{constant}", annotations={"readOnlyHint": True, "idempotentHint": True}
 )
 def get_math_constant(constant: str) -> str:
     """Get mathematical constants like pi, e, golden ratio, etc."""
@@ -1305,7 +1347,7 @@ def get_math_constant(constant: str) -> str:
         "golden_ratio": {"value": (1 + math.sqrt(5)) / 2, "description": "Golden ratio φ"},
         "euler_gamma": {"value": 0.5772156649015329, "description": "Euler-Mascheroni constant γ"},
         "sqrt2": {"value": math.sqrt(2), "description": "Square root of 2"},
-        "sqrt3": {"value": math.sqrt(3), "description": "Square root of 3"}
+        "sqrt3": {"value": math.sqrt(3), "description": "Square root of 3"},
     }
 
     if constant not in constants:
@@ -1382,13 +1424,7 @@ async def get_calculation_history(ctx: Context) -> str:
     return history_text
 
 
-@mcp.resource(
-    "math://workspace",
-    annotations={
-        "readOnlyHint": True,
-        "idempotentHint": False
-    }
-)
+@mcp.resource("math://workspace", annotations={"readOnlyHint": True, "idempotentHint": False})
 async def get_workspace(ctx: Context) -> str:
     """Get persistent calculation workspace showing all saved variables.
 
@@ -1398,17 +1434,15 @@ async def get_workspace(ctx: Context) -> str:
     """
     await ctx.info("Accessing persistent workspace")
     from math_mcp.persistence.workspace import _workspace_manager
+
     return _workspace_manager.get_workspace_summary()
 
 
 # === PROMPTS: INTERACTION TEMPLATES ===
 
+
 @mcp.prompt()
-def math_tutor(
-    topic: str,
-    level: str = "intermediate",
-    include_examples: bool = True
-) -> str:
+def math_tutor(topic: str, level: str = "intermediate", include_examples: bool = True) -> str:
     """Generate a math tutoring prompt for explaining concepts.
 
     Args:
@@ -1435,10 +1469,7 @@ Make your explanation engaging and accessible for a {level} learner. Use analogi
 
 
 @mcp.prompt()
-def formula_explainer(
-    formula: str,
-    context: str = "general mathematics"
-) -> str:
+def formula_explainer(formula: str, context: str = "general mathematics") -> str:
     """Generate a prompt for explaining mathematical formulas in detail.
 
     Args:
@@ -1463,10 +1494,11 @@ Make your explanation clear and educational, suitable for someone learning about
 
 # === MAIN ENTRY POINT ===
 
+
 def main() -> None:
     """Main entry point supporting multiple transports."""
     import sys
-    from typing import cast, Literal
+    from typing import Literal, cast
 
     # Parse command line arguments for transport type
     transport: Literal["stdio", "sse", "streamable-http"] = "stdio"  # default

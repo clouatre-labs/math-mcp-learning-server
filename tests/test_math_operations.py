@@ -4,18 +4,19 @@ Test cases for the FastMCP Math Server
 """
 
 import pytest
-from math_mcp.server import (
-    safe_eval_expression,
-    convert_temperature,
-    calculate,
-    statistics as stats_tool,
-    compound_interest,
-    convert_units,
-    get_math_constant
-)
 
+from math_mcp.server import (
+    calculate,
+    compound_interest,
+    convert_temperature,
+    convert_units,
+    get_math_constant,
+    safe_eval_expression,
+)
+from math_mcp.server import statistics as stats_tool
 
 # === SECURITY TESTS ===
+
 
 def test_safe_eval_basic_operations():
     """Test basic arithmetic operations."""
@@ -54,6 +55,7 @@ def test_safe_eval_invalid_expressions():
 
 # === TEMPERATURE CONVERSION TESTS ===
 
+
 def test_temperature_conversions():
     """Test temperature conversion functions."""
     # Celsius to Fahrenheit
@@ -70,9 +72,11 @@ def test_temperature_conversions():
 
 # === FASTMCP TOOL TESTS ===
 
+
 @pytest.mark.asyncio
 async def test_calculate_tool():
     """Test the calculate tool returns structured output with annotations."""
+
     # Mock context for calculation history
     class MockLifespanContext:
         def __init__(self):
@@ -108,6 +112,7 @@ async def test_calculate_tool():
 @pytest.mark.asyncio
 async def test_statistics_tool():
     """Test the statistics tool with various operations."""
+
     # Mock context
     class MockContext:
         def __init__(self):
@@ -147,6 +152,7 @@ async def test_statistics_tool():
 @pytest.mark.asyncio
 async def test_compound_interest_tool():
     """Test compound interest calculations."""
+
     # Mock context
     class MockContext:
         def __init__(self):
@@ -179,6 +185,7 @@ async def test_compound_interest_tool():
 @pytest.mark.asyncio
 async def test_convert_units_tool():
     """Test unit conversion tool."""
+
     # Mock context
     class MockContext:
         def __init__(self):
@@ -213,6 +220,7 @@ async def test_convert_units_tool():
 
 # === RESOURCE TESTS ===
 
+
 def test_math_constants_resource():
     """Test math constants resource."""
     # Test known constant
@@ -228,6 +236,7 @@ def test_math_constants_resource():
 
 
 # === INTEGRATION TESTS ===
+
 
 def test_calculation_with_math_functions():
     """Test calculations that use various math functions."""
@@ -262,6 +271,7 @@ def test_complex_calculations():
 @pytest.mark.asyncio
 async def test_statistical_edge_cases():
     """Test statistical functions with edge cases."""
+
     # Mock context
     class MockContext:
         def __init__(self):
@@ -289,6 +299,7 @@ async def test_statistical_edge_cases():
 @pytest.mark.asyncio
 async def test_unit_conversion_edge_cases():
     """Test unit conversions with various edge cases."""
+
     # Mock context
     class MockContext:
         def __init__(self):

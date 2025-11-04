@@ -10,8 +10,8 @@ from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Literal
 
-
 # === INTERNAL HELPERS ===
+
 
 def _setup_matplotlib():
     """Lazy import and configure matplotlib with non-interactive backend.
@@ -21,9 +21,11 @@ def _setup_matplotlib():
     """
     try:
         import matplotlib
-        matplotlib.use('Agg')  # Non-interactive backend
+
+        matplotlib.use("Agg")  # Non-interactive backend
         import matplotlib.pyplot as plt
         import numpy as np
+
         return matplotlib, plt, np
     except ImportError as e:
         raise ImportError(
@@ -44,10 +46,10 @@ def _encode_figure_to_base64(fig) -> str:
     """
     _, plt, _ = _setup_matplotlib()
     buffer = BytesIO()
-    plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+    plt.savefig(buffer, format="png", dpi=100, bbox_inches="tight")
     plt.close(fig)
     buffer.seek(0)
-    return base64.b64encode(buffer.read()).decode('utf-8')
+    return base64.b64encode(buffer.read()).decode("utf-8")
 
 
 def _validate_color_scheme(color: str | None) -> str:
@@ -60,31 +62,32 @@ def _validate_color_scheme(color: str | None) -> str:
         Valid hex color code
     """
     default_colors = {
-        'blue': '#2E86AB',
-        'red': '#C73E1D',
-        'green': '#06A77D',
-        'purple': '#A23B72',
-        'orange': '#F18F01',
-        'teal': '#4A90A4',
-        'pink': '#D81159',
+        "blue": "#2E86AB",
+        "red": "#C73E1D",
+        "green": "#06A77D",
+        "purple": "#A23B72",
+        "orange": "#F18F01",
+        "teal": "#4A90A4",
+        "pink": "#D81159",
     }
 
     if color is None:
-        return '#2E86AB'
+        return "#2E86AB"
 
     # Check if it's a named color
     if color.lower() in default_colors:
         return default_colors[color.lower()]
 
     # Check if it's already a hex code
-    if color.startswith('#') and len(color) == 7:
+    if color.startswith("#") and len(color) == 7:
         return color
 
     # Default fallback
-    return '#2E86AB'
+    return "#2E86AB"
 
 
 # === CHART GENERATORS ===
+
 
 def create_line_chart(
     x_data: list[float],
@@ -93,7 +96,7 @@ def create_line_chart(
     x_label: str = "X",
     y_label: str = "Y",
     color: str | None = None,
-    show_grid: bool = True
+    show_grid: bool = True,
 ) -> bytes:
     """Create a line chart from data points.
 
@@ -122,15 +125,15 @@ def create_line_chart(
     color_hex = _validate_color_scheme(color)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(x_data, y_data, linewidth=2, color=color_hex, marker='o', markersize=6)
+    ax.plot(x_data, y_data, linewidth=2, color=color_hex, marker="o", markersize=6)
     ax.set_xlabel(x_label, fontsize=12)
     ax.set_ylabel(y_label, fontsize=12)
-    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.set_title(title, fontsize=14, fontweight="bold")
 
     if show_grid:
         ax.grid(True, alpha=0.3)
 
-    return _encode_figure_to_base64(fig).encode('utf-8')
+    return _encode_figure_to_base64(fig).encode("utf-8")
 
 
 def create_scatter_plot(
@@ -140,7 +143,7 @@ def create_scatter_plot(
     x_label: str = "X",
     y_label: str = "Y",
     color: str | None = None,
-    point_size: int = 50
+    point_size: int = 50,
 ) -> bytes:
     """Create a scatter plot from data points.
 
@@ -169,13 +172,13 @@ def create_scatter_plot(
     color_hex = _validate_color_scheme(color)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.scatter(x_data, y_data, s=point_size, color=color_hex, alpha=0.6, edgecolors='black')
+    ax.scatter(x_data, y_data, s=point_size, color=color_hex, alpha=0.6, edgecolors="black")
     ax.set_xlabel(x_label, fontsize=12)
     ax.set_ylabel(y_label, fontsize=12)
-    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.set_title(title, fontsize=14, fontweight="bold")
     ax.grid(True, alpha=0.3)
 
-    return _encode_figure_to_base64(fig).encode('utf-8')
+    return _encode_figure_to_base64(fig).encode("utf-8")
 
 
 def create_box_plot(
@@ -183,7 +186,7 @@ def create_box_plot(
     group_labels: list[str] | None = None,
     title: str = "Box Plot",
     y_label: str = "Values",
-    color: str | None = None
+    color: str | None = None,
 ) -> bytes:
     """Create a box plot for comparing distributions.
 
@@ -213,30 +216,31 @@ def create_box_plot(
 
     box_parts = ax.boxplot(
         data_groups,
-        tick_labels=group_labels or [f"Group {i+1}" for i in range(len(data_groups))],
+        tick_labels=group_labels or [f"Group {i + 1}" for i in range(len(data_groups))],
         patch_artist=True,
         notch=True,
-        showmeans=True
+        showmeans=True,
     )
 
     # Color the boxes
-    for patch in box_parts['boxes']:
+    for patch in box_parts["boxes"]:
         patch.set_facecolor(color_hex)
         patch.set_alpha(0.6)
 
     ax.set_ylabel(y_label, fontsize=12)
-    ax.set_title(title, fontsize=14, fontweight='bold')
-    ax.grid(True, alpha=0.3, axis='y')
+    ax.set_title(title, fontsize=14, fontweight="bold")
+    ax.grid(True, alpha=0.3, axis="y")
 
-    return _encode_figure_to_base64(fig).encode('utf-8')
+    return _encode_figure_to_base64(fig).encode("utf-8")
 
 
 # === SYNTHETIC DATA GENERATORS ===
 
+
 def generate_synthetic_price_data(
     days: int = 30,
     trend: Literal["bullish", "bearish", "volatile"] = "bullish",
-    start_price: float = 100.0
+    start_price: float = 100.0,
 ) -> tuple[list[str], list[float]]:
     """Generate realistic synthetic price data for educational purposes.
 
@@ -299,7 +303,7 @@ def create_financial_line_chart(
     prices: list[float],
     title: str = "Price Chart",
     y_label: str = "Price ($)",
-    color: str | None = None
+    color: str | None = None,
 ) -> bytes:
     """Create a financial line chart with date labels.
 
@@ -331,20 +335,22 @@ def create_financial_line_chart(
     x_indices = np.arange(len(dates))
 
     # Plot the line
-    ax.plot(x_indices, prices, linewidth=2, color=color_hex, marker='o', markersize=4)
+    ax.plot(x_indices, prices, linewidth=2, color=color_hex, marker="o", markersize=4)
 
     # Configure x-axis with date labels
     # Show every nth label to avoid crowding
     label_frequency = max(1, len(dates) // 10)
     ax.set_xticks(x_indices[::label_frequency])
-    ax.set_xticklabels(dates[::label_frequency], rotation=45, ha='right')
+    ax.set_xticklabels(dates[::label_frequency], rotation=45, ha="right")
 
     ax.set_ylabel(y_label, fontsize=12)
-    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.set_title(title, fontsize=14, fontweight="bold")
     ax.grid(True, alpha=0.3)
 
     # Add horizontal line at starting price for reference
-    ax.axhline(y=prices[0], color='gray', linestyle='--', linewidth=1, alpha=0.5, label='Starting Price')
+    ax.axhline(
+        y=prices[0], color="gray", linestyle="--", linewidth=1, alpha=0.5, label="Starting Price"
+    )
     ax.legend()
 
-    return _encode_figure_to_base64(fig).encode('utf-8')
+    return _encode_figure_to_base64(fig).encode("utf-8")

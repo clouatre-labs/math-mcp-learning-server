@@ -8,7 +8,7 @@ import json
 import logging
 import threading
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from math_mcp.persistence.models import WorkspaceData, WorkspaceVariable
 from math_mcp.persistence.storage import get_workspace_file
@@ -25,7 +25,7 @@ class WorkspaceManager:
         """Initialize workspace manager with thread safety."""
         self._lock = threading.RLock()  # Reentrant lock for nested operations
         self._workspace_file = get_workspace_file()
-        self._cache: Optional[WorkspaceData] = None
+        self._cache: WorkspaceData | None = None
 
     def _load_workspace(self) -> WorkspaceData:
         """Load workspace from disk with comprehensive error handling.
@@ -35,7 +35,7 @@ class WorkspaceManager:
         """
         try:
             if self._workspace_file.exists():
-                with open(self._workspace_file, 'r', encoding='utf-8') as f:
+                with open(self._workspace_file, encoding="utf-8") as f:
                     data = json.load(f)
                     return WorkspaceData(**data)
         except (json.JSONDecodeError, FileNotFoundError, PermissionError) as e:
@@ -48,7 +48,7 @@ class WorkspaceManager:
         return WorkspaceData(
             created=now,
             updated=now,
-            statistics={"total_calculations": 0, "session_count": 1, "last_access": now}
+            statistics={"total_calculations": 0, "session_count": 1, "last_access": now},
         )
 
     def _save_workspace(self, workspace: WorkspaceData) -> bool:
@@ -65,25 +65,21 @@ class WorkspaceManager:
             workspace.updated = datetime.now().isoformat()
 
             # Atomic write using temporary file
-            temp_file = self._workspace_file.with_suffix('.tmp')
-            with open(temp_file, 'w', encoding='utf-8') as f:
+            temp_file = self._workspace_file.with_suffix(".tmp")
+            with open(temp_file, "w", encoding="utf-8") as f:
                 json.dump(workspace.model_dump(), f, indent=2, ensure_ascii=False)
 
             # Atomic replacement - prevents corruption on crash
             temp_file.replace(self._workspace_file)
             return True
 
-        except (PermissionError, IOError, OSError) as e:
+        except (PermissionError, OSError) as e:
             logging.error(f"Failed to save workspace: {e}")
             return False
 
     def save_variable(
-        self,
-        name: str,
-        expression: str,
-        result: float,
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, name: str, expression: str, result: float, metadata: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Save a calculation variable to persistent workspace.
 
         Args:
@@ -103,7 +99,7 @@ class WorkspaceManager:
                 expression=expression,
                 result=result,
                 timestamp=datetime.now().isoformat(),
-                metadata=metadata or {}
+                metadata=metadata or {},
             )
 
             # Update workspace
@@ -120,10 +116,10 @@ class WorkspaceManager:
                 "variable_name": name,
                 "is_new": is_new,
                 "total_variables": len(workspace.variables),
-                "message": f"{'Saved' if success else 'Failed to save'} variable '{name}'"
+                "message": f"{'Saved' if success else 'Failed to save'} variable '{name}'",
             }
 
-    def load_variable(self, name: str) -> Dict[str, Any]:
+    def load_variable(self, name: str) -> dict[str, Any]:
         """Load a variable from workspace.
 
         Args:
@@ -139,7 +135,7 @@ class WorkspaceManager:
                 return {
                     "success": False,
                     "error": f"Variable '{name}' not found",
-                    "available_variables": list(workspace.variables.keys())
+                    "available_variables": list(workspace.variables.keys()),
                 }
 
             variable = workspace.variables[name]
@@ -154,7 +150,7 @@ class WorkspaceManager:
                 "expression": variable.expression,
                 "result": variable.result,
                 "timestamp": variable.timestamp,
-                "metadata": variable.metadata
+                "metadata": variable.metadata,
             }
 
     def get_workspace_summary(self) -> str:
@@ -190,7 +186,7 @@ class WorkspaceManager:
 
             return summary
 
-    def list_variables(self) -> Dict[str, Any]:
+    def list_variables(self) -> dict[str, Any]:
         """Get list of all variable names for autocomplete/suggestions.
 
         Returns:
@@ -201,7 +197,7 @@ class WorkspaceManager:
             return {
                 "variables": list(workspace.variables.keys()),
                 "count": len(workspace.variables),
-                "last_updated": workspace.updated
+                "last_updated": workspace.updated,
             }
 
 
