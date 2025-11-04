@@ -35,7 +35,7 @@ This server includes a `fastmcp.json` configuration file for seamless cloud depl
 ### Deploy to FastMCP Cloud
 
 1. **Navigate to**: [FastMCP Cloud Dashboard](https://fastmcp.cloud)
-2. **Connect GitHub Repository**: `clouatre/math-mcp-learning-server`
+2. **Connect GitHub Repository**: `clouatre-labs/math-mcp-learning-server`
 3. **Deploy**: FastMCP Cloud auto-detects `fastmcp.json` configuration
 4. **Access via MCP Client**: Connect your MCP client to `https://math-mcp-learning.fastmcp.app/mcp`
 

@@ -16,9 +16,8 @@ Built with [FastMCP 2.0](https://github.com/jlowin/fastmcp) and the official [Mo
 
 - **Claude Desktop** - Anthropic's desktop app with native MCP support
 - **Claude Code** - Command-line MCP client from Anthropic
-- **OpenCode** - Open-source MCP client
+- **Goose** - Open-source AI agent framework with MCP support
 - **Amazon Q** - AWS's AI assistant with MCP support
-- **Codex CLI** - GitHub Codex command-line interface
 - **Gemini CLI** - Google's Gemini command-line tool
 - Any other MCP-compatible client
 
