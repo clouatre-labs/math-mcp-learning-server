@@ -21,7 +21,7 @@ This project maintains a **fast & minimal** philosophy while providing education
 ### **Development Setup**
 ```bash
 # Clone the repository
-git clone https://github.com/clouatre/math-mcp-learning-server.git
+git clone https://github.com/clouatre-labs/math-mcp-learning-server.git
 cd math-mcp-learning-server
 
 # Install dependencies and activate virtual environment
@@ -266,7 +266,7 @@ Once the release is published, GitHub Actions automatically:
 3. ✅ **Publishes to PyPI** - Using Trusted Publishing (no tokens!)
 
 #### **3. Monitor Progress**
-- Watch workflow: https://github.com/clouatre/math-mcp-learning-server/actions
+- Watch workflow: https://github.com/clouatre-labs/math-mcp-learning-server/actions
 - Check PyPI: https://pypi.org/project/math-mcp-learning-server/
 
 #### **4. Verify Release**

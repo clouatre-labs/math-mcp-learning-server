@@ -156,7 +156,7 @@ This server implements **all official MCP transport modes** per the [MCP specifi
 - `plot_function`: Generate mathematical function plots (base64-encoded PNG)
 - `create_histogram`: Create statistical histograms with distribution analysis
 
-See [Usage Examples](https://github.com/clouatre/math-mcp-learning-server/blob/main/docs/EXAMPLES.md) for detailed examples of each tool.
+See [Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/EXAMPLES.md) for detailed examples of each tool.
 
 ## Available Resources
 
@@ -191,7 +191,7 @@ math-mcp-learning-server/
 
 ```bash
 # Clone the repository
-git clone https://github.com/clouatre/math-mcp-learning-server.git
+git clone https://github.com/clouatre-labs/math-mcp-learning-server.git
 cd math-mcp-learning-server
 
 # Install dependencies (includes plotting support)
@@ -218,15 +218,15 @@ uv run fastmcp dev src/math_mcp/server.py
 3. Implement tool logic with proper validation
 4. Add corresponding tests in `tests/`
 
-See [CONTRIBUTING.md](https://github.com/clouatre/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for detailed guidelines.
+See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for detailed guidelines.
 
 ## Documentation
 
-- **[Cloud Deployment Guide](https://github.com/clouatre/math-mcp-learning-server/blob/main/docs/CLOUD_DEPLOYMENT.md)**: FastMCP Cloud deployment instructions and configuration
-- **[Usage Examples](https://github.com/clouatre/math-mcp-learning-server/blob/main/docs/EXAMPLES.md)**: Practical examples for all tools and resources
-- **[Contributing Guidelines](https://github.com/clouatre/math-mcp-learning-server/blob/main/CONTRIBUTING.md)**: Development workflow, code standards, and testing procedures
-- **[Future Improvements](https://github.com/clouatre/math-mcp-learning-server/blob/main/FUTURE_IMPROVEMENTS.md)**: Roadmap and enhancement opportunities
-- **[Code of Conduct](https://github.com/clouatre/math-mcp-learning-server/blob/main/CODE_OF_CONDUCT.md)**: Community guidelines and expectations
+- **[Cloud Deployment Guide](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/CLOUD_DEPLOYMENT.md)**: FastMCP Cloud deployment instructions and configuration
+- **[Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/EXAMPLES.md)**: Practical examples for all tools and resources
+- **[Contributing Guidelines](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md)**: Development workflow, code standards, and testing procedures
+- **[Future Improvements](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/FUTURE_IMPROVEMENTS.md)**: Roadmap and enhancement opportunities
+- **[Code of Conduct](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CODE_OF_CONDUCT.md)**: Community guidelines and expectations
 
 ## Security
 
@@ -270,7 +270,7 @@ We welcome contributions! This project follows a fast and minimal philosophy whi
 5. Run quality checks: `uv run pytest && uv run mypy src/ && uv run ruff check`
 6. Submit a pull request
 
-See [CONTRIBUTING.md](https://github.com/clouatre/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for detailed guidelines including:
+See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for detailed guidelines including:
 - Development workflow and Git practices
 - Code standards and security requirements
 - Testing procedures and quality assurance
@@ -278,8 +278,8 @@ See [CONTRIBUTING.md](https://github.com/clouatre/math-mcp-learning-server/blob/
 
 ## Code of Conduct
 
-This project adheres to the [Contributor Covenant Code of Conduct](https://github.com/clouatre/math-mcp-learning-server/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to hugues+mcp-coc@linux.com.
+This project adheres to the [Contributor Covenant Code of Conduct](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to hugues+mcp-coc@linux.com.
 
 ## License
 
-[MIT License](https://github.com/clouatre/math-mcp-learning-server/blob/main/LICENSE) - Full license details available in the LICENSE file.
+[MIT License](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/LICENSE) - Full license details available in the LICENSE file.
