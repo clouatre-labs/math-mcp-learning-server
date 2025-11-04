@@ -1,6 +1,6 @@
 [project]
 name = "math-mcp-learning-server"
-version = "0.8.0"
+version = "0.8.1"
 description = "Production-ready educational MCP server with enhanced visualizations and persistent workspace - Complete learning guide demonstrating FastMCP 2.0 best practices for Model Context Protocol development"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -28,15 +28,15 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/clouatre/math-mcp-learning-server"
-Repository = "https://github.com/clouatre/math-mcp-learning-server"
-Issues = "https://github.com/clouatre/math-mcp-learning-server/issues"
-Documentation = "https://github.com/clouatre/math-mcp-learning-server#readme"
-Contributing = "https://github.com/clouatre/math-mcp-learning-server/blob/main/CONTRIBUTING.md"
-"Future Improvements" = "https://github.com/clouatre/math-mcp-learning-server/blob/main/FUTURE_IMPROVEMENTS.md"
-Changelog = "https://github.com/clouatre/math-mcp-learning-server/releases"
-"Code of Conduct" = "https://github.com/clouatre/math-mcp-learning-server/blob/main/CODE_OF_CONDUCT.md"
-License = "https://github.com/clouatre/math-mcp-learning-server/blob/main/LICENSE"
+Homepage = "https://github.com/clouatre-labs/math-mcp-learning-server"
+Repository = "https://github.com/clouatre-labs/math-mcp-learning-server"
+Issues = "https://github.com/clouatre-labs/math-mcp-learning-server/issues"
+Documentation = "https://github.com/clouatre-labs/math-mcp-learning-server#readme"
+Contributing = "https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md"
+"Future Improvements" = "https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/FUTURE_IMPROVEMENTS.md"
+Changelog = "https://github.com/clouatre-labs/math-mcp-learning-server/releases"
+"Code of Conduct" = "https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CODE_OF_CONDUCT.md"
+License = "https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/LICENSE"
 
 [project.scripts]
 math-mcp-learning-server = "math_mcp.server:main"

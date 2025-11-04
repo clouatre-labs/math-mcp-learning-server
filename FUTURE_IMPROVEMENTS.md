@@ -282,7 +282,7 @@ uv pip install math-mcp-learning-server[dev]
 uv pip install math-mcp-learning-server[plotting,dev]
 
 # Development (local):
-git clone https://github.com/clouatre/math-mcp-learning-server
+git clone https://github.com/clouatre-labs/math-mcp-learning-server
 cd math-mcp-learning-server
 uv sync --all-extras
 uv run fastmcp dev src/math_mcp/server.py

@@ -109,7 +109,7 @@ PyPI Package Index
 **Cause:** GitHub environment `pypi` not configured.
 
 **Solution:**
-- Verify environment exists: https://github.com/clouatre/math-mcp-learning-server/settings/environments
+- Verify environment exists: https://github.com/clouatre-labs/math-mcp-learning-server/settings/environments
 - Check workflow references correct environment name
 
 ## References
