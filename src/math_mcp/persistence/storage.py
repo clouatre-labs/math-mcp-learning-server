@@ -16,11 +16,11 @@ def get_workspace_dir() -> Path:
         - Windows: %LOCALAPPDATA%/math-mcp
         - macOS/Linux: ~/.math-mcp
     """
-    if os.name == 'nt':  # Windows
-        base = Path(os.environ.get('LOCALAPPDATA', Path.home() / 'AppData' / 'Local'))
-        return base / 'math-mcp'
+    if os.name == "nt":  # Windows
+        base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+        return base / "math-mcp"
     else:  # macOS and Linux (and other Unix-like systems)
-        return Path.home() / '.math-mcp'
+        return Path.home() / ".math-mcp"
 
 
 def get_workspace_file() -> Path:
@@ -33,7 +33,7 @@ def get_workspace_file() -> Path:
     """
     workspace_dir = get_workspace_dir()
     workspace_dir.mkdir(parents=True, exist_ok=True)
-    return workspace_dir / 'workspace.json'
+    return workspace_dir / "workspace.json"
 
 
 def ensure_workspace_directory() -> bool:
@@ -47,8 +47,8 @@ def ensure_workspace_directory() -> bool:
         workspace_dir.mkdir(parents=True, exist_ok=True)
 
         # Test write access
-        test_file = workspace_dir / '.write_test'
-        test_file.write_text('test')
+        test_file = workspace_dir / ".write_test"
+        test_file.write_text("test")
         test_file.unlink()
 
         return True

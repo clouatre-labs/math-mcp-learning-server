@@ -9,12 +9,13 @@ suppress unused import warnings as these imports are used for dependency checkin
 
 import pytest
 
-
 # === HELPER FIXTURES ===
+
 
 @pytest.fixture
 def mock_context():
     """Create a mock FastMCP context for testing."""
+
     class MockContext:
         def __init__(self):
             self.info_logs = []
@@ -28,6 +29,7 @@ def mock_context():
 
 # === PLOT FUNCTION TESTS ===
 
+
 @pytest.mark.asyncio
 async def test_plot_function_graceful_degradation_structure(mock_context):
     """Test plot_function has graceful degradation for missing matplotlib.
@@ -40,16 +42,18 @@ async def test_plot_function_graceful_degradation_structure(mock_context):
     # The actual graceful degradation logic is in the tool implementation
 
     expected_error_structure = {
-        "content": [{
-            "type": "text",
-            "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-            "annotations": {
-                "error": "missing_dependency",
-                "install_command": "pip install math-mcp-learning-server[plotting]",
-                "difficulty": "intermediate",
-                "topic": "visualization"
+        "content": [
+            {
+                "type": "text",
+                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+                "annotations": {
+                    "error": "missing_dependency",
+                    "install_command": "pip install math-mcp-learning-server[plotting]",
+                    "difficulty": "intermediate",
+                    "topic": "visualization",
+                },
             }
-        }]
+        ]
     }
 
     # Verify the expected structure is correct
@@ -201,6 +205,7 @@ async def test_plot_function_without_context():
 
 # === CREATE HISTOGRAM TESTS ===
 
+
 @pytest.mark.asyncio
 async def test_create_histogram_graceful_degradation_structure(mock_context):
     """Test create_histogram has graceful degradation for missing matplotlib.
@@ -213,16 +218,18 @@ async def test_create_histogram_graceful_degradation_structure(mock_context):
     # The actual graceful degradation logic is in the tool implementation
 
     expected_error_structure = {
-        "content": [{
-            "type": "text",
-            "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-            "annotations": {
-                "error": "missing_dependency",
-                "install_command": "pip install math-mcp-learning-server[plotting]",
-                "difficulty": "intermediate",
-                "topic": "visualization"
+        "content": [
+            {
+                "type": "text",
+                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+                "annotations": {
+                    "error": "missing_dependency",
+                    "install_command": "pip install math-mcp-learning-server[plotting]",
+                    "difficulty": "intermediate",
+                    "topic": "visualization",
+                },
             }
-        }]
+        ]
     }
 
     # Verify the expected structure is correct
@@ -398,6 +405,7 @@ async def test_create_histogram_without_context():
 
 # === INTEGRATION TESTS ===
 
+
 @pytest.mark.asyncio
 async def test_visualization_tools_return_proper_structure(mock_context):
     """Test that both visualization tools return properly structured output."""
@@ -407,7 +415,7 @@ async def test_visualization_tools_return_proper_structure(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_function, create_histogram
+    from math_mcp.server import create_histogram, plot_function
 
     # Test plot_function
     plot_result = await plot_function.fn("x**2", (-5.0, 5.0), 50, mock_context)
@@ -433,7 +441,7 @@ async def test_visualization_educational_annotations():
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_function, create_histogram
+    from math_mcp.server import create_histogram, plot_function
 
     # Test plot_function annotations
     plot_result = await plot_function.fn("sin(x)", (-3.14, 3.14), 100, None)
@@ -455,25 +463,29 @@ async def test_visualization_educational_annotations():
 
 # === VISUALIZATION MODULE UNIT TESTS ===
 
+
 class TestVisualizationModule:
     """Test visualization module functions directly."""
 
     def test_validate_color_scheme_named(self):
         """Test color validation with named colors."""
         from math_mcp import visualization
-        assert visualization._validate_color_scheme('blue') == '#2E86AB'
-        assert visualization._validate_color_scheme('red') == '#C73E1D'
-        assert visualization._validate_color_scheme('green') == '#06A77D'
+
+        assert visualization._validate_color_scheme("blue") == "#2E86AB"
+        assert visualization._validate_color_scheme("red") == "#C73E1D"
+        assert visualization._validate_color_scheme("green") == "#06A77D"
 
     def test_validate_color_scheme_hex(self):
         """Test color validation with hex codes."""
         from math_mcp import visualization
-        assert visualization._validate_color_scheme('#FF0000') == '#FF0000'
+
+        assert visualization._validate_color_scheme("#FF0000") == "#FF0000"
 
     def test_validate_color_scheme_default(self):
         """Test color validation returns default for None or invalid."""
         from math_mcp import visualization
-        assert visualization._validate_color_scheme(None) == '#2E86AB'
+
+        assert visualization._validate_color_scheme(None) == "#2E86AB"
 
     def test_create_line_chart_success(self):
         """Test line chart generation."""
@@ -483,10 +495,8 @@ class TestVisualizationModule:
             pytest.skip("matplotlib not available")
 
         from math_mcp import visualization
-        result = visualization.create_line_chart(
-            x_data=[1, 2, 3, 4],
-            y_data=[1, 4, 9, 16]
-        )
+
+        result = visualization.create_line_chart(x_data=[1, 2, 3, 4], y_data=[1, 4, 9, 16])
         assert isinstance(result, bytes)
         assert len(result) > 0
 
@@ -498,10 +508,8 @@ class TestVisualizationModule:
             pytest.skip("matplotlib not available")
 
         from math_mcp import visualization
-        result = visualization.create_scatter_plot(
-            x_data=[1, 2, 3],
-            y_data=[2, 4, 6]
-        )
+
+        result = visualization.create_scatter_plot(x_data=[1, 2, 3], y_data=[2, 4, 6])
         assert isinstance(result, bytes)
 
     def test_create_box_plot_success(self):
@@ -512,18 +520,16 @@ class TestVisualizationModule:
             pytest.skip("matplotlib not available")
 
         from math_mcp import visualization
-        result = visualization.create_box_plot(
-            data_groups=[[1, 2, 3], [4, 5, 6]]
-        )
+
+        result = visualization.create_box_plot(data_groups=[[1, 2, 3], [4, 5, 6]])
         assert isinstance(result, bytes)
 
     def test_generate_synthetic_price_data_bullish(self):
         """Test synthetic data generation with bullish trend."""
         from math_mcp import visualization
+
         dates, prices = visualization.generate_synthetic_price_data(
-            days=30,
-            trend='bullish',
-            start_price=100.0
+            days=30, trend="bullish", start_price=100.0
         )
         assert len(dates) == 30
         assert len(prices) == 30
@@ -537,15 +543,14 @@ class TestVisualizationModule:
             pytest.skip("matplotlib not available")
 
         from math_mcp import visualization
+
         dates, prices = visualization.generate_synthetic_price_data(days=20)
-        result = visualization.create_financial_line_chart(
-            dates=dates,
-            prices=prices
-        )
+        result = visualization.create_financial_line_chart(dates=dates, prices=prices)
         assert isinstance(result, bytes)
 
 
 # === NEW MCP TOOLS TESTS ===
+
 
 @pytest.mark.asyncio
 async def test_plot_line_chart_basic(mock_context):
@@ -561,9 +566,11 @@ async def test_plot_line_chart_basic(mock_context):
         [1.0, 2.0, 3.0, 4.0],
         [1.0, 4.0, 9.0, 16.0],
         "Test Line Chart",
-        "X", "Y",
-        None, True,
-        mock_context
+        "X",
+        "Y",
+        None,
+        True,
+        mock_context,
     )
 
     assert isinstance(result, dict)
@@ -584,12 +591,7 @@ async def test_plot_scatter_chart_basic(mock_context):
     from math_mcp.server import plot_scatter_chart
 
     result = await plot_scatter_chart.fn(
-        [1.0, 2.0, 3.0],
-        [2.0, 4.0, 6.0],
-        "Test Scatter",
-        "X", "Y",
-        "purple", 50,
-        mock_context
+        [1.0, 2.0, 3.0], [2.0, 4.0, 6.0], "Test Scatter", "X", "Y", "purple", 50, mock_context
     )
 
     assert isinstance(result, dict)
@@ -614,7 +616,7 @@ async def test_plot_box_plot_basic(mock_context):
         "Test Box Plot",
         "Values",
         None,
-        mock_context
+        mock_context,
     )
 
     assert isinstance(result, dict)
@@ -634,9 +636,7 @@ async def test_plot_financial_line_basic(mock_context):
 
     from math_mcp.server import plot_financial_line
 
-    result = await plot_financial_line.fn(
-        30, "bullish", 100.0, None, mock_context
-    )
+    result = await plot_financial_line.fn(30, "bullish", 100.0, None, mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -657,11 +657,7 @@ async def test_plot_line_chart_error_mismatched_length(mock_context):
 
     from math_mcp.server import plot_line_chart
 
-    result = await plot_line_chart.fn(
-        [1.0, 2.0],
-        [1.0],
-        "Test", "X", "Y", None, True, mock_context
-    )
+    result = await plot_line_chart.fn([1.0, 2.0], [1.0], "Test", "X", "Y", None, True, mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -679,9 +675,7 @@ async def test_plot_financial_line_invalid_trend(mock_context):
 
     from math_mcp.server import plot_financial_line
 
-    result = await plot_financial_line.fn(
-        30, "invalid_trend", 100.0, None, mock_context
-    )
+    result = await plot_financial_line.fn(30, "invalid_trend", 100.0, None, mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]

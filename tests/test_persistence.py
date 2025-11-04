@@ -14,12 +14,16 @@ from unittest.mock import patch
 import pytest
 
 from math_mcp.persistence.models import WorkspaceData, WorkspaceVariable
-from math_mcp.persistence.storage import get_workspace_dir, get_workspace_file, ensure_workspace_directory
+from math_mcp.persistence.storage import (
+    ensure_workspace_directory,
+    get_workspace_dir,
+    get_workspace_file,
+)
 from math_mcp.persistence.workspace import _workspace_manager
-from math_mcp.server import save_calculation, load_variable, get_workspace
-
+from math_mcp.server import get_workspace, load_variable, save_calculation
 
 # === FIXTURES ===
+
 
 @pytest.fixture
 def temp_workspace():
@@ -27,10 +31,13 @@ def temp_workspace():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir) / "test_workspace.json"
         # Patch both storage functions to ensure all WorkspaceManager instances use temp path
-        with patch('math_mcp.persistence.storage.get_workspace_dir', return_value=Path(temp_dir)), \
-             patch('math_mcp.persistence.storage.get_workspace_file', return_value=temp_path):
+        with (
+            patch("math_mcp.persistence.storage.get_workspace_dir", return_value=Path(temp_dir)),
+            patch("math_mcp.persistence.storage.get_workspace_file", return_value=temp_path),
+        ):
             # Clear global workspace manager state for test isolation
             from math_mcp.persistence.workspace import _workspace_manager
+
             _workspace_manager._cache = None
             _workspace_manager._workspace_file = temp_path
             yield temp_path
@@ -39,6 +46,7 @@ def temp_workspace():
 @pytest.fixture
 def mock_context():
     """Create mock context for MCP tool testing."""
+
     class MockLifespanContext:
         def __init__(self):
             self.calculation_history = []
@@ -61,13 +69,14 @@ def mock_context():
 
 # === MODEL TESTS ===
 
+
 def test_workspace_variable_model():
     """Test WorkspaceVariable Pydantic model."""
     var = WorkspaceVariable(
         expression="2 + 2",
         result=4.0,
         timestamp="2025-01-01T12:00:00",
-        metadata={"difficulty": "basic", "topic": "arithmetic"}
+        metadata={"difficulty": "basic", "topic": "arithmetic"},
     )
 
     assert var.expression == "2 + 2"
@@ -88,12 +97,10 @@ def test_workspace_data_model():
         updated="2025-01-01T12:00:00",
         variables={
             "test_var": WorkspaceVariable(
-                expression="pi * 2",
-                result=6.283185307179586,
-                timestamp="2025-01-01T12:00:00"
+                expression="pi * 2", result=6.283185307179586, timestamp="2025-01-01T12:00:00"
             )
         },
-        statistics={"total_calculations": 1}
+        statistics={"total_calculations": 1},
     )
 
     assert workspace.version == "1.0"  # Default value
@@ -104,59 +111,62 @@ def test_workspace_data_model():
 
 # === STORAGE TESTS ===
 
+
 def test_cross_platform_paths():
     """Test cross-platform path handling."""
     # Test Unix-like path (works on all platforms)
-    with patch('os.name', 'posix'), \
-         patch('pathlib.Path.home', return_value=Path('/home/testuser')):
+    with patch("os.name", "posix"), patch("pathlib.Path.home", return_value=Path("/home/testuser")):
         workspace_dir = get_workspace_dir()
-        assert str(workspace_dir) == '/home/testuser/.math-mcp'
+        assert str(workspace_dir) == "/home/testuser/.math-mcp"
 
     # Test Windows path logic by patching the function return
     # (avoids creating WindowsPath on non-Windows systems)
-    with patch('os.name', 'nt'), \
-         patch.dict('os.environ', {'LOCALAPPDATA': 'C:\\Users\\Test\\AppData\\Local'}, clear=False), \
-         patch('math_mcp.persistence.storage.Path') as mock_path:
+    with (
+        patch("os.name", "nt"),
+        patch.dict("os.environ", {"LOCALAPPDATA": "C:\\Users\\Test\\AppData\\Local"}, clear=False),
+        patch("math_mcp.persistence.storage.Path") as mock_path,
+    ):
         # Mock Path to return string representation without creating actual WindowsPath
-        mock_path.return_value = Path('C:\\Users\\Test\\AppData\\Local\\math-mcp')
+        mock_path.return_value = Path("C:\\Users\\Test\\AppData\\Local\\math-mcp")
         # Test that the environment variable is being used
-        assert os.environ.get('LOCALAPPDATA') == 'C:\\Users\\Test\\AppData\\Local'
+        assert os.environ.get("LOCALAPPDATA") == "C:\\Users\\Test\\AppData\\Local"
 
 
 def test_workspace_file_creation():
     """Test workspace file path creation."""
     with tempfile.TemporaryDirectory() as temp_dir:
-        with patch('math_mcp.persistence.storage.get_workspace_dir', return_value=Path(temp_dir)):
+        with patch("math_mcp.persistence.storage.get_workspace_dir", return_value=Path(temp_dir)):
             workspace_file = get_workspace_file()
             assert workspace_file.parent.exists()
-            assert workspace_file.name == 'workspace.json'
+            assert workspace_file.name == "workspace.json"
 
 
 def test_ensure_workspace_directory():
     """Test workspace directory creation and permission checking."""
     with tempfile.TemporaryDirectory() as temp_dir:
-        with patch('math_mcp.persistence.storage.get_workspace_dir', return_value=Path(temp_dir) / 'math-mcp'):
+        with patch(
+            "math_mcp.persistence.storage.get_workspace_dir",
+            return_value=Path(temp_dir) / "math-mcp",
+        ):
             assert ensure_workspace_directory() is True
-            assert (Path(temp_dir) / 'math-mcp').exists()
+            assert (Path(temp_dir) / "math-mcp").exists()
 
 
 # === WORKSPACE MANAGER TESTS ===
+
 
 def test_workspace_manager_initialization(temp_workspace):
     """Test WorkspaceManager initialization."""
     # Use global manager to ensure fixture patching is respected
     assert _workspace_manager._workspace_file == temp_workspace
     # Verify lock is an RLock (check type name since RLock is a factory)
-    assert type(_workspace_manager._lock).__name__ == 'RLock'
+    assert type(_workspace_manager._lock).__name__ == "RLock"
 
 
 def test_save_variable_basic(temp_workspace):
     """Test basic variable saving functionality."""
     result = _workspace_manager.save_variable(
-        name="test_var",
-        expression="2 + 2",
-        result=4.0,
-        metadata={"difficulty": "basic"}
+        name="test_var", expression="2 + 2", result=4.0, metadata={"difficulty": "basic"}
     )
 
     assert result["success"] is True
@@ -168,7 +178,7 @@ def test_save_variable_basic(temp_workspace):
     assert temp_workspace.exists()
 
     # Verify content
-    with open(temp_workspace, 'r') as f:
+    with open(temp_workspace) as f:
         data = json.load(f)
     assert "test_var" in data["variables"]
     assert data["variables"]["test_var"]["expression"] == "2 + 2"
@@ -227,7 +237,9 @@ def test_workspace_summary(temp_workspace):
 
     # Add some variables
     _workspace_manager.save_variable("var1", "10 + 5", 15.0, {"difficulty": "basic"})
-    _workspace_manager.save_variable("var2", "sin(pi/2)", 1.0, {"difficulty": "advanced", "topic": "trigonometry"})
+    _workspace_manager.save_variable(
+        "var2", "sin(pi/2)", 1.0, {"difficulty": "advanced", "topic": "trigonometry"}
+    )
 
     summary = _workspace_manager.get_workspace_summary()
     assert "2 variables" in summary
@@ -241,10 +253,13 @@ def test_workspace_summary(temp_workspace):
 
 def test_thread_safety(temp_workspace):
     """Test thread-safe concurrent access."""
+
     def save_variables(thread_id):
         """Save variables from different threads."""
         for i in range(5):
-            _workspace_manager.save_variable(f"thread_{thread_id}_var_{i}", f"{thread_id} + {i}", thread_id + i)
+            _workspace_manager.save_variable(
+                f"thread_{thread_id}_var_{i}", f"{thread_id} + {i}", thread_id + i
+            )
 
     # Create multiple threads
     threads = []
@@ -277,7 +292,7 @@ def test_thread_safety(temp_workspace):
 def test_file_corruption_recovery(temp_workspace):
     """Test graceful handling of corrupted workspace files."""
     # Create corrupted JSON file
-    with open(temp_workspace, 'w') as f:
+    with open(temp_workspace, "w") as f:
         f.write("{ invalid json content")
 
     # Clear cache to force reload
@@ -299,13 +314,14 @@ def test_permission_error_handling(temp_workspace):
     assert result["success"] is True
 
     # Mock permission error on save
-    with patch('builtins.open', side_effect=PermissionError("Permission denied")):
+    with patch("builtins.open", side_effect=PermissionError("Permission denied")):
         result = _workspace_manager.save_variable("another_var", "3 + 3", 6.0)
         assert result["success"] is False
         assert "Failed to save" in result["message"]
 
 
 # === MCP INTEGRATION TESTS ===
+
 
 @pytest.mark.asyncio
 async def test_save_calculation_tool(temp_workspace, mock_context):
@@ -407,6 +423,7 @@ async def test_workspace_resource_empty(temp_workspace, mock_context):
 
 # === INPUT VALIDATION TESTS ===
 
+
 @pytest.mark.asyncio
 async def test_save_calculation_validation(temp_workspace, mock_context):
     """Test input validation for save_calculation tool."""
@@ -424,6 +441,7 @@ async def test_save_calculation_validation(temp_workspace, mock_context):
 
 
 # === INTEGRATION WITH EXISTING FUNCTIONALITY ===
+
 
 @pytest.mark.asyncio
 async def test_integration_with_calculation_history(temp_workspace, mock_context):
