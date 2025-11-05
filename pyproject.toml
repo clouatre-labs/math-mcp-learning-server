@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11,<3.14"
 license = "MIT"
 authors = [
-    {name = "Hugues Clouâtre", email = "hugues+mcp@linux.com"}
+    {name = "Hugues Clouâtre", email = "hugues@linux.com"}
 ]
 keywords = ["mcp", "math", "calculator", "learning", "fastmcp", "tutorial", "education", "cloud", "deployment", "workspace", "persistence"]
 classifiers = [
