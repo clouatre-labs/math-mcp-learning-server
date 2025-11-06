@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # For gitleaks
     
     - name: Set up uv
       uses: astral-sh/setup-uv@v5
@@ -24,6 +26,12 @@ jobs:
     
     - name: Install dependencies
       run: uv sync --all-extras
+    
+    - name: Security - Secret scanning
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
     
     - name: Lint with Ruff
       run: |
