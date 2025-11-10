@@ -3,21 +3,55 @@ name: CI
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  lint:
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Ruff check
+      uses: astral-sh/ruff-action@v1
+      with:
+        args: 'check'
+    
+    - name: Ruff format
+      uses: astral-sh/ruff-action@v1
+      with:
+        args: 'format --check'
+
+  security:
     if: github.event_name == 'push' || github.event.pull_request.draft == false
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # For gitleaks
+        fetch-depth: 0
+    
+    - name: Secret scanning
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  test:
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
     
     - name: Set up uv
       uses: astral-sh/setup-uv@v5
@@ -26,17 +60,6 @@ jobs:
     
     - name: Install dependencies
       run: uv sync --all-extras
-    
-    - name: Security - Secret scanning
-      uses: gitleaks/gitleaks-action@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-    
-    - name: Lint with Ruff
-      run: |
-        uv run ruff check src/ tests/
-        uv run ruff format --check src/ tests/
     
     - name: Run tests with coverage
       run: uv run pytest tests/ -v --cov=math_mcp --cov-report=term-missing
