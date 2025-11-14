@@ -1,0 +1,49 @@
+name: Test Q CLI with OIDC
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test-q-cli:
+    name: Test Q Developer with OIDC
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::435498010918:role/GitHubActionsQDeveloper
+          aws-region: us-east-1
+
+      - name: Setup Q CLI
+        uses: clouatre-labs/setup-q-cli-action@v1
+        with:
+          enable-sigv4: true
+
+      - name: Test Q CLI authentication
+        run: |
+          echo "Testing Q CLI with OIDC authentication..."
+          qchat chat --no-interactive "What is 2+2?" > test-output.txt
+          cat test-output.txt
+
+      - name: Scan Python files for security issues
+        run: |
+          echo "Scanning Python files..."
+          find . -name "*.py" -type f | head -3 | while read file; do
+            echo "Analyzing $file..."
+            qchat chat --no-interactive "Review this Python code for security issues and best practices: $(cat $file)" >> security-scan.txt
+            echo -e "\n---\n" >> security-scan.txt
+          done
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: q-security-scan
+          path: security-scan.txt
+          retention-days: 7
