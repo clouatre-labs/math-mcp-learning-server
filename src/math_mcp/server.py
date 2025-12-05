@@ -16,12 +16,18 @@ from datetime import datetime
 from typing import Any
 
 from fastmcp import Context, FastMCP
+from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
+from fastmcp.server.middleware.rate_limiting import (
+    RateLimitError,
+    SlidingWindowRateLimitingMiddleware,
+)
 from pydantic import BaseModel, Field
 
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
 from math_mcp import visualization
 
 EXPRESSION_TIMEOUT_SECONDS = float(os.getenv("MATH_TIMEOUT", "5.0"))
+RATE_LIMIT_PER_MINUTE = int(os.getenv("MCP_RATE_LIMIT_PER_MINUTE", "100"))
 
 # === PYDANTIC MODELS FOR STRUCTURED OUTPUT ===
 
@@ -93,6 +99,26 @@ mcp = FastMCP(
     lifespan=app_lifespan,
     instructions="A comprehensive math server demonstrating MCP fundamentals with tools, resources, and prompts for educational purposes.",
 )
+
+
+# === RATE LIMITING MIDDLEWARE ===
+
+
+def _log_rate_limit_violation(error: Exception, context) -> None:
+    """Log rate limit violations for monitoring."""
+    if isinstance(error, RateLimitError):
+        logging.warning(f"Rate limit exceeded: method={context.method}")
+
+
+# Add middleware in correct order: ErrorHandling before RateLimiting
+# Note: FastMCP default error formatting used. Custom annotations (retry_after_seconds)
+# could be added via custom error middleware if needed in future.
+mcp.add_middleware(ErrorHandlingMiddleware(error_callback=_log_rate_limit_violation))
+if RATE_LIMIT_PER_MINUTE > 0:
+    mcp.add_middleware(
+        SlidingWindowRateLimitingMiddleware(max_requests=RATE_LIMIT_PER_MINUTE, window_minutes=1)
+    )
+    logging.info(f"Rate limiting enabled: {RATE_LIMIT_PER_MINUTE} requests/minute")
 
 
 # === SECURITY: SAFE EXPRESSION EVALUATION ===

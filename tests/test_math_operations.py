@@ -371,5 +371,74 @@ async def test_evaluate_with_timeout_custom_timeout():
                 await math_mcp.server.evaluate_with_timeout("slow")
 
 
+# === RATE LIMITING TESTS ===
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_env_var_configuration():
+    """Test rate limit configuration via environment variable."""
+    with patch.dict(os.environ, {"MCP_RATE_LIMIT_PER_MINUTE": "50"}):
+        import importlib
+
+        import math_mcp.server
+
+        importlib.reload(math_mcp.server)
+        assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 50
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_disabled_when_zero():
+    """Test rate limiting can be disabled by setting to 0."""
+    with patch.dict(os.environ, {"MCP_RATE_LIMIT_PER_MINUTE": "0"}):
+        import importlib
+
+        import math_mcp.server
+
+        importlib.reload(math_mcp.server)
+        assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 0
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_enforcement():
+    """Test that rate limiting blocks excessive requests."""
+    from fastmcp import FastMCP
+    from fastmcp.client import Client
+    from fastmcp.exceptions import ToolError
+    from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
+    from fastmcp.server.middleware.rate_limiting import SlidingWindowRateLimitingMiddleware
+
+    # Create test server with limit high enough for test setup + tool calls
+    test_mcp = FastMCP("test-rate-limit")
+    test_mcp.add_middleware(ErrorHandlingMiddleware())
+    test_mcp.add_middleware(SlidingWindowRateLimitingMiddleware(max_requests=10, window_minutes=1))
+
+    @test_mcp.tool()
+    def test_tool() -> str:
+        return "success"
+
+    async with Client(transport=test_mcp) as client:
+        # Make 8 successful tool calls (leaves room for 2 more requests)
+        for _ in range(8):
+            result = await client.call_tool("test_tool", {})
+            assert result.content[0].text == "success"
+
+        # Next request should exceed limit (10 total including setup calls)
+        with pytest.raises(ToolError, match="Rate limit exceeded"):
+            await client.call_tool("test_tool", {})
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_default_value():
+    """Test default rate limit is 100 requests per minute."""
+    # Clear env var to test default
+    with patch.dict(os.environ, {}, clear=True):
+        import importlib
+
+        import math_mcp.server
+
+        importlib.reload(math_mcp.server)
+        assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 100
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
