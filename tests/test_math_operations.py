@@ -468,7 +468,7 @@ async def test_expression_length_validation():
 
     # Valid: below limit (off-by-one boundary test)
     # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH - 1 chars
-    below_limit_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH) // 2))[:MAX_EXPRESSION_LENGTH - 1]
+    below_limit_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH) // 2))[: MAX_EXPRESSION_LENGTH - 1]
     result = await calculate.fn(below_limit_expr, ctx)
     assert "content" in result
 
@@ -480,7 +480,7 @@ async def test_expression_length_validation():
 
     # Invalid: exceeds limit
     # Create expression like "1+1+1+1..." that exceeds MAX_EXPRESSION_LENGTH
-    invalid_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH + 2) // 2))[:MAX_EXPRESSION_LENGTH + 1]
+    invalid_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH + 2) // 2))[: MAX_EXPRESSION_LENGTH + 1]
     with pytest.raises(ValueError, match=f"exceeds maximum length of {MAX_EXPRESSION_LENGTH}"):
         await calculate.fn(invalid_expr, ctx)
 
@@ -511,6 +511,7 @@ async def test_array_size_validation():
 @pytest.mark.asyncio
 async def test_operation_whitelist_validation():
     """Test operation whitelist validation."""
+
     # Mock context
     class MockContext:
         async def info(self, message: str):
@@ -689,6 +690,7 @@ async def test_bins_validation():
 @pytest.mark.asyncio
 async def test_empty_input_validation():
     """Test validation with empty inputs."""
+
     # Mock context
     class MockContext:
         async def info(self, message: str):
