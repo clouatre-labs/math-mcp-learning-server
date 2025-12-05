@@ -149,7 +149,7 @@ async def test_statistics_tool():
         await stats_tool.fn([], "mean", ctx)
 
     # Test invalid operation
-    with pytest.raises(ValueError, match="Unknown operation"):
+    with pytest.raises(ValueError, match="Invalid operation"):
         await stats_tool.fn([1, 2, 3], "invalid_op", ctx)
 
 
@@ -438,6 +438,302 @@ async def test_rate_limit_default_value():
 
         importlib.reload(math_mcp.server)
         assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 100
+
+
+# === INPUT SIZE VALIDATION TESTS ===
+
+
+@pytest.mark.asyncio
+async def test_expression_length_validation():
+    """Test expression length validation."""
+    from math_mcp.server import MAX_EXPRESSION_LENGTH
+
+    # Mock context
+    class MockLifespanContext:
+        def __init__(self):
+            self.calculation_history = []
+
+    class MockRequestContext:
+        def __init__(self):
+            self.lifespan_context = MockLifespanContext()
+
+    class MockContext:
+        def __init__(self):
+            self.request_context = MockRequestContext()
+
+        async def info(self, message: str):
+            pass
+
+    ctx = MockContext()
+
+    # Valid: below limit (off-by-one boundary test)
+    # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH - 1 chars
+    below_limit_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH) // 2))[:MAX_EXPRESSION_LENGTH - 1]
+    result = await calculate.fn(below_limit_expr, ctx)
+    assert "content" in result
+
+    # Valid: at limit (use a valid expression that's exactly at the limit)
+    # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH chars
+    valid_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH + 1) // 2))[:MAX_EXPRESSION_LENGTH]
+    result = await calculate.fn(valid_expr, ctx)
+    assert "content" in result
+
+    # Invalid: exceeds limit
+    # Create expression like "1+1+1+1..." that exceeds MAX_EXPRESSION_LENGTH
+    invalid_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH + 2) // 2))[:MAX_EXPRESSION_LENGTH + 1]
+    with pytest.raises(ValueError, match=f"exceeds maximum length of {MAX_EXPRESSION_LENGTH}"):
+        await calculate.fn(invalid_expr, ctx)
+
+
+@pytest.mark.asyncio
+async def test_array_size_validation():
+    """Test array size validation."""
+    from math_mcp.server import MAX_ARRAY_SIZE
+
+    # Mock context
+    class MockContext:
+        async def info(self, message: str):
+            pass
+
+    ctx = MockContext()
+
+    # Valid: at limit
+    valid_array = [1.0] * MAX_ARRAY_SIZE
+    result = await stats_tool.fn(valid_array, "mean", ctx)
+    assert "content" in result
+
+    # Invalid: exceeds limit
+    invalid_array = [1.0] * (MAX_ARRAY_SIZE + 1)
+    with pytest.raises(ValueError, match=f"exceeds maximum size of {MAX_ARRAY_SIZE}"):
+        await stats_tool.fn(invalid_array, "mean", ctx)
+
+
+@pytest.mark.asyncio
+async def test_operation_whitelist_validation():
+    """Test operation whitelist validation."""
+    # Mock context
+    class MockContext:
+        async def info(self, message: str):
+            pass
+
+    ctx = MockContext()
+
+    # Valid operations
+    for op in ["mean", "median", "mode", "std_dev", "variance"]:
+        result = await stats_tool.fn([1.0, 2.0, 3.0], op, ctx)
+        assert "content" in result
+
+    # Invalid operation
+    with pytest.raises(ValueError, match="Invalid operation"):
+        await stats_tool.fn([1.0, 2.0, 3.0], "invalid_op", ctx)
+
+
+@pytest.mark.asyncio
+async def test_variable_name_validation():
+    """Test variable name validation."""
+    from math_mcp.server import MAX_VARIABLE_NAME_LENGTH, save_calculation
+
+    # Mock context
+    class MockLifespanContext:
+        def __init__(self):
+            self.calculation_history = []
+
+    class MockRequestContext:
+        def __init__(self):
+            self.lifespan_context = MockLifespanContext()
+
+    class MockContext:
+        def __init__(self):
+            self.request_context = MockRequestContext()
+
+        async def info(self, message: str):
+            pass
+
+    ctx = MockContext()
+
+    # Valid: alphanumeric with underscore and hyphen
+    result = await save_calculation.fn("valid_name-123", "2+2", 4.0, ctx)
+    assert "content" in result
+
+    # Valid: at limit
+    valid_name = "a" * MAX_VARIABLE_NAME_LENGTH
+    result = await save_calculation.fn(valid_name, "2+2", 4.0, ctx)
+    assert "content" in result
+
+    # Invalid: exceeds length
+    invalid_name = "a" * (MAX_VARIABLE_NAME_LENGTH + 1)
+    with pytest.raises(ValueError, match=f"exceeds maximum length of {MAX_VARIABLE_NAME_LENGTH}"):
+        await save_calculation.fn(invalid_name, "2+2", 4.0, ctx)
+
+    # Invalid: empty
+    with pytest.raises(ValueError, match="cannot be empty"):
+        await save_calculation.fn("", "2+2", 4.0, ctx)
+
+    # Invalid: special characters
+    with pytest.raises(ValueError, match="only letters, numbers, underscores, and hyphens"):
+        await save_calculation.fn("invalid@name", "2+2", 4.0, ctx)
+
+
+@pytest.mark.asyncio
+async def test_string_param_validation():
+    """Test string parameter validation."""
+    from math_mcp.server import MAX_STRING_PARAM_LENGTH, create_histogram
+
+    # Valid: at limit
+    valid_title = "a" * MAX_STRING_PARAM_LENGTH
+    result = await create_histogram.fn([1.0, 2.0, 3.0], 10, valid_title, None)
+    # Should return matplotlib not available or success
+    assert "content" in result
+
+    # Invalid: exceeds limit
+    invalid_title = "a" * (MAX_STRING_PARAM_LENGTH + 1)
+    with pytest.raises(ValueError, match=f"exceeds maximum length of {MAX_STRING_PARAM_LENGTH}"):
+        await create_histogram.fn([1.0, 2.0, 3.0], 10, invalid_title, None)
+
+
+@pytest.mark.asyncio
+async def test_nested_array_validation():
+    """Test nested array validation for plot_box_plot."""
+    from math_mcp.server import MAX_GROUP_SIZE, MAX_GROUPS_COUNT, plot_box_plot
+
+    # Valid: at group limit
+    valid_groups = [[1.0, 2.0]] * MAX_GROUPS_COUNT
+    result = await plot_box_plot.fn(valid_groups, None, "Test", "Y", None, None)
+    assert "content" in result
+
+    # Invalid: exceeds group count
+    invalid_groups = [[1.0, 2.0]] * (MAX_GROUPS_COUNT + 1)
+    with pytest.raises(ValueError, match=f"Too many groups.*Maximum allowed: {MAX_GROUPS_COUNT}"):
+        await plot_box_plot.fn(invalid_groups, None, "Test", "Y", None, None)
+
+    # Valid: at group size limit
+    valid_large_group = [[1.0] * MAX_GROUP_SIZE]
+    result = await plot_box_plot.fn(valid_large_group, None, "Test", "Y", None, None)
+    assert "content" in result
+
+    # Invalid: exceeds group size
+    invalid_large_group = [[1.0] * (MAX_GROUP_SIZE + 1)]
+    with pytest.raises(ValueError, match=f"exceeds maximum size of {MAX_GROUP_SIZE}"):
+        await plot_box_plot.fn(invalid_large_group, None, "Test", "Y", None, None)
+
+
+@pytest.mark.asyncio
+async def test_days_validation():
+    """Test days validation for plot_financial_line."""
+    from math_mcp.server import MAX_DAYS_FINANCIAL, plot_financial_line
+
+    # Valid: at limit
+    result = await plot_financial_line.fn(MAX_DAYS_FINANCIAL, "bullish", 100.0, None, None)
+    assert "content" in result
+
+    # Invalid: exceeds limit
+    with pytest.raises(ValueError, match=f"exceeds maximum of {MAX_DAYS_FINANCIAL}"):
+        await plot_financial_line.fn(MAX_DAYS_FINANCIAL + 1, "bullish", 100.0, None, None)
+
+    # Invalid: too small
+    with pytest.raises(ValueError, match="must be at least 2"):
+        await plot_financial_line.fn(1, "bullish", 100.0, None, None)
+
+
+@pytest.mark.asyncio
+async def test_trend_whitelist_validation():
+    """Test trend whitelist validation."""
+    from math_mcp.server import plot_financial_line
+
+    # Valid trends
+    for trend in ["bullish", "bearish", "volatile"]:
+        result = await plot_financial_line.fn(30, trend, 100.0, None, None)
+        assert "content" in result
+
+    # Invalid trend
+    with pytest.raises(ValueError, match="Invalid trend"):
+        await plot_financial_line.fn(30, "invalid_trend", 100.0, None, None)
+
+
+@pytest.mark.asyncio
+async def test_num_points_validation():
+    """Test num_points validation for plot_function."""
+    from math_mcp.server import MAX_ARRAY_SIZE, plot_function
+
+    # Valid: at limit
+    result = await plot_function.fn("x**2", (-5, 5), MAX_ARRAY_SIZE, None)
+    assert "content" in result
+
+    # Invalid: exceeds limit
+    with pytest.raises(ValueError, match=f"exceeds maximum of {MAX_ARRAY_SIZE}"):
+        await plot_function.fn("x**2", (-5, 5), MAX_ARRAY_SIZE + 1, None)
+
+    # Invalid: too small
+    with pytest.raises(ValueError, match="must be at least 2"):
+        await plot_function.fn("x**2", (-5, 5), 1, None)
+
+
+@pytest.mark.asyncio
+async def test_bins_validation():
+    """Test bins validation for create_histogram."""
+    from math_mcp.server import create_histogram
+
+    # Valid: positive bins
+    result = await create_histogram.fn([1.0, 2.0, 3.0], 10, "Test", None)
+    assert "content" in result
+
+    # Invalid: zero bins
+    with pytest.raises(ValueError, match="must be at least 1"):
+        await create_histogram.fn([1.0, 2.0, 3.0], 0, "Test", None)
+
+    # Invalid: negative bins
+    with pytest.raises(ValueError, match="must be at least 1"):
+        await create_histogram.fn([1.0, 2.0, 3.0], -1, "Test", None)
+
+
+@pytest.mark.asyncio
+async def test_empty_input_validation():
+    """Test validation with empty inputs."""
+    # Mock context
+    class MockContext:
+        async def info(self, message: str):
+            pass
+
+    ctx = MockContext()
+
+    # Empty array should fail at business logic level (not size validation)
+    with pytest.raises(ValueError, match="Cannot calculate statistics on empty list"):
+        await stats_tool.fn([], "mean", ctx)
+
+
+@pytest.mark.asyncio
+async def test_validation_error_messages():
+    """Test that validation error messages are clear and include limits."""
+    from math_mcp.server import MAX_EXPRESSION_LENGTH
+
+    # Mock context
+    class MockContext:
+        async def info(self, message: str):
+            pass
+
+    ctx = MockContext()
+
+    # Test error message includes current and max values
+    invalid_expr = "1" * (MAX_EXPRESSION_LENGTH + 1)
+    try:
+        await calculate.fn(invalid_expr, ctx)
+        raise AssertionError("Should have raised ValueError")
+    except ValueError as e:
+        error_msg = str(e)
+        assert str(MAX_EXPRESSION_LENGTH) in error_msg
+        assert str(len(invalid_expr)) in error_msg
+
+
+@pytest.mark.asyncio
+async def test_env_var_configuration():
+    """Test that size limits can be configured via environment variables."""
+    with patch.dict(os.environ, {"MAX_EXPRESSION_LENGTH": "100"}):
+        import importlib
+
+        import math_mcp.server
+
+        importlib.reload(math_mcp.server)
+        assert math_mcp.server.MAX_EXPRESSION_LENGTH == 100
 
 
 if __name__ == "__main__":

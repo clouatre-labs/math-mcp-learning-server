@@ -26,8 +26,59 @@ from pydantic import BaseModel, Field
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
 from math_mcp import visualization
 
-EXPRESSION_TIMEOUT_SECONDS = float(os.getenv("MATH_TIMEOUT", "5.0"))
-RATE_LIMIT_PER_MINUTE = int(os.getenv("MCP_RATE_LIMIT_PER_MINUTE", "100"))
+# === SAFE ENVIRONMENT VARIABLE LOADING ===
+
+
+def _load_env_float(key: str, default: float) -> float:
+    """Safely load float from environment variable with error handling."""
+    try:
+        value_str = os.getenv(key)
+        if value_str is None:
+            return default
+        return float(value_str)
+    except ValueError as e:
+        logging.warning(
+            f"Invalid {key} in environment ('{os.getenv(key)}'): {e}. Using default: {default}"
+        )
+        return default
+
+
+def _load_env_positive_int(key: str, default: int) -> int:
+    """Safely load non-negative integer from environment variable with validation."""
+    try:
+        value_str = os.getenv(key)
+        if value_str is None:
+            return default
+        value = int(value_str)
+        if value < 0:
+            logging.warning(
+                f"Invalid {key} in environment ('{value}'): must be non-negative. Using default: {default}"
+            )
+            return default
+        return value
+    except ValueError as e:
+        logging.warning(
+            f"Invalid {key} in environment ('{os.getenv(key)}'): {e}. Using default: {default}"
+        )
+        return default
+
+
+EXPRESSION_TIMEOUT_SECONDS = _load_env_float("MATH_TIMEOUT", 5.0)
+RATE_LIMIT_PER_MINUTE = _load_env_positive_int("MCP_RATE_LIMIT_PER_MINUTE", 100)
+
+# === INPUT SIZE LIMITS ===
+
+MAX_EXPRESSION_LENGTH = _load_env_positive_int("MAX_EXPRESSION_LENGTH", 500)
+MAX_STRING_PARAM_LENGTH = _load_env_positive_int("MAX_STRING_PARAM_LENGTH", 100)
+MAX_ARRAY_SIZE = _load_env_positive_int("MAX_ARRAY_SIZE", 10000)
+MAX_GROUPS_COUNT = _load_env_positive_int("MAX_GROUPS_COUNT", 100)
+MAX_GROUP_SIZE = _load_env_positive_int("MAX_GROUP_SIZE", 1000)
+MAX_VARIABLE_NAME_LENGTH = _load_env_positive_int("MAX_VARIABLE_NAME_LENGTH", 50)
+MAX_DAYS_FINANCIAL = _load_env_positive_int("MAX_DAYS_FINANCIAL", 1000)
+
+# Whitelist constants
+ALLOWED_OPERATIONS = {"mean", "median", "mode", "std_dev", "variance"}
+ALLOWED_TRENDS = {"bullish", "bearish", "volatile"}
 
 # === PYDANTIC MODELS FOR STRUCTURED OUTPUT ===
 
@@ -227,6 +278,66 @@ async def evaluate_with_timeout(expression: str) -> float:
         ) from e
 
 
+def _validate_expression_length(expression: str) -> None:
+    """Validate expression against MAX_EXPRESSION_LENGTH."""
+    if len(expression) > MAX_EXPRESSION_LENGTH:
+        raise ValueError(
+            f"Expression exceeds maximum length of {MAX_EXPRESSION_LENGTH} characters. "
+            f"Current length: {len(expression)}"
+        )
+
+
+def _validate_array_size(array: list, param_name: str, max_size: int = MAX_ARRAY_SIZE) -> None:
+    """Validate array size with configurable limit."""
+    if len(array) > max_size:
+        raise ValueError(
+            f"{param_name} exceeds maximum size of {max_size} elements. Current size: {len(array)}"
+        )
+
+
+def _validate_nested_arrays(
+    data_groups: list[list[float]],
+    max_groups: int = MAX_GROUPS_COUNT,
+    max_per_group: int = MAX_GROUP_SIZE,
+) -> None:
+    """Validate nested array structure for plot_box_plot."""
+    if len(data_groups) > max_groups:
+        raise ValueError(f"Too many groups: {len(data_groups)}. Maximum allowed: {max_groups}")
+    for i, group in enumerate(data_groups):
+        if len(group) > max_per_group:
+            raise ValueError(
+                f"Group {i} exceeds maximum size of {max_per_group} elements. "
+                f"Current size: {len(group)}"
+            )
+
+
+def _validate_string_param(
+    value: str, param_name: str, max_len: int = MAX_STRING_PARAM_LENGTH
+) -> None:
+    """Validate string parameter length."""
+    if len(value) > max_len:
+        raise ValueError(
+            f"{param_name} exceeds maximum length of {max_len} characters. "
+            f"Current length: {len(value)}"
+        )
+
+
+def _validate_variable_name(name: str) -> None:
+    """Validate workspace variable name (length + filesystem safety)."""
+    if len(name) > MAX_VARIABLE_NAME_LENGTH:
+        raise ValueError(
+            f"Variable name exceeds maximum length of {MAX_VARIABLE_NAME_LENGTH} characters. "
+            f"Current length: {len(name)}"
+        )
+    if not name.strip():
+        raise ValueError("Variable name cannot be empty")
+    # Filesystem safety (no special characters)
+    if not name.replace("_", "").replace("-", "").isalnum():
+        raise ValueError(
+            "Variable name must contain only letters, numbers, underscores, and hyphens"
+        )
+
+
 def convert_temperature(value: float, from_unit: str, to_unit: str) -> float:
     """Convert temperature between Celsius, Fahrenheit, and Kelvin."""
     # Convert to Celsius first
@@ -297,6 +408,9 @@ async def calculate(expression: str, ctx: Context) -> dict[str, Any]:
     - "sqrt(16)" → 4.0
     - "sin(3.14159/2)" → 1.0
     """
+    # Validate input size
+    _validate_expression_length(expression)
+
     # FastMCP 2.0 Context logging best practice
     await ctx.info(f"Calculating expression: {expression}")
 
@@ -337,6 +451,15 @@ async def statistics(numbers: list[float], operation: str, ctx: Context) -> dict
 
     Available operations: mean, median, mode, std_dev, variance
     """
+    # Validate input size
+    _validate_array_size(numbers, "numbers")
+
+    # Validate operation against whitelist
+    if operation not in ALLOWED_OPERATIONS:
+        raise ValueError(
+            f"Invalid operation: {operation}. Allowed: {', '.join(sorted(ALLOWED_OPERATIONS))}"
+        )
+
     # FastMCP 2.0 Context logging - demonstrates async operation with user feedback
     await ctx.info(f"Performing {operation} on {len(numbers)} data points")
 
@@ -352,9 +475,6 @@ async def statistics(numbers: list[float], operation: str, ctx: Context) -> dict
         "std_dev": lambda x: stats.stdev(x) if len(x) > 1 else 0,
         "variance": lambda x: stats.variance(x) if len(x) > 1 else 0,
     }
-
-    if operation not in operations:
-        raise ValueError(f"Unknown operation '{operation}'. Available: {list(operations.keys())}")
 
     result = operations[operation](numbers)
     # Ensure result is always a float for type safety
@@ -536,16 +656,12 @@ async def save_calculation(
         save_calculation("portfolio_return", "10000 * 1.07^5", 14025.52)
         save_calculation("circle_area", "pi * 5^2", 78.54)
     """
+    # Validate input size
+    _validate_variable_name(name)
+    _validate_expression_length(expression)
+
     # FastMCP 2.0 Context logging
     await ctx.info(f"Saving calculation '{name}' = {result}")
-    # Validate inputs
-    if not name.strip():
-        raise ValueError("Variable name cannot be empty")
-
-    if not name.replace("_", "").replace("-", "").isalnum():
-        raise ValueError(
-            "Variable name must contain only letters, numbers, underscores, and hyphens"
-        )
 
     # Get educational metadata from expression classification
     difficulty = _classify_expression_difficulty(expression)
@@ -671,6 +787,13 @@ async def plot_function(
         plot_function("x**2", (-5, 5))
         plot_function("sin(x)", (-3.14, 3.14))
     """
+    # Validate input size
+    _validate_expression_length(expression)
+    if num_points > MAX_ARRAY_SIZE:
+        raise ValueError(f"num_points exceeds maximum of {MAX_ARRAY_SIZE}. Current: {num_points}")
+    if num_points < 2:
+        raise ValueError("num_points must be at least 2")
+
     # Try importing optional dependencies
     try:
         import matplotlib
@@ -812,6 +935,12 @@ async def create_histogram(
     Examples:
         create_histogram([1, 2, 2, 3, 3, 3, 4, 4, 5], bins=5)
     """
+    # Validate input size
+    _validate_array_size(data, "data")
+    _validate_string_param(title, "title")
+    if bins < 1:
+        raise ValueError("bins must be at least 1")
+
     # Try importing optional dependencies
     try:
         import matplotlib
@@ -969,6 +1098,15 @@ async def plot_line_chart(
         plot_line_chart([1, 2, 3, 4], [1, 4, 9, 16], title="Squares")
         plot_line_chart([0, 1, 2], [0, 1, 4], color='red', x_label='Time', y_label='Distance')
     """
+    # Validate input size
+    _validate_array_size(x_data, "x_data")
+    _validate_array_size(y_data, "y_data")
+    _validate_string_param(title, "title")
+    _validate_string_param(x_label, "x_label")
+    _validate_string_param(y_label, "y_label")
+    if color:
+        _validate_string_param(color, "color")
+
     try:
         import matplotlib  # noqa: F401 - Check if available
     except ImportError:
@@ -1078,6 +1216,15 @@ async def plot_scatter_chart(
         plot_scatter_chart([1, 2, 3, 4], [1, 4, 9, 16], title="Correlation Study")
         plot_scatter_chart([1, 2, 3], [2, 4, 5], color='purple', point_size=100)
     """
+    # Validate input size
+    _validate_array_size(x_data, "x_data")
+    _validate_array_size(y_data, "y_data")
+    _validate_string_param(title, "title")
+    _validate_string_param(x_label, "x_label")
+    _validate_string_param(y_label, "y_label")
+    if color:
+        _validate_string_param(color, "color")
+
     try:
         import matplotlib  # noqa: F401 - Check if available
     except ImportError:
@@ -1183,6 +1330,17 @@ async def plot_box_plot(
         plot_box_plot([[1, 2, 3, 4], [2, 3, 4, 5]], group_labels=['Group A', 'Group B'])
         plot_box_plot([[10, 20, 30], [15, 25, 35], [20, 30, 40]], color='green')
     """
+    # Validate input size
+    _validate_nested_arrays(data_groups)
+    if group_labels:
+        _validate_array_size(group_labels, "group_labels", MAX_GROUPS_COUNT)
+        for label in group_labels:
+            _validate_string_param(label, "group_label")
+    _validate_string_param(title, "title")
+    _validate_string_param(y_label, "y_label")
+    if color:
+        _validate_string_param(color, "color")
+
     try:
         import matplotlib  # noqa: F401 - Check if available
     except ImportError:
@@ -1289,6 +1447,19 @@ async def plot_financial_line(
         plot_financial_line(days=60, trend='bullish')
         plot_financial_line(days=90, trend='volatile', start_price=150.0, color='orange')
     """
+    # Validate input size
+    if days < 2:
+        raise ValueError("days must be at least 2")
+    if days > MAX_DAYS_FINANCIAL:
+        raise ValueError(f"days exceeds maximum of {MAX_DAYS_FINANCIAL}. Current: {days}")
+
+    # Validate trend against whitelist
+    if trend not in ALLOWED_TRENDS:
+        raise ValueError(f"Invalid trend: {trend}. Allowed: {', '.join(sorted(ALLOWED_TRENDS))}")
+
+    if color:
+        _validate_string_param(color, "color")
+
     try:
         import matplotlib  # noqa: F401 - Check if available
     except ImportError:
