@@ -157,7 +157,6 @@ async def test_plot_function_invalid_num_points(mock_context):
     # Now raises ValueError due to input validation
     with pytest.raises(ValueError, match="must be at least 2"):
         await plot_function.fn("x**2", (-5.0, 5.0), 1, mock_context)
-    assert "num_points must be at least 2" in content["text"]
 
 
 @pytest.mark.asyncio
@@ -333,7 +332,6 @@ async def test_create_histogram_invalid_bins(mock_context):
     # Now raises ValueError due to input validation
     with pytest.raises(ValueError, match="must be at least 1"):
         await create_histogram.fn([1.0, 2.0, 3.0], 0, "Test", mock_context)
-    assert "bins must be at least 1" in content["text"]
 
 
 @pytest.mark.asyncio
