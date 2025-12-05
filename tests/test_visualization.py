@@ -154,12 +154,9 @@ async def test_plot_function_invalid_num_points(mock_context):
 
     from math_mcp.server import plot_function
 
-    result = await plot_function.fn("x**2", (-5.0, 5.0), 1, mock_context)
-
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Plot Error" in content["text"]
+    # Now raises ValueError due to input validation
+    with pytest.raises(ValueError, match="must be at least 2"):
+        await plot_function.fn("x**2", (-5.0, 5.0), 1, mock_context)
     assert "num_points must be at least 2" in content["text"]
 
 
@@ -333,12 +330,9 @@ async def test_create_histogram_invalid_bins(mock_context):
 
     from math_mcp.server import create_histogram
 
-    result = await create_histogram.fn([1.0, 2.0, 3.0], 0, "Test", mock_context)
-
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Histogram Error" in content["text"]
+    # Now raises ValueError due to input validation
+    with pytest.raises(ValueError, match="must be at least 1"):
+        await create_histogram.fn([1.0, 2.0, 3.0], 0, "Test", mock_context)
     assert "bins must be at least 1" in content["text"]
 
 
@@ -675,12 +669,9 @@ async def test_plot_financial_line_invalid_trend(mock_context):
 
     from math_mcp.server import plot_financial_line
 
-    result = await plot_financial_line.fn(30, "invalid_trend", 100.0, None, mock_context)
-
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Financial Chart Error" in content["text"]
+    # Now raises ValueError due to input validation
+    with pytest.raises(ValueError, match="Invalid trend"):
+        await plot_financial_line.fn(30, "invalid_trend", 100.0, None, mock_context)
 
 
 if __name__ == "__main__":
