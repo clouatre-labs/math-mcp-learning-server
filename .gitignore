@@ -166,6 +166,10 @@ opencode.json
 .codex/
 .cursor/
 .windsurf/
+.kiro/
+
+# Internal planning & analysis (not committed)
+internal/
 
 # IDEs & editors
 .vscode/
