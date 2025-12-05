@@ -3,6 +3,9 @@
 Test cases for the FastMCP Math Server
 """
 
+import os
+from unittest.mock import patch
+
 import pytest
 
 from math_mcp.server import (
@@ -10,6 +13,7 @@ from math_mcp.server import (
     compound_interest,
     convert_temperature,
     convert_units,
+    evaluate_with_timeout,
     get_math_constant,
     safe_eval_expression,
 )
@@ -318,6 +322,53 @@ async def test_unit_conversion_edge_cases():
     # Test case insensitivity
     result = await convert_units.fn(1, "M", "KM", "length", ctx)
     assert "0.001" in result["content"][0]["text"]
+
+
+# === TIMEOUT TESTS ===
+
+
+@pytest.mark.asyncio
+async def test_evaluate_with_timeout_fast_expression():
+    """Test that fast expressions complete successfully."""
+    result = await evaluate_with_timeout("2 + 3")
+    assert result == 5.0
+
+
+@pytest.mark.asyncio
+async def test_evaluate_with_timeout_slow_expression():
+    """Test that slow expressions trigger timeout."""
+    # Mock safe_eval_expression to simulate slow execution
+    import time
+
+    def slow_eval(expr):
+        time.sleep(10)  # Exceeds default 5s timeout
+        return 42.0
+
+    with patch("math_mcp.server.safe_eval_expression", side_effect=slow_eval):
+        with pytest.raises(ValueError, match="exceeded.*timeout"):
+            await evaluate_with_timeout("slow_expression")
+
+
+@pytest.mark.asyncio
+async def test_evaluate_with_timeout_custom_timeout():
+    """Test timeout configuration via environment variable."""
+    with patch.dict(os.environ, {"MATH_TIMEOUT": "0.1"}):
+        # Reload module to pick up new env var
+        import importlib
+
+        import math_mcp.server
+
+        importlib.reload(math_mcp.server)
+
+        def slow_eval(expr):
+            import time
+
+            time.sleep(0.5)  # Exceeds 0.1s timeout
+            return 42.0
+
+        with patch("math_mcp.server.safe_eval_expression", side_effect=slow_eval):
+            with pytest.raises(ValueError, match="exceeded.*timeout"):
+                await math_mcp.server.evaluate_with_timeout("slow")
 
 
 if __name__ == "__main__":

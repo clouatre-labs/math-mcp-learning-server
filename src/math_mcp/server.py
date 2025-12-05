@@ -5,8 +5,10 @@ Educational MCP server demonstrating all three MCP pillars: Tools, Resources, an
 Uses FastMCP 2.0 patterns with structured output and multi-transport support.
 """
 
+import asyncio
 import logging
 import math
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -18,6 +20,8 @@ from pydantic import BaseModel, Field
 
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
 from math_mcp import visualization
+
+EXPRESSION_TIMEOUT_SECONDS = float(os.getenv("MATH_TIMEOUT", "5.0"))
 
 # === PYDANTIC MODELS FOR STRUCTURED OUTPUT ===
 
@@ -164,6 +168,39 @@ def safe_eval_expression(expression: str) -> float:
         raise ValueError(f"Expression evaluation failed: {str(e)}")
 
 
+async def evaluate_with_timeout(expression: str) -> float:
+    """
+    Safely evaluate mathematical expression with execution timeout.
+
+    Prevents denial-of-service by ensuring expression evaluation completes
+    within EXPRESSION_TIMEOUT_SECONDS. Wraps synchronous safe_eval_expression()
+    in an async executor to allow timeout enforcement.
+
+    This is an educational example of wrapping CPU-bound synchronous operations
+    in async context using asyncio.wait_for() and loop.run_in_executor().
+
+    Args:
+        expression: Mathematical expression string to evaluate.
+
+    Returns:
+        float: Result of the expression evaluation.
+
+    Raises:
+        ValueError: If expression evaluation exceeds timeout or is invalid.
+    """
+    loop = asyncio.get_running_loop()
+    try:
+        return await asyncio.wait_for(
+            loop.run_in_executor(None, safe_eval_expression, expression),
+            timeout=EXPRESSION_TIMEOUT_SECONDS,
+        )
+    except TimeoutError as e:
+        raise ValueError(
+            f"Expression evaluation exceeded {EXPRESSION_TIMEOUT_SECONDS}s timeout. "
+            f"Try simplifying the expression or breaking it into smaller parts."
+        ) from e
+
+
 def convert_temperature(value: float, from_unit: str, to_unit: str) -> float:
     """Convert temperature between Celsius, Fahrenheit, and Kelvin."""
     # Convert to Celsius first
@@ -237,7 +274,7 @@ async def calculate(expression: str, ctx: Context) -> dict[str, Any]:
     # FastMCP 2.0 Context logging best practice
     await ctx.info(f"Calculating expression: {expression}")
 
-    result = safe_eval_expression(expression)
+    result = await evaluate_with_timeout(expression)
     timestamp = datetime.now().isoformat()
     difficulty = _classify_expression_difficulty(expression)
 
@@ -652,10 +689,10 @@ async def plot_function(
             # Replace x in expression with actual value
             expr_with_value = expression.replace("x", f"({x})")
             try:
-                y = safe_eval_expression(expr_with_value)
+                y = await evaluate_with_timeout(expr_with_value)
                 y_values.append(y)
             except ValueError:
-                # Handle domain errors (like sqrt of negative)
+                # Handle domain errors (like sqrt of negative) or timeout
                 y_values.append(float("nan"))
 
         # Create figure and plot
