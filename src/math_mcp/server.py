@@ -8,12 +8,11 @@ Uses FastMCP 2.0 patterns with structured output and multi-transport support.
 import asyncio
 import logging
 import math
-import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Annotated
+from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
@@ -22,7 +21,7 @@ from fastmcp.server.middleware.rate_limiting import (
     RateLimitError,
     SlidingWindowRateLimitingMiddleware,
 )
-from pydantic import BaseModel, ConfigDict, Field, field_validator, validate_call, SkipValidation
+from pydantic import BaseModel, ConfigDict, Field, SkipValidation, field_validator, validate_call
 from pydantic_settings import BaseSettings
 
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
