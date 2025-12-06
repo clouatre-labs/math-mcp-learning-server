@@ -17,6 +17,7 @@ from typing import Any
 
 from fastmcp import Context, FastMCP
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
+from fastmcp.server.middleware.logging import StructuredLoggingMiddleware
 from fastmcp.server.middleware.rate_limiting import (
     RateLimitError,
     SlidingWindowRateLimitingMiddleware,
@@ -161,9 +162,9 @@ def _log_rate_limit_violation(error: Exception, context) -> None:
         logging.warning(f"Rate limit exceeded: method={context.method}")
 
 
-# Add middleware in correct order: ErrorHandling before RateLimiting
-# Note: FastMCP default error formatting used. Custom annotations (retry_after_seconds)
-# could be added via custom error middleware if needed in future.
+# Add middleware in correct order: StructuredLogging -> ErrorHandling -> RateLimiting
+# Logging middleware placed first to capture all requests before other processing
+mcp.add_middleware(StructuredLoggingMiddleware(include_payloads=True))
 mcp.add_middleware(ErrorHandlingMiddleware(error_callback=_log_rate_limit_violation))
 if RATE_LIMIT_PER_MINUTE > 0:
     mcp.add_middleware(
