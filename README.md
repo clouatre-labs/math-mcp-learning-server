@@ -6,8 +6,6 @@
 [![CI](https://github.com/clouatre-labs/math-mcp-learning-server/actions/workflows/ci.yml/badge.svg)](https://github.com/clouatre-labs/math-mcp-learning-server/actions/workflows/ci.yml)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-**Cloud hosted:** [https://math-mcp-learning.fastmcp.app/mcp](https://math-mcp-learning.fastmcp.app/mcp)
-
 Educational MCP server demonstrating persistent workspace patterns and mathematical operations. Built with [FastMCP 2.0](https://github.com/jlowin/fastmcp) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
 
 ## Requirements
