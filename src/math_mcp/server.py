@@ -13,7 +13,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import Any, Annotated
 
 from fastmcp import Context, FastMCP
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
@@ -22,64 +22,67 @@ from fastmcp.server.middleware.rate_limiting import (
     RateLimitError,
     SlidingWindowRateLimitingMiddleware,
 )
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, validate_call, SkipValidation
+from pydantic_settings import BaseSettings
 
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
 from math_mcp import visualization
 
-# === SAFE ENVIRONMENT VARIABLE LOADING ===
+# === CONFIGURATION MANAGEMENT ===
 
 
-def _load_env_float(key: str, default: float) -> float:
-    """Safely load float from environment variable with error handling."""
-    try:
-        value_str = os.getenv(key)
-        if value_str is None:
-            return default
-        return float(value_str)
-    except ValueError as e:
-        logging.warning(
-            f"Invalid {key} in environment ('{os.getenv(key)}'): {e}. Using default: {default}"
-        )
-        return default
+class MathMCPSettings(BaseSettings):
+    """Environment-based configuration with automatic validation."""
+
+    math_timeout: float = 5.0
+    mcp_rate_limit_per_minute: int = Field(default=100, ge=0)
+    max_expression_length: int = Field(default=500, ge=0)
+    max_string_param_length: int = Field(default=100, ge=0)
+    max_array_size: int = Field(default=10000, ge=0)
+    max_groups_count: int = Field(default=100, ge=0)
+    max_group_size: int = Field(default=1000, ge=0)
+    max_variable_name_length: int = Field(default=50, ge=0)
+    max_days_financial: int = Field(default=1000, ge=0)
+
+    model_config = ConfigDict(env_prefix="", case_sensitive=False)
+
+    @field_validator("math_timeout", mode="after")
+    @classmethod
+    def validate_timeout(cls, v: float) -> float:
+        """Ensure timeout is positive."""
+        if v <= 0:
+            raise ValueError("math_timeout must be positive")
+        return v
 
 
-def _load_env_positive_int(key: str, default: int) -> int:
-    """Safely load non-negative integer from environment variable with validation."""
-    try:
-        value_str = os.getenv(key)
-        if value_str is None:
-            return default
-        value = int(value_str)
-        if value < 0:
-            logging.warning(
-                f"Invalid {key} in environment ('{value}'): must be non-negative. Using default: {default}"
-            )
-            return default
-        return value
-    except ValueError as e:
-        logging.warning(
-            f"Invalid {key} in environment ('{os.getenv(key)}'): {e}. Using default: {default}"
-        )
-        return default
+# Initialize settings from environment
+settings = MathMCPSettings()
 
-
-EXPRESSION_TIMEOUT_SECONDS = _load_env_float("MATH_TIMEOUT", 5.0)
-RATE_LIMIT_PER_MINUTE = _load_env_positive_int("MCP_RATE_LIMIT_PER_MINUTE", 100)
+# Keep constants for backward compatibility
+EXPRESSION_TIMEOUT_SECONDS = settings.math_timeout
+RATE_LIMIT_PER_MINUTE = settings.mcp_rate_limit_per_minute
 
 # === INPUT SIZE LIMITS ===
 
-MAX_EXPRESSION_LENGTH = _load_env_positive_int("MAX_EXPRESSION_LENGTH", 500)
-MAX_STRING_PARAM_LENGTH = _load_env_positive_int("MAX_STRING_PARAM_LENGTH", 100)
-MAX_ARRAY_SIZE = _load_env_positive_int("MAX_ARRAY_SIZE", 10000)
-MAX_GROUPS_COUNT = _load_env_positive_int("MAX_GROUPS_COUNT", 100)
-MAX_GROUP_SIZE = _load_env_positive_int("MAX_GROUP_SIZE", 1000)
-MAX_VARIABLE_NAME_LENGTH = _load_env_positive_int("MAX_VARIABLE_NAME_LENGTH", 50)
-MAX_DAYS_FINANCIAL = _load_env_positive_int("MAX_DAYS_FINANCIAL", 1000)
+MAX_EXPRESSION_LENGTH = settings.max_expression_length
+MAX_STRING_PARAM_LENGTH = settings.max_string_param_length
+MAX_ARRAY_SIZE = settings.max_array_size
+MAX_GROUPS_COUNT = settings.max_groups_count
+MAX_GROUP_SIZE = settings.max_group_size
+MAX_VARIABLE_NAME_LENGTH = settings.max_variable_name_length
+MAX_DAYS_FINANCIAL = settings.max_days_financial
 
 # Whitelist constants
 ALLOWED_OPERATIONS = {"mean", "median", "mode", "std_dev", "variance"}
 ALLOWED_TRENDS = {"bullish", "bearish", "volatile"}
+
+
+# === CUSTOM DECORATOR FOR TOOL VALIDATION ===
+
+def validated_tool(func):
+    """Apply Pydantic validation to tool functions with Context support."""
+    return validate_call(config={"arbitrary_types_allowed": True})(func)
+
 
 # === PYDANTIC MODELS FOR STRUCTURED OUTPUT ===
 
@@ -279,64 +282,28 @@ async def evaluate_with_timeout(expression: str) -> float:
         ) from e
 
 
-def _validate_expression_length(expression: str) -> None:
-    """Validate expression against MAX_EXPRESSION_LENGTH."""
-    if len(expression) > MAX_EXPRESSION_LENGTH:
-        raise ValueError(
-            f"Expression exceeds maximum length of {MAX_EXPRESSION_LENGTH} characters. "
-            f"Current length: {len(expression)}"
-        )
+# === CUSTOM VALIDATORS (for logic Field constraints can't handle) ===
 
-
-def _validate_array_size(array: list, param_name: str, max_size: int = MAX_ARRAY_SIZE) -> None:
-    """Validate array size with configurable limit."""
-    if len(array) > max_size:
-        raise ValueError(
-            f"{param_name} exceeds maximum size of {max_size} elements. Current size: {len(array)}"
-        )
-
-
-def _validate_nested_arrays(
-    data_groups: list[list[float]],
-    max_groups: int = MAX_GROUPS_COUNT,
-    max_per_group: int = MAX_GROUP_SIZE,
-) -> None:
-    """Validate nested array structure for plot_box_plot."""
-    if len(data_groups) > max_groups:
-        raise ValueError(f"Too many groups: {len(data_groups)}. Maximum allowed: {max_groups}")
-    for i, group in enumerate(data_groups):
-        if len(group) > max_per_group:
-            raise ValueError(
-                f"Group {i} exceeds maximum size of {max_per_group} elements. "
-                f"Current size: {len(group)}"
-            )
-
-
-def _validate_string_param(
-    value: str, param_name: str, max_len: int = MAX_STRING_PARAM_LENGTH
-) -> None:
-    """Validate string parameter length."""
-    if len(value) > max_len:
-        raise ValueError(
-            f"{param_name} exceeds maximum length of {max_len} characters. "
-            f"Current length: {len(value)}"
-        )
-
-
-def _validate_variable_name(name: str) -> None:
-    """Validate workspace variable name (length + filesystem safety)."""
-    if len(name) > MAX_VARIABLE_NAME_LENGTH:
-        raise ValueError(
-            f"Variable name exceeds maximum length of {MAX_VARIABLE_NAME_LENGTH} characters. "
-            f"Current length: {len(name)}"
-        )
+def validate_variable_name(name: str) -> str:
+    """Validate variable name for filesystem safety (alphanumeric + underscore/hyphen only)."""
     if not name.strip():
         raise ValueError("Variable name cannot be empty")
-    # Filesystem safety (no special characters)
     if not name.replace("_", "").replace("-", "").isalnum():
         raise ValueError(
             "Variable name must contain only letters, numbers, underscores, and hyphens"
         )
+    return name
+
+
+def validate_nested_array_groups(groups: list[list[float]]) -> list[list[float]]:
+    """Validate nested array group sizes."""
+    for i, group in enumerate(groups):
+        if len(group) > settings.max_group_size:
+            raise ValueError(
+                f"Group {i} exceeds maximum size of {settings.max_group_size} elements. "
+                f"Current size: {len(group)}"
+            )
+    return groups
 
 
 def convert_temperature(value: float, from_unit: str, to_unit: str) -> float:
@@ -398,7 +365,11 @@ def _classify_expression_topic(expression: str) -> str:
 @mcp.tool(
     annotations={"title": "Mathematical Calculator", "readOnlyHint": False, "openWorldHint": True}
 )
-async def calculate(expression: str, ctx: Context) -> dict[str, Any]:
+@validated_tool
+async def calculate(
+    expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
+    ctx: SkipValidation[Context],
+) -> dict[str, Any]:
     """Safely evaluate mathematical expressions with support for basic operations and math functions.
 
     Supported operations: +, -, *, /, **, ()
@@ -409,8 +380,6 @@ async def calculate(expression: str, ctx: Context) -> dict[str, Any]:
     - "sqrt(16)" → 4.0
     - "sin(3.14159/2)" → 1.0
     """
-    # Validate input size
-    _validate_expression_length(expression)
 
     # FastMCP 2.0 Context logging best practice
     await ctx.info(f"Calculating expression: {expression}")
@@ -447,13 +416,16 @@ async def calculate(expression: str, ctx: Context) -> dict[str, Any]:
 @mcp.tool(
     annotations={"title": "Statistical Analysis", "readOnlyHint": True, "openWorldHint": False}
 )
-async def statistics(numbers: list[float], operation: str, ctx: Context) -> dict[str, Any]:
+@validated_tool
+async def statistics(
+    numbers: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
+    operation: str,
+    ctx: SkipValidation[Context],
+) -> dict[str, Any]:
     """Perform statistical calculations on a list of numbers.
 
     Available operations: mean, median, mode, std_dev, variance
     """
-    # Validate input size
-    _validate_array_size(numbers, "numbers")
 
     # Validate operation against whitelist
     if operation not in ALLOWED_OPERATIONS:
@@ -643,8 +615,12 @@ async def convert_units(
         "openWorldHint": False,
     }
 )
+@validated_tool
 async def save_calculation(
-    name: str, expression: str, result: float, ctx: Context
+    name: Annotated[str, Field(max_length=MAX_VARIABLE_NAME_LENGTH)],
+    expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
+    result: float,
+    ctx: SkipValidation[Context],
 ) -> dict[str, Any]:
     """Save calculation to persistent workspace (survives restarts).
 
@@ -657,9 +633,8 @@ async def save_calculation(
         save_calculation("portfolio_return", "10000 * 1.07^5", 14025.52)
         save_calculation("circle_area", "pi * 5^2", 78.54)
     """
-    # Validate input size
-    _validate_variable_name(name)
-    _validate_expression_length(expression)
+    # Validate variable name for filesystem safety
+    validate_variable_name(name)
 
     # FastMCP 2.0 Context logging
     await ctx.info(f"Saving calculation '{name}' = {result}")
@@ -770,8 +745,12 @@ async def load_variable(name: str, ctx: Context) -> dict[str, Any]:
 
 
 @mcp.tool(annotations={"title": "Function Plotter", "readOnlyHint": False, "openWorldHint": False})
+@validated_tool
 async def plot_function(
-    expression: str, x_range: tuple[float, float], num_points: int = 100, ctx: Context | None = None
+    expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
+    x_range: tuple[float, float],
+    num_points: Annotated[int, Field(ge=2, le=MAX_ARRAY_SIZE)] = 100,
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Generate mathematical function plots (requires matplotlib).
 
@@ -788,12 +767,6 @@ async def plot_function(
         plot_function("x**2", (-5, 5))
         plot_function("sin(x)", (-3.14, 3.14))
     """
-    # Validate input size
-    _validate_expression_length(expression)
-    if num_points > MAX_ARRAY_SIZE:
-        raise ValueError(f"num_points exceeds maximum of {MAX_ARRAY_SIZE}. Current: {num_points}")
-    if num_points < 2:
-        raise ValueError("num_points must be at least 2")
 
     # Try importing optional dependencies
     try:
@@ -919,8 +892,12 @@ async def plot_function(
 @mcp.tool(
     annotations={"title": "Statistical Histogram", "readOnlyHint": False, "openWorldHint": False}
 )
+@validated_tool
 async def create_histogram(
-    data: list[float], bins: int = 20, title: str = "Data Distribution", ctx: Context | None = None
+    data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
+    bins: int = 20,
+    title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Data Distribution",
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Create statistical histograms (requires matplotlib).
 
@@ -936,9 +913,6 @@ async def create_histogram(
     Examples:
         create_histogram([1, 2, 2, 3, 3, 3, 4, 4, 5], bins=5)
     """
-    # Validate input size
-    _validate_array_size(data, "data")
-    _validate_string_param(title, "title")
     if bins < 1:
         raise ValueError("bins must be at least 1")
 
@@ -1070,15 +1044,16 @@ async def create_histogram(
 
 
 @mcp.tool(annotations={"title": "Line Chart", "readOnlyHint": False, "openWorldHint": False})
+@validated_tool
 async def plot_line_chart(
-    x_data: list[float],
-    y_data: list[float],
-    title: str = "Line Chart",
-    x_label: str = "X",
-    y_label: str = "Y",
-    color: str | None = None,
+    x_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
+    y_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
+    title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Line Chart",
+    x_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "X",
+    y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Y",
+    color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
     show_grid: bool = True,
-    ctx: Context | None = None,
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Create a line chart from data points (requires matplotlib).
 
@@ -1099,15 +1074,6 @@ async def plot_line_chart(
         plot_line_chart([1, 2, 3, 4], [1, 4, 9, 16], title="Squares")
         plot_line_chart([0, 1, 2], [0, 1, 4], color='red', x_label='Time', y_label='Distance')
     """
-    # Validate input size
-    _validate_array_size(x_data, "x_data")
-    _validate_array_size(y_data, "y_data")
-    _validate_string_param(title, "title")
-    _validate_string_param(x_label, "x_label")
-    _validate_string_param(y_label, "y_label")
-    if color:
-        _validate_string_param(color, "color")
-
     try:
         import matplotlib  # noqa: F401 - Check if available
     except ImportError:
@@ -1188,15 +1154,16 @@ async def plot_line_chart(
 
 
 @mcp.tool(annotations={"title": "Scatter Plot", "readOnlyHint": False, "openWorldHint": False})
+@validated_tool
 async def plot_scatter_chart(
-    x_data: list[float],
-    y_data: list[float],
-    title: str = "Scatter Plot",
-    x_label: str = "X",
-    y_label: str = "Y",
-    color: str | None = None,
+    x_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
+    y_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
+    title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Scatter Plot",
+    x_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "X",
+    y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Y",
+    color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
     point_size: int = 50,
-    ctx: Context | None = None,
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Create a scatter plot from data points (requires matplotlib).
 
@@ -1217,14 +1184,6 @@ async def plot_scatter_chart(
         plot_scatter_chart([1, 2, 3, 4], [1, 4, 9, 16], title="Correlation Study")
         plot_scatter_chart([1, 2, 3], [2, 4, 5], color='purple', point_size=100)
     """
-    # Validate input size
-    _validate_array_size(x_data, "x_data")
-    _validate_array_size(y_data, "y_data")
-    _validate_string_param(title, "title")
-    _validate_string_param(x_label, "x_label")
-    _validate_string_param(y_label, "y_label")
-    if color:
-        _validate_string_param(color, "color")
 
     try:
         import matplotlib  # noqa: F401 - Check if available
@@ -1306,13 +1265,14 @@ async def plot_scatter_chart(
 
 
 @mcp.tool(annotations={"title": "Box Plot", "readOnlyHint": False, "openWorldHint": False})
+@validated_tool
 async def plot_box_plot(
-    data_groups: list[list[float]],
-    group_labels: list[str] | None = None,
-    title: str = "Box Plot",
-    y_label: str = "Values",
-    color: str | None = None,
-    ctx: Context | None = None,
+    data_groups: Annotated[list[list[float]], Field(max_length=MAX_GROUPS_COUNT)],
+    group_labels: Annotated[list[str] | None, Field(max_length=MAX_GROUPS_COUNT)] = None,
+    title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Box Plot",
+    y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Values",
+    color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Create a box plot for comparing distributions (requires matplotlib).
 
@@ -1331,16 +1291,8 @@ async def plot_box_plot(
         plot_box_plot([[1, 2, 3, 4], [2, 3, 4, 5]], group_labels=['Group A', 'Group B'])
         plot_box_plot([[10, 20, 30], [15, 25, 35], [20, 30, 40]], color='green')
     """
-    # Validate input size
-    _validate_nested_arrays(data_groups)
-    if group_labels:
-        _validate_array_size(group_labels, "group_labels", MAX_GROUPS_COUNT)
-        for label in group_labels:
-            _validate_string_param(label, "group_label")
-    _validate_string_param(title, "title")
-    _validate_string_param(y_label, "y_label")
-    if color:
-        _validate_string_param(color, "color")
+    # Validate nested array group sizes
+    validate_nested_array_groups(data_groups)
 
     try:
         import matplotlib  # noqa: F401 - Check if available
@@ -1422,12 +1374,13 @@ async def plot_box_plot(
 @mcp.tool(
     annotations={"title": "Financial Line Chart", "readOnlyHint": False, "openWorldHint": False}
 )
+@validated_tool
 async def plot_financial_line(
-    days: int = 30,
+    days: Annotated[int, Field(ge=2, le=MAX_DAYS_FINANCIAL)] = 30,
     trend: str = "bullish",
     start_price: float = 100.0,
-    color: str | None = None,
-    ctx: Context | None = None,
+    color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Generate and plot synthetic financial price data (requires matplotlib).
 
@@ -1448,18 +1401,9 @@ async def plot_financial_line(
         plot_financial_line(days=60, trend='bullish')
         plot_financial_line(days=90, trend='volatile', start_price=150.0, color='orange')
     """
-    # Validate input size
-    if days < 2:
-        raise ValueError("days must be at least 2")
-    if days > MAX_DAYS_FINANCIAL:
-        raise ValueError(f"days exceeds maximum of {MAX_DAYS_FINANCIAL}. Current: {days}")
-
     # Validate trend against whitelist
     if trend not in ALLOWED_TRENDS:
         raise ValueError(f"Invalid trend: {trend}. Allowed: {', '.join(sorted(ALLOWED_TRENDS))}")
-
-    if color:
-        _validate_string_param(color, "color")
 
     try:
         import matplotlib  # noqa: F401 - Check if available

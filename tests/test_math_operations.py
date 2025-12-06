@@ -481,7 +481,7 @@ async def test_expression_length_validation():
     # Invalid: exceeds limit
     # Create expression like "1+1+1+1..." that exceeds MAX_EXPRESSION_LENGTH
     invalid_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH + 2) // 2))[: MAX_EXPRESSION_LENGTH + 1]
-    with pytest.raises(ValueError, match=f"exceeds maximum length of {MAX_EXPRESSION_LENGTH}"):
+    with pytest.raises(ValueError, match=f"String should have at most {MAX_EXPRESSION_LENGTH} characters"):
         await calculate.fn(invalid_expr, ctx)
 
 
@@ -504,7 +504,7 @@ async def test_array_size_validation():
 
     # Invalid: exceeds limit
     invalid_array = [1.0] * (MAX_ARRAY_SIZE + 1)
-    with pytest.raises(ValueError, match=f"exceeds maximum size of {MAX_ARRAY_SIZE}"):
+    with pytest.raises(ValueError, match=f"List should have at most {MAX_ARRAY_SIZE} items"):
         await stats_tool.fn(invalid_array, "mean", ctx)
 
 
@@ -563,7 +563,7 @@ async def test_variable_name_validation():
 
     # Invalid: exceeds length
     invalid_name = "a" * (MAX_VARIABLE_NAME_LENGTH + 1)
-    with pytest.raises(ValueError, match=f"exceeds maximum length of {MAX_VARIABLE_NAME_LENGTH}"):
+    with pytest.raises(ValueError, match=f"String should have at most {MAX_VARIABLE_NAME_LENGTH} characters"):
         await save_calculation.fn(invalid_name, "2+2", 4.0, ctx)
 
     # Invalid: empty
@@ -588,7 +588,7 @@ async def test_string_param_validation():
 
     # Invalid: exceeds limit
     invalid_title = "a" * (MAX_STRING_PARAM_LENGTH + 1)
-    with pytest.raises(ValueError, match=f"exceeds maximum length of {MAX_STRING_PARAM_LENGTH}"):
+    with pytest.raises(ValueError, match=f"String should have at most {MAX_STRING_PARAM_LENGTH} characters"):
         await create_histogram.fn([1.0, 2.0, 3.0], 10, invalid_title, None)
 
 
@@ -604,7 +604,7 @@ async def test_nested_array_validation():
 
     # Invalid: exceeds group count
     invalid_groups = [[1.0, 2.0]] * (MAX_GROUPS_COUNT + 1)
-    with pytest.raises(ValueError, match=f"Too many groups.*Maximum allowed: {MAX_GROUPS_COUNT}"):
+    with pytest.raises(ValueError, match=f"List should have at most {MAX_GROUPS_COUNT} items"):
         await plot_box_plot.fn(invalid_groups, None, "Test", "Y", None, None)
 
     # Valid: at group size limit
@@ -628,11 +628,11 @@ async def test_days_validation():
     assert "content" in result
 
     # Invalid: exceeds limit
-    with pytest.raises(ValueError, match=f"exceeds maximum of {MAX_DAYS_FINANCIAL}"):
+    with pytest.raises(ValueError, match=f"Input should be less than or equal to {MAX_DAYS_FINANCIAL}"):
         await plot_financial_line.fn(MAX_DAYS_FINANCIAL + 1, "bullish", 100.0, None, None)
 
     # Invalid: too small
-    with pytest.raises(ValueError, match="must be at least 2"):
+    with pytest.raises(ValueError, match="Input should be greater than or equal to 2"):
         await plot_financial_line.fn(1, "bullish", 100.0, None, None)
 
 
@@ -661,11 +661,11 @@ async def test_num_points_validation():
     assert "content" in result
 
     # Invalid: exceeds limit
-    with pytest.raises(ValueError, match=f"exceeds maximum of {MAX_ARRAY_SIZE}"):
+    with pytest.raises(ValueError, match=f"Input should be less than or equal to {MAX_ARRAY_SIZE}"):
         await plot_function.fn("x**2", (-5, 5), MAX_ARRAY_SIZE + 1, None)
 
     # Invalid: too small
-    with pytest.raises(ValueError, match="must be at least 2"):
+    with pytest.raises(ValueError, match="Input should be greater than or equal to 2"):
         await plot_function.fn("x**2", (-5, 5), 1, None)
 
 
@@ -715,15 +715,16 @@ async def test_validation_error_messages():
 
     ctx = MockContext()
 
-    # Test error message includes current and max values
+    # Test error message includes max value (Pydantic format)
     invalid_expr = "1" * (MAX_EXPRESSION_LENGTH + 1)
     try:
         await calculate.fn(invalid_expr, ctx)
         raise AssertionError("Should have raised ValueError")
     except ValueError as e:
         error_msg = str(e)
+        # Pydantic error format: "String should have at most 500 characters"
         assert str(MAX_EXPRESSION_LENGTH) in error_msg
-        assert str(len(invalid_expr)) in error_msg
+        assert "String should have at most" in error_msg
 
 
 @pytest.mark.asyncio

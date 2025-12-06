@@ -25,6 +25,7 @@ classifiers = [
 dependencies = [
     "fastmcp>=2.0.0",
     "pydantic>=2.11.9",
+    "pydantic-settings>=2.0.0",
 ]
 
 [project.urls]
