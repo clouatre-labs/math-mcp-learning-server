@@ -76,7 +76,7 @@ uv pip install math-mcp-learning-server
 ## MCP Implementation
 
 **Primitives:**
-- **Tools**: 8 tools for mathematical operations, persistence, and visualization
+- **Tools**: 12 tools for mathematical operations, persistence, and visualization
 - **Resources**: 1 resource (`math://workspace`) for viewing persistent workspace
 - **Prompts**: 0 (future enhancement)
 
@@ -101,6 +101,10 @@ Workspace persists across all transport modes and sessions.
 ### Visualization Tools
 - `plot_function`: Generate mathematical function plots (base64-encoded PNG)
 - `create_histogram`: Create statistical histograms with distribution analysis
+- `plot_line_chart`: Create line charts for sequential data visualization
+- `plot_scatter_chart`: Create scatter plots for relationship analysis
+- `plot_box_plot`: Create box plots for statistical distribution comparison
+- `plot_financial_line`: Create financial trend plots with bullish/bearish/volatile patterns
 
 See [Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/EXAMPLES.md) for detailed examples of each tool.
 
