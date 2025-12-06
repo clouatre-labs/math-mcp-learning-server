@@ -21,7 +21,7 @@ from fastmcp.server.middleware.rate_limiting import (
     RateLimitError,
     SlidingWindowRateLimitingMiddleware,
 )
-from pydantic import BaseModel, ConfigDict, Field, SkipValidation, field_validator, validate_call
+from pydantic import ConfigDict, Field, SkipValidation, field_validator, validate_call
 from pydantic_settings import BaseSettings
 
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
@@ -102,47 +102,6 @@ TEMP_CONVERSIONS = {
 def validated_tool(func):
     """Apply Pydantic validation to tool functions with Context support."""
     return validate_call(config={"arbitrary_types_allowed": True})(func)
-
-
-# === PYDANTIC MODELS FOR STRUCTURED OUTPUT ===
-
-
-class CalculationResult(BaseModel):
-    """Structured result for mathematical calculations."""
-
-    expression: str = Field(description="The original expression")
-    result: float = Field(description="The calculated result")
-    timestamp: str = Field(description="When the calculation was performed")
-
-
-class StatisticsResult(BaseModel):
-    """Structured result for statistical calculations."""
-
-    operation: str = Field(description="Statistical operation performed")
-    input_data: list[float] = Field(description="Input numbers")
-    result: float = Field(description="Statistical result")
-    count: int = Field(description="Number of data points")
-
-
-class CompoundInterestResult(BaseModel):
-    """Structured result for compound interest calculations."""
-
-    principal: float = Field(description="Initial investment")
-    rate: float = Field(description="Annual interest rate")
-    time: float = Field(description="Investment period in years")
-    compounds_per_year: int = Field(description="Compounding frequency")
-    final_amount: float = Field(description="Final amount after compound interest")
-    total_interest: float = Field(description="Total interest earned")
-
-
-class UnitConversionResult(BaseModel):
-    """Structured result for unit conversions."""
-
-    original_value: float = Field(description="Original value")
-    original_unit: str = Field(description="Original unit")
-    converted_value: float = Field(description="Converted value")
-    target_unit: str = Field(description="Target unit")
-    conversion_type: str = Field(description="Type of conversion")
 
 
 # === APPLICATION CONTEXT ===
