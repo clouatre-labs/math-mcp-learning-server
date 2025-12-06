@@ -76,6 +76,26 @@ ALLOWED_OPERATIONS = {"mean", "median", "mode", "std_dev", "variance"}
 ALLOWED_TRENDS = {"bullish", "bearish", "volatile"}
 
 
+# === CONSTANTS ===
+
+MATH_FUNCTIONS_SINGLE = ["sin", "cos", "tan", "log", "sqrt", "abs"]
+MATH_FUNCTIONS_ALL = {"sin", "cos", "tan", "log", "sqrt", "abs", "pow"}
+DANGEROUS_PATTERNS = ["import", "exec", "__", "eval", "open", "file"]
+
+TOPIC_KEYWORDS = {
+    "finance": ["interest", "rate", "investment", "portfolio"],
+    "geometry": ["pi", "radius", "area", "volume"],
+    "trigonometry": ["sin", "cos", "tan"],
+    "logarithms": ["log", "ln", "exp"],
+}
+
+TEMP_CONVERSIONS = {
+    "c": {"f": lambda c: c * 9 / 5 + 32, "k": lambda c: c + 273.15},
+    "f": {"c": lambda f: (f - 32) * 5 / 9, "k": lambda f: (f - 32) * 5 / 9 + 273.15},
+    "k": {"c": lambda k: k - 273.15, "f": lambda k: (k - 273.15) * 9 / 5 + 32},
+}
+
+
 # === CUSTOM DECORATOR FOR TOOL VALIDATION ===
 
 
@@ -190,8 +210,7 @@ def _validate_expression_syntax(expression: str) -> None:
         )
 
     # Check for empty function calls (functions with no parameters)
-    single_param_funcs = ["sin", "cos", "tan", "log", "sqrt", "abs"]
-    for func in single_param_funcs:
+    for func in MATH_FUNCTIONS_SINGLE:
         empty_call = f"{func}()"
         if empty_call in clean_expr:
             raise ValueError(f"Function '{func}()' requires one parameter. Example: {func}(3.14)")
@@ -207,11 +226,9 @@ def safe_eval_expression(expression: str) -> float:
 
     # Only allow safe characters (including comma for function parameters)
     allowed_chars = set("0123456789+-*/.(),e")
-    allowed_functions = {"sin", "cos", "tan", "log", "sqrt", "abs", "pow"}
 
     # Security check - log and block dangerous patterns
-    dangerous_patterns = ["import", "exec", "__", "eval", "open", "file"]
-    if any(pattern in clean_expr.lower() for pattern in dangerous_patterns):
+    if any(pattern in clean_expr.lower() for pattern in DANGEROUS_PATTERNS):
         logging.warning(f"Security: Blocked unsafe expression attempt: {expression[:50]}...")
         raise ValueError(
             "Expression contains forbidden operations. Only mathematical expressions are allowed."
@@ -225,7 +242,7 @@ def safe_eval_expression(expression: str) -> float:
 
     # Replace math functions with safe alternatives
     safe_expr = clean_expr
-    for func in allowed_functions:
+    for func in MATH_FUNCTIONS_ALL:
         if func in clean_expr:
             if func != "abs":  # abs is built-in, others need math module
                 safe_expr = safe_expr.replace(func, f"math.{func}")
@@ -309,21 +326,28 @@ def validate_nested_array_groups(groups: list[list[float]]) -> list[list[float]]
 
 def convert_temperature(value: float, from_unit: str, to_unit: str) -> float:
     """Convert temperature between Celsius, Fahrenheit, and Kelvin."""
-    # Convert to Celsius first
-    if from_unit.lower() == "f":
-        celsius = (value - 32) * 5 / 9
-    elif from_unit.lower() == "k":
-        celsius = value - 273.15
-    else:  # Celsius
+    from_lower = from_unit.lower()
+    to_lower = to_unit.lower()
+
+    # Direct conversion if same unit
+    if from_lower == to_lower:
+        return value
+
+    # Convert to Celsius first if not already
+    if from_lower == "c":
         celsius = value
+    elif from_lower in TEMP_CONVERSIONS:
+        celsius = TEMP_CONVERSIONS[from_lower]["c"](value)
+    else:
+        raise ValueError(f"Unknown temperature unit '{from_unit}'")
 
     # Convert from Celsius to target
-    if to_unit.lower() == "f":
-        return celsius * 9 / 5 + 32
-    elif to_unit.lower() == "k":
-        return celsius + 273.15
-    else:  # Celsius
+    if to_lower == "c":
         return celsius
+    elif to_lower in TEMP_CONVERSIONS["c"]:
+        return TEMP_CONVERSIONS["c"][to_lower](celsius)
+    else:
+        raise ValueError(f"Unknown temperature unit '{to_unit}'")
 
 
 # === TOOLS: COMPUTATIONAL OPERATIONS ===
@@ -334,7 +358,7 @@ def _classify_expression_difficulty(expression: str) -> str:
     clean_expr = expression.replace(" ", "").lower()
 
     # Count complexity indicators
-    has_functions = any(func in clean_expr for func in ["sin", "cos", "tan", "log", "sqrt", "pow"])
+    has_functions = any(func in clean_expr for func in MATH_FUNCTIONS_ALL)
     has_parentheses = "(" in clean_expr
     has_exponents = "**" in clean_expr or "^" in clean_expr
     operator_count = sum(clean_expr.count(op) for op in "+-*/")
@@ -351,16 +375,11 @@ def _classify_expression_topic(expression: str) -> str:
     """Enhanced topic classification for educational metadata."""
     clean_expr = expression.lower()
 
-    if any(word in clean_expr for word in ["interest", "rate", "investment", "portfolio"]):
-        return "finance"
-    elif any(word in clean_expr for word in ["pi", "radius", "area", "volume"]):
-        return "geometry"
-    elif any(word in clean_expr for word in ["sin", "cos", "tan"]):
-        return "trigonometry"
-    elif any(word in clean_expr for word in ["log", "ln", "exp"]):
-        return "logarithms"
-    else:
-        return "arithmetic"
+    for topic, keywords in TOPIC_KEYWORDS.items():
+        if any(word in clean_expr for word in keywords):
+            return topic
+
+    return "arithmetic"
 
 
 @mcp.tool(
