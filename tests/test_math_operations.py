@@ -481,7 +481,9 @@ async def test_expression_length_validation():
     # Invalid: exceeds limit
     # Create expression like "1+1+1+1..." that exceeds MAX_EXPRESSION_LENGTH
     invalid_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH + 2) // 2))[: MAX_EXPRESSION_LENGTH + 1]
-    with pytest.raises(ValueError, match=f"String should have at most {MAX_EXPRESSION_LENGTH} characters"):
+    with pytest.raises(
+        ValueError, match=f"String should have at most {MAX_EXPRESSION_LENGTH} characters"
+    ):
         await calculate.fn(invalid_expr, ctx)
 
 
@@ -563,7 +565,9 @@ async def test_variable_name_validation():
 
     # Invalid: exceeds length
     invalid_name = "a" * (MAX_VARIABLE_NAME_LENGTH + 1)
-    with pytest.raises(ValueError, match=f"String should have at most {MAX_VARIABLE_NAME_LENGTH} characters"):
+    with pytest.raises(
+        ValueError, match=f"String should have at most {MAX_VARIABLE_NAME_LENGTH} characters"
+    ):
         await save_calculation.fn(invalid_name, "2+2", 4.0, ctx)
 
     # Invalid: empty
@@ -588,7 +592,9 @@ async def test_string_param_validation():
 
     # Invalid: exceeds limit
     invalid_title = "a" * (MAX_STRING_PARAM_LENGTH + 1)
-    with pytest.raises(ValueError, match=f"String should have at most {MAX_STRING_PARAM_LENGTH} characters"):
+    with pytest.raises(
+        ValueError, match=f"String should have at most {MAX_STRING_PARAM_LENGTH} characters"
+    ):
         await create_histogram.fn([1.0, 2.0, 3.0], 10, invalid_title, None)
 
 
@@ -628,7 +634,9 @@ async def test_days_validation():
     assert "content" in result
 
     # Invalid: exceeds limit
-    with pytest.raises(ValueError, match=f"Input should be less than or equal to {MAX_DAYS_FINANCIAL}"):
+    with pytest.raises(
+        ValueError, match=f"Input should be less than or equal to {MAX_DAYS_FINANCIAL}"
+    ):
         await plot_financial_line.fn(MAX_DAYS_FINANCIAL + 1, "bullish", 100.0, None, None)
 
     # Invalid: too small

@@ -78,6 +78,7 @@ ALLOWED_TRENDS = {"bullish", "bearish", "volatile"}
 
 # === CUSTOM DECORATOR FOR TOOL VALIDATION ===
 
+
 def validated_tool(func):
     """Apply Pydantic validation to tool functions with Context support."""
     return validate_call(config={"arbitrary_types_allowed": True})(func)
@@ -282,6 +283,7 @@ async def evaluate_with_timeout(expression: str) -> float:
 
 
 # === CUSTOM VALIDATORS (for logic Field constraints can't handle) ===
+
 
 def validate_variable_name(name: str) -> str:
     """Validate variable name for filesystem safety (alphanumeric + underscore/hyphen only)."""
