@@ -1,37 +1,34 @@
 # Math MCP Learning Server
 
 [![PyPI version](https://badge.fury.io/py/math-mcp-learning-server.svg)](https://pypi.org/project/math-mcp-learning-server/)
+[![Python](https://img.shields.io/pypi/pyversions/math-mcp-learning-server)](https://pypi.org/project/math-mcp-learning-server/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/clouatre-labs/math-mcp-learning-server/actions/workflows/ci.yml/badge.svg)](https://github.com/clouatre-labs/math-mcp-learning-server/actions/workflows/ci.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-**Cloud hosted:** Connect any MCP client to [https://math-mcp-learning.fastmcp.app/mcp](https://math-mcp-learning.fastmcp.app/mcp) (MCP client required, no local server install needed)
+**Cloud hosted:** [https://math-mcp-learning.fastmcp.app/mcp](https://math-mcp-learning.fastmcp.app/mcp)
 
-A persistent quantitative workspace built as a Model Context Protocol (MCP) server. This project demonstrates enterprise-grade patterns for MCP development, featuring cross-session state persistence - a unique capability that most LLMs cannot achieve natively.
-
-Perfect for learning MCP fundamentals, demonstrating professional patterns, and serving as a foundation for advanced mathematical workflows.
-
-Built with [FastMCP 2.0](https://github.com/jlowin/fastmcp) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
+Educational MCP server demonstrating persistent workspace patterns and mathematical operations. Built with [FastMCP 2.0](https://github.com/jlowin/fastmcp) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
 
 ## Requirements
 
-**This is an MCP server** - it requires an MCP client to use. Supported clients include:
+Requires an MCP client:
 
-- **Claude Desktop** - Anthropic's desktop app with native MCP support
-- **Claude Code** - Command-line MCP client from Anthropic
-- **Goose** - Open-source AI agent framework with MCP support
+- **Claude Desktop** - Anthropic's desktop app
+- **Claude Code** - Command-line MCP client
+- **Goose** - Open-source AI agent framework
 - **OpenCode** - Open-source MCP client by SST
-- **Amazon Q** - AWS's AI assistant with MCP support
-- **Gemini CLI** - Google's Gemini command-line tool
-- Any other MCP-compatible client
-
-**Cannot run standalone** - The server must be connected through an MCP client.
+- **Kiro** - AWS's AI assistant
+- **Gemini CLI** - Google's command-line tool
+- Any MCP-compatible client
 
 ## Quick Start
 
-### Option 1: Try it Now (Cloud)
+### Cloud (No Installation)
 
-Connect your MCP client to the hosted server - no local installation required!
+Connect your MCP client to the hosted server:
 
-**Claude Desktop:**
+**Claude Desktop** (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
@@ -43,20 +40,10 @@ Connect your MCP client to the hosted server - no local installation required!
 }
 ```
 
-**Claude Code:**
-```bash
-claude mcp add math-cloud https://math-mcp-learning.fastmcp.app/mcp
-```
+### Local Installation
 
-### Option 2: Run Locally
+**Automatic with uvx** (recommended):
 
-Choose one of two installation methods:
-
-**Method A: Automatic with uvx (recommended)**
-
-Configure your MCP client to use `uvx` - no manual installation needed:
-
-**Claude Desktop:**
 ```json
 {
   "mcpServers": {
@@ -68,78 +55,36 @@ Configure your MCP client to use `uvx` - no manual installation needed:
 }
 ```
 
-**Claude Code:**
-```bash
-claude mcp add math uvx math-mcp-learning-server
-```
-
-**Method B: Manual installation**
-
-1. Install the package:
+**Manual installation:**
 ```bash
 uv pip install math-mcp-learning-server
 ```
 
-2. Configure your MCP client:
-
-**Claude Desktop:**
-```json
-{
-  "mcpServers": {
-    "math": {
-      "command": "math-mcp-learning-server"
-    }
-  }
-}
-```
-
-**Claude Code:**
-```bash
-claude mcp add math math-mcp-learning-server
-```
-
 ## Features
 
-### Persistent Workspace
-- **Cross-Session State**: Save calculations and access them across different MCP client sessions
-- **Persistent Storage**: Variables survive server restarts and session changes
-- **Cross-Platform**: Works on Windows (`%LOCALAPPDATA%`), macOS, and Linux (`~/.math-mcp`)
-- **Thread-Safe**: Concurrent access with atomic file operations
+- **Cross-Session Persistence**: Variables survive server restarts and session changes
+- **Safe Expression Evaluation**: Secure mathematical expression parsing with security logging
+- **Statistical Analysis**: Mean, median, mode, standard deviation, variance
+- **Financial Calculations**: Compound interest with formatted output
+- **Unit Conversions**: Length, weight, temperature
+- **Function Plotting**: Base64-encoded PNG plots (matplotlib)
+- **Statistical Histograms**: Distribution visualization with indicators
+- **Type Safety**: Full Pydantic validation for all inputs
+- **Comprehensive Testing**: Complete coverage with security validation
+- **Cross-Platform Storage**: Windows, macOS, Linux support
 
-### Mathematical Operations
-- **Safe Expression Evaluation**: Securely evaluate mathematical expressions with enhanced error handling
-- **Statistical Analysis**: Calculate mean, median, mode, standard deviation, and variance
-- **Financial Calculations**: Compound interest calculations with formatted output
-- **Unit Conversions**: Length, weight, and temperature conversions
+## MCP Implementation
 
-### Visual Learning
-- **Function Plotting**: Generate mathematical function plots with base64-encoded PNG output
-- **Statistical Histograms**: Visualize data distributions with mean and median indicators
-- **Cloud Deployment**: Visualization tools (matplotlib) are included in the cloud deployment
-- **Local Usage**: Install with `uv pip install math-mcp-learning-server[plotting]` for local usage with plotting features
-
-### Enterprise-Grade Quality
-- **Security Logging**: Monitor and log potentially dangerous expression attempts
-- **Type Safety**: Full Pydantic validation for inputs and structured content responses
-- **Comprehensive Testing**: Complete test coverage with security and edge case validation
-- **Zero Core Dependencies**: Core persistence features use only Python stdlib
-
-## MCP Architecture
-
-This server implements the following MCP primitives:
-
+**Primitives:**
 - **Tools**: 8 tools for mathematical operations, persistence, and visualization
-- **Resources**: 1 resource (`math://workspace`) for viewing the persistent workspace
-- **Prompts**: 0 (future enhancement opportunity)
+- **Resources**: 1 resource (`math://workspace`) for viewing persistent workspace
+- **Prompts**: 0 (future enhancement)
 
-## Transport Support
+**Transports:**
+- **stdio** - Standard input/output for local clients
+- **HTTP/SSE** - Server-Sent Events for cloud/web clients
 
-This server implements **all official MCP transport modes** per the [MCP specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports):
-
-- **stdio** - Standard input/output for local clients (Claude Desktop, Claude Code)
-- **HTTP/SSE** - Streamable HTTP with Server-Sent Events for cloud/web clients
-
-**Transport-agnostic workspace:** Your saved calculations persist across all transport modes and sessions.
+Workspace persists across all transport modes and sessions.
 
 ## Available Tools
 
@@ -172,52 +117,20 @@ View your complete persistent workspace with all saved calculations, metadata, a
 
 ## Development
 
-### Project Structure
-```
-math-mcp-learning-server/
-├── src/math_mcp/
-│   ├── server.py          # Main MCP server implementation
-│   └── persistence/       # Persistent workspace functionality
-├── tests/
-│   ├── test_math_operations.py
-│   └── test_persistence.py
-├── docs/
-│   ├── CLOUD_DEPLOYMENT.md
-│   └── EXAMPLES.md
-├── pyproject.toml
-└── README.md
-```
-
-### Development Setup
-
 ```bash
-# Clone the repository
+# Clone and setup
 git clone https://github.com/clouatre-labs/math-mcp-learning-server.git
 cd math-mcp-learning-server
-
-# Install dependencies (includes plotting support)
 uv sync --extra dev --extra plotting
 
-# Run tests
+# Run tests and checks
 uv run pytest tests/ -v
-
-# Run type checking
-uv run mypy src/
-
-# Run linting
 uv run ruff check
+uv run ruff format --check
 
-# Test the MCP server with FastMCP dev mode
+# Test server locally
 uv run fastmcp dev src/math_mcp/server.py
-# Then connect via MCP client (Claude Desktop, Claude Code, etc.)
 ```
-
-### Adding New Tools
-
-1. Define input/output models with Pydantic
-2. Add `@mcp.tool()` decorated function in `src/math_mcp/server.py`
-3. Implement tool logic with proper validation
-4. Add corresponding tests in `tests/`
 
 See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for detailed guidelines.
 
@@ -246,36 +159,11 @@ The `calculate` tool uses restricted `eval()` with:
 - **Least Privilege**: File operations restricted to designated workspace directory
 - **Type Safety**: Complete type hints and validation for all operations
 
-## Publishing
-
-This package is published to PyPI via GitHub Actions workflow. The workflow is triggered on:
-- New releases (tags matching `v*`)
-- Manual workflow dispatch
-
-**Publishing workflow:**
-1. Create and push a version tag: `git tag v0.6.7 && git push origin v0.6.7`
-2. GitHub Actions automatically builds and publishes to PyPI
-3. Release notes are generated from commit messages
-
-The package follows semantic versioning and includes comprehensive metadata for discoverability on PyPI.
-
 ## Contributing
 
-We welcome contributions! This project follows a fast and minimal philosophy while maintaining educational value and professional standards.
+We welcome contributions! See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for development workflow, code standards, and testing procedures.
 
-**Quick Start for Contributors:**
-1. Fork the repository
-2. Set up development environment: `uv sync --extra dev --extra plotting`
-3. Create feature branch: `git checkout -b feature/your-feature`
-4. Make changes and add tests
-5. Run quality checks: `uv run pytest && uv run mypy src/ && uv run ruff check`
-6. Submit a pull request
-
-See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for detailed guidelines including:
-- Development workflow and Git practices
-- Code standards and security requirements
-- Testing procedures and quality assurance
-- Architecture guidelines and best practices
+For maintainers: See [MAINTAINER_GUIDE.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/.github/MAINTAINER_GUIDE.md) for release procedures.
 
 ## Code of Conduct
 
