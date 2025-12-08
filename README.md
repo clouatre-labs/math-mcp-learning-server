@@ -8,6 +8,8 @@
 
 Educational MCP server demonstrating persistent workspace patterns and mathematical operations. Built with [FastMCP 2.0](https://github.com/jlowin/fastmcp) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
 
+**Python 3.11+ supported** (including Python 3.14)
+
 ## Requirements
 
 Requires an MCP client:
