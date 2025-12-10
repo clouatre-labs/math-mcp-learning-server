@@ -72,7 +72,7 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.clo
 
 | Platform | Status | Date | Notes |
 |----------|--------|------|-------|
-| Official MCP Registry | 🔧 Ready | 2025-12-10 | Files prepared |
+| Official MCP Registry | ✅ Done | 2025-12-10 | Published v0.9.1 |
 | AWSome MCP | ✅ Done | 2025-12-10 | Form submitted |
 | Community MCP Servers | ⏳ Pending | - | PR needed |
 | Awesome Remote MCP | ⏳ Pending | - | PR needed |
