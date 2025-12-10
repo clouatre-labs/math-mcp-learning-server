@@ -20,7 +20,7 @@
   ],
   "remotes": [
     {
-      "type": "sse",
+      "type": "streamable-http",
       "url": "https://math-mcp.fastmcp.app/mcp"
     }
   ]
