@@ -2,17 +2,17 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.clouatre-labs/math-mcp-learning-server",
   "title": "Math MCP Learning",
-  "description": "Educational MCP server with math operations, statistics, visualizations, and persistent workspace. Demonstrates FastMCP 2.0 best practices.",
+  "description": "Educational MCP server with 12 math/stats tools, visualizations, and persistent workspace",
   "repository": {
     "url": "https://github.com/clouatre-labs/math-mcp-learning-server",
     "source": "github"
   },
-  "version": "0.9.0",
+  "version": "0.9.1",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "math-mcp-learning-server",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "transport": {
         "type": "stdio"
       }
