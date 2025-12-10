@@ -10,6 +10,11 @@
 
 Educational MCP server demonstrating persistent workspace patterns and mathematical operations. Built with [FastMCP 2.0](https://github.com/jlowin/fastmcp) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
 
+**Available on:**
+- [Official MCP Registry](https://registry.modelcontextprotocol.io/) - `io.github.clouatre-labs/math-mcp-learning-server`
+- [PyPI](https://pypi.org/project/math-mcp-learning-server/) - `math-mcp-learning-server`
+- [FastMCP Cloud](https://math-mcp.fastmcp.app/mcp) - No installation required
+
 ## Requirements
 
 Requires an MCP client:
