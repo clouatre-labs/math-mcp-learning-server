@@ -22,5 +22,8 @@
   "deployment": {
     "transport": "http",
     "log_level": "INFO"
+  },
+  "metadata": {
+    "updated": "2025-12-10"
   }
 }
