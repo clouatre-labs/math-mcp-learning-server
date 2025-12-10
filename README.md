@@ -32,7 +32,7 @@ Connect your MCP client to the hosted server:
   "mcpServers": {
     "math-cloud": {
       "transport": "http",
-      "url": "https://math-mcp-learning.fastmcp.app/mcp"
+      "url": "https://math-mcp.fastmcp.app/mcp"
     }
   }
 }
