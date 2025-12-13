@@ -134,7 +134,7 @@ Single-file architecture for core functionality:
 ```
 src/math_mcp/server.py    # Core MCP server
 tests/                    # Comprehensive test suite
-FUTURE_IMPROVEMENTS.md    # Ideas for later consideration
+ROADMAP.md                # Ideas for later consideration
 ```
 
 ### Adding New Features
@@ -156,7 +156,7 @@ FUTURE_IMPROVEMENTS.md    # Ideas for later consideration
 
 ### Before You Start
 1. Check existing issues and PRs for similar work
-2. Review FUTURE_IMPROVEMENTS.md for planned features
+2. Review ROADMAP.md for planned features
 3. Discuss major changes in an issue first
 
 ### Making Changes
@@ -206,7 +206,7 @@ FUTURE_IMPROVEMENTS.md    # Ideas for later consideration
 ## Getting Help
 
 - **Bug Reports**: Open an issue with detailed reproduction steps
-- **Feature Requests**: Check FUTURE_IMPROVEMENTS.md first, then open an issue
+- **Feature Requests**: Check ROADMAP.md first, then open an issue
 - **Questions**: Open a discussion or issue
 - **Security Issues**: Report privately to maintainers
 

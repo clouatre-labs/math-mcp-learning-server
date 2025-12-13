@@ -148,7 +148,7 @@ See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/
 - **[Cloud Deployment Guide](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/CLOUD_DEPLOYMENT.md)**: FastMCP Cloud deployment instructions and configuration
 - **[Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/EXAMPLES.md)**: Practical examples for all tools and resources
 - **[Contributing Guidelines](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md)**: Development workflow, code standards, and testing procedures
-- **[Future Improvements](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/FUTURE_IMPROVEMENTS.md)**: Roadmap and enhancement opportunities
+- **[Roadmap](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/ROADMAP.md)**: Planned features and enhancement opportunities
 - **[Code of Conduct](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CODE_OF_CONDUCT.md)**: Community guidelines and expectations
 
 ## Security
