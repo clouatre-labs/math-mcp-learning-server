@@ -12,6 +12,7 @@ Tools tested:
 """
 
 import pytest
+from fastmcp.exceptions import ToolError
 
 pytest.importorskip("numpy")
 
@@ -36,7 +37,6 @@ def test_matrix_2x2():
     return [[1, 2], [3, 4]]
 
 
-@pytest.mark.skip(reason="RED phase - awaiting implementation in GREEN phase")
 class TestMatrixMultiply:
     """Test matrix multiplication tool."""
 
@@ -51,7 +51,7 @@ class TestMatrixMultiply:
             },
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Verify result contains expected values: [1*5+2*7, 1*6+2*8], [3*5+4*7, 3*6+4*8]
         assert "19" in result  # First row, first col
@@ -70,7 +70,7 @@ class TestMatrixMultiply:
             },
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # First row: [1*9+2*6+3*3, 1*8+2*5+3*2, 1*7+2*4+3*1] = [30, 24, 18]
         assert "30" in result
@@ -80,17 +80,17 @@ class TestMatrixMultiply:
     @pytest.mark.asyncio
     async def test_multiply_incompatible_dimensions(self, http_client):
         """Test error handling for incompatible matrix dimensions."""
-        response = await http_client.call_tool(
-            "matrix_multiply",
-            arguments={
-                "matrix_a": [[1, 2], [3, 4]],  # 2x2
-                "matrix_b": [[1, 2, 3]],  # 1x3 (incompatible)
-            },
-        )
+        with pytest.raises(ToolError) as exc_info:
+            await http_client.call_tool(
+                "matrix_multiply",
+                arguments={
+                    "matrix_a": [[1, 2], [3, 4]],  # 2x2
+                    "matrix_b": [[1, 2, 3]],  # 1x3 (incompatible)
+                },
+            )
 
-        assert response.isError is True
-        error_text = response.content[0].text.lower()
-        assert "incompatible" in error_text or "dimension" in error_text or "shape" in error_text
+        error_msg = str(exc_info.value).lower()
+        assert "incompatible" in error_msg or "dimension" in error_msg or "shape" in error_msg
 
     @pytest.mark.asyncio
     async def test_multiply_identity_matrix(self, http_client, test_matrix_2x2, identity_2x2):
@@ -103,14 +103,13 @@ class TestMatrixMultiply:
             },
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Should return original matrix
         assert "1" in result and "2" in result
         assert "3" in result and "4" in result
 
 
-@pytest.mark.skip(reason="RED phase - awaiting implementation in GREEN phase")
 class TestMatrixTranspose:
     """Test matrix transpose tool."""
 
@@ -122,7 +121,7 @@ class TestMatrixTranspose:
             arguments={"matrix": [[1, 2, 3], [4, 5, 6]]},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Transposed: [[1, 4], [2, 5], [3, 6]]
         assert "1" in result and "4" in result
@@ -137,7 +136,7 @@ class TestMatrixTranspose:
             arguments={"matrix": test_matrix_2x2},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Transposed: [[1, 3], [2, 4]]
         assert "1" in result and "3" in result
@@ -151,7 +150,7 @@ class TestMatrixTranspose:
             arguments={"matrix": [[1, 2, 3, 4]]},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Transposed: [[1], [2], [3], [4]]
         assert "1" in result
@@ -160,7 +159,6 @@ class TestMatrixTranspose:
         assert "4" in result
 
 
-@pytest.mark.skip(reason="RED phase - awaiting implementation in GREEN phase")
 class TestMatrixDeterminant:
     """Test matrix determinant calculation tool."""
 
@@ -179,7 +177,7 @@ class TestMatrixDeterminant:
             arguments={"matrix": matrix},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         assert expected in result
 
@@ -191,12 +189,11 @@ class TestMatrixDeterminant:
             arguments={"matrix": singular_matrix},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         assert "0" in result or "0.0" in result
 
 
-@pytest.mark.skip(reason="RED phase - awaiting implementation in GREEN phase")
 class TestMatrixInverse:
     """Test matrix inverse calculation tool."""
 
@@ -208,7 +205,7 @@ class TestMatrixInverse:
             arguments={"matrix": [[4, 7], [2, 6]]},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Inverse exists (det = 4*6 - 7*2 = 10 ≠ 0)
         # Should contain decimal values
@@ -223,7 +220,7 @@ class TestMatrixInverse:
             arguments={"matrix": [[1, 2, 3], [0, 1, 4], [5, 6, 0]]},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Inverse exists (det = 1 from previous test)
         # Should contain matrix values
@@ -232,16 +229,14 @@ class TestMatrixInverse:
     @pytest.mark.asyncio
     async def test_inverse_singular_matrix(self, http_client, singular_matrix):
         """Test error handling for singular matrix (no inverse)."""
-        response = await http_client.call_tool(
-            "matrix_inverse",
-            arguments={"matrix": singular_matrix},
-        )
+        with pytest.raises(ToolError) as exc_info:
+            await http_client.call_tool(
+                "matrix_inverse",
+                arguments={"matrix": singular_matrix},
+            )
 
-        assert response.isError is True
-        error_text = response.content[0].text.lower()
-        assert (
-            "singular" in error_text or "invertible" in error_text or "not invertible" in error_text
-        )
+        error_msg = str(exc_info.value).lower()
+        assert "singular" in error_msg or "invertible" in error_msg or "not invertible" in error_msg
 
     @pytest.mark.asyncio
     async def test_inverse_identity_matrix(self, http_client, identity_2x2):
@@ -251,13 +246,12 @@ class TestMatrixInverse:
             arguments={"matrix": identity_2x2},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Inverse of identity is identity
         assert "1" in result and "0" in result
 
 
-@pytest.mark.skip(reason="RED phase - awaiting implementation in GREEN phase")
 class TestMatrixEigenvalues:
     """Test matrix eigenvalues calculation tool."""
 
@@ -269,7 +263,7 @@ class TestMatrixEigenvalues:
             arguments={"matrix": [[4, 2], [1, 3]]},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Eigenvalues are 5 and 2
         assert "5" in result
@@ -283,7 +277,7 @@ class TestMatrixEigenvalues:
             arguments={"matrix": [[1, 2, 3], [0, 1, 4], [5, 6, 0]]},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Should contain eigenvalues (may be complex)
         assert "[" in result or "eigenvalue" in result.lower() or any(c.isdigit() for c in result)
@@ -296,7 +290,7 @@ class TestMatrixEigenvalues:
             arguments={"matrix": [[3, 0, 0], [0, 5, 0], [0, 0, 7]]},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # Eigenvalues are 3, 5, 7
         assert "3" in result
@@ -311,13 +305,12 @@ class TestMatrixEigenvalues:
             arguments={"matrix": identity_3x3},
         )
 
-        assert response.isError is False
+        assert response.is_error is False
         result = response.content[0].text
         # All eigenvalues are 1
         assert "1" in result
 
 
-@pytest.mark.skip(reason="RED phase - awaiting implementation in GREEN phase")
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "tool_name",
@@ -329,9 +322,11 @@ class TestMatrixEigenvalues:
 )
 async def test_non_square_error(http_client, tool_name):
     """Test non-square matrix error."""
-    response = await http_client.call_tool(
-        tool_name,
-        arguments={"matrix": [[1, 2, 3], [4, 5, 6]]},
-    )
-    assert response.isError is True
-    assert "square" in response.content[0].text.lower()
+    with pytest.raises(ToolError) as exc_info:
+        await http_client.call_tool(
+            tool_name,
+            arguments={"matrix": [[1, 2, 3], [4, 5, 6]]},
+        )
+
+    error_msg = str(exc_info.value).lower()
+    assert "square" in error_msg

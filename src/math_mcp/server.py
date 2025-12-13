@@ -15,6 +15,7 @@ from datetime import datetime
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
+from fastmcp.exceptions import ToolError
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
 from fastmcp.server.middleware.logging import StructuredLoggingMiddleware
 from fastmcp.server.middleware.rate_limiting import (
@@ -26,6 +27,17 @@ from pydantic_settings import BaseSettings
 
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
 from math_mcp import visualization
+
+# Try importing numpy for matrix operations
+try:
+    import numpy as np
+    import numpy.linalg as la
+
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+    np = None  # type: ignore
+    la = None  # type: ignore
 
 # === CONFIGURATION MANAGEMENT ===
 
@@ -1482,6 +1494,347 @@ async def plot_financial_line(
                 }
             ]
         }
+
+
+# === MATRIX OPERATIONS (requires numpy) ===
+
+
+def _check_numpy_available() -> None:
+    """Check if numpy is available and raise error if not."""
+    if not NUMPY_AVAILABLE:
+        raise ValueError(
+            "NumPy is required for matrix operations. "
+            "Install with: pip install math-mcp-learning-server[scientific]"
+        )
+
+
+def _validate_matrix(matrix: list[list[float]], max_size: int = 100) -> Any:
+    """Validate matrix input and convert to numpy array.
+
+    Args:
+        matrix: Input matrix as list of lists
+        max_size: Maximum dimension size (prevents DoS)
+
+    Returns:
+        numpy.ndarray: Validated matrix
+
+    Raises:
+        ValueError: If matrix is invalid
+    """
+    _check_numpy_available()
+
+    if not matrix:
+        raise ValueError("Matrix cannot be empty")
+
+    if not all(isinstance(row, list) for row in matrix):
+        raise ValueError("Matrix must be a list of lists")
+
+    row_lengths = [len(row) for row in matrix]
+    if len(set(row_lengths)) > 1:
+        raise ValueError("All matrix rows must have the same length")
+
+    if not all(isinstance(val, (int, float)) for row in matrix for val in row):
+        raise ValueError("All matrix elements must be numeric (int or float)")
+
+    rows = len(matrix)
+    cols = len(matrix[0]) if matrix else 0
+
+    if rows > max_size or cols > max_size:
+        raise ValueError(
+            f"Matrix dimensions ({rows}x{cols}) exceed maximum size ({max_size}x{max_size})"
+        )
+
+    return np.array(matrix, dtype=float)
+
+
+def _format_matrix(matrix_array: Any) -> str:
+    """Format numpy array as readable string.
+
+    Args:
+        matrix_array: numpy array to format
+
+    Returns:
+        str: Formatted matrix string
+    """
+    return np.array2string(matrix_array, precision=4, suppress_small=True)
+
+
+@mcp.tool()
+async def matrix_multiply(
+    matrix_a: list[list[float]],
+    matrix_b: list[list[float]],
+    ctx: Context = None,  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Multiply two matrices using NumPy.
+
+    Args:
+        matrix_a: First matrix (m x n)
+        matrix_b: Second matrix (n x p)
+
+    Returns:
+        Result matrix (m x p)
+
+    Raises:
+        ValueError: If matrices have incompatible dimensions
+
+    Examples:
+        matrix_multiply([[1, 2], [3, 4]], [[5, 6], [7, 8]])
+        matrix_multiply([[1, 2, 3]], [[1], [2], [3]])
+    """
+    if ctx:
+        await ctx.info("Performing matrix multiplication")
+
+    try:
+        mat_a = _validate_matrix(matrix_a)
+        mat_b = _validate_matrix(matrix_b)
+
+        if mat_a.shape[1] != mat_b.shape[0]:
+            raise ValueError(
+                f"Incompatible matrix dimensions for multiplication: "
+                f"({mat_a.shape[0]}x{mat_a.shape[1]}) × ({mat_b.shape[0]}x{mat_b.shape[1]}). "
+                f"Number of columns in first matrix must equal number of rows in second matrix."
+            )
+
+        result = np.matmul(mat_a, mat_b)
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Multiplication Result:**\n{_format_matrix(result)}",
+                    "annotations": {
+                        "difficulty": "intermediate",
+                        "topic": "linear_algebra",
+                        "operation": "matrix_multiply",
+                        "result_shape": f"{result.shape[0]}x{result.shape[1]}",
+                    },
+                }
+            ]
+        }
+
+    except ValueError as e:
+        raise ToolError(f"Matrix multiplication error: {str(e)}")
+
+
+@mcp.tool()
+async def matrix_transpose(
+    matrix: list[list[float]],
+    ctx: Context = None,  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Transpose a matrix (swap rows and columns).
+
+    Args:
+        matrix: Input matrix
+
+    Returns:
+        Transposed matrix
+
+    Examples:
+        matrix_transpose([[1, 2, 3], [4, 5, 6]])  # Returns [[1, 4], [2, 5], [3, 6]]
+        matrix_transpose([[1, 2], [3, 4]])
+    """
+    if ctx:
+        await ctx.info("Performing matrix transpose")
+
+    try:
+        mat = _validate_matrix(matrix)
+        result = np.transpose(mat)
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Transpose Result:**\n{_format_matrix(result)}",
+                    "annotations": {
+                        "difficulty": "basic",
+                        "topic": "linear_algebra",
+                        "operation": "matrix_transpose",
+                        "result_shape": f"{result.shape[0]}x{result.shape[1]}",
+                    },
+                }
+            ]
+        }
+
+    except ValueError as e:
+        raise ToolError(f"Matrix transpose error: {str(e)}")
+
+
+@mcp.tool()
+async def matrix_determinant(
+    matrix: list[list[float]],
+    ctx: Context = None,  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Calculate the determinant of a square matrix.
+
+    Args:
+        matrix: Square matrix (n x n)
+
+    Returns:
+        Determinant value
+
+    Raises:
+        ValueError: If matrix is not square
+
+    Examples:
+        matrix_determinant([[4, 6], [3, 8]])  # Returns 14
+        matrix_determinant([[1, 2], [2, 4]])  # Returns 0 (singular)
+    """
+    if ctx:
+        await ctx.info("Calculating matrix determinant")
+
+    try:
+        mat = _validate_matrix(matrix)
+
+        if mat.shape[0] != mat.shape[1]:
+            raise ValueError(
+                f"Determinant requires a square matrix. "
+                f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
+            )
+
+        det = la.det(mat)
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Determinant:** {det:.6g}",
+                    "annotations": {
+                        "difficulty": "intermediate",
+                        "topic": "linear_algebra",
+                        "operation": "matrix_determinant",
+                        "matrix_size": f"{mat.shape[0]}x{mat.shape[1]}",
+                    },
+                }
+            ]
+        }
+
+    except ValueError as e:
+        raise ToolError(f"Matrix determinant error: {str(e)}")
+
+
+@mcp.tool()
+async def matrix_inverse(
+    matrix: list[list[float]],
+    ctx: Context = None,  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Calculate the inverse of a square matrix.
+
+    Args:
+        matrix: Square matrix (n x n)
+
+    Returns:
+        Inverse matrix
+
+    Raises:
+        ValueError: If matrix is not square or is singular
+
+    Examples:
+        matrix_inverse([[4, 7], [2, 6]])
+        matrix_inverse([[1, 0], [0, 1]])  # Identity matrix
+    """
+    if ctx:
+        await ctx.info("Calculating matrix inverse")
+
+    try:
+        mat = _validate_matrix(matrix)
+
+        if mat.shape[0] != mat.shape[1]:
+            raise ValueError(
+                f"Matrix inverse requires a square matrix. "
+                f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
+            )
+
+        try:
+            result = la.inv(mat)
+        except la.LinAlgError:
+            raise ValueError(
+                "Matrix is singular and cannot be inverted. "
+                "Determinant is zero or matrix is not invertible."
+            )
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Inverse Result:**\n{_format_matrix(result)}",
+                    "annotations": {
+                        "difficulty": "advanced",
+                        "topic": "linear_algebra",
+                        "operation": "matrix_inverse",
+                        "matrix_size": f"{mat.shape[0]}x{mat.shape[1]}",
+                    },
+                }
+            ]
+        }
+
+    except ValueError as e:
+        raise ToolError(f"Matrix inverse error: {str(e)}")
+
+
+@mcp.tool()
+async def matrix_eigenvalues(
+    matrix: list[list[float]],
+    ctx: Context = None,  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Calculate the eigenvalues of a square matrix.
+
+    Args:
+        matrix: Square matrix (n x n)
+
+    Returns:
+        List of eigenvalues (may be complex numbers)
+
+    Raises:
+        ValueError: If matrix is not square
+
+    Examples:
+        matrix_eigenvalues([[4, 2], [1, 3]])
+        matrix_eigenvalues([[3, 0, 0], [0, 5, 0], [0, 0, 7]])  # Diagonal matrix
+    """
+    if ctx:
+        await ctx.info("Calculating matrix eigenvalues")
+
+    try:
+        mat = _validate_matrix(matrix)
+
+        if mat.shape[0] != mat.shape[1]:
+            raise ValueError(
+                f"Eigenvalues require a square matrix. "
+                f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
+            )
+
+        eigenvalues = la.eigvals(mat)
+
+        # Format eigenvalues (handle complex numbers)
+        def _format_complex_eigenvalue(val: Any) -> str:
+            """Format complex eigenvalue avoiding +- for negative imaginary parts."""
+            if np.isreal(val):
+                return f"{val.real:.6g}"
+            elif val.imag >= 0:
+                return f"{val.real:.6g}+{val.imag:.6g}j"
+            else:
+                return f"{val.real:.6g}{val.imag:.6g}j"  # negative sign already in val.imag
+
+        eigenval_str = ", ".join([_format_complex_eigenvalue(val) for val in eigenvalues])
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Eigenvalues:** [{eigenval_str}]",
+                    "annotations": {
+                        "difficulty": "advanced",
+                        "topic": "linear_algebra",
+                        "operation": "matrix_eigenvalues",
+                        "matrix_size": f"{mat.shape[0]}x{mat.shape[1]}",
+                        "count": len(eigenvalues),
+                    },
+                }
+            ]
+        }
+
+    except ValueError as e:
+        raise ToolError(f"Matrix eigenvalues error: {str(e)}")
 
 
 # === RESOURCES: DATA EXPOSURE ===
