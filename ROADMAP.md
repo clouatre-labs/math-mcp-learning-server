@@ -127,10 +127,72 @@ uv run fastmcp dev src/math_mcp/server.py
 
 ## Next Steps
 
-**Future considerations:**
+### v0.11.0 - Enhanced Test Coverage & Stability
+
+**Focus:** Complete MCP protocol testing and integration workflows
+
+#### Testing Improvements
+- [ ] **MCP Resources Testing**
+  - [ ] Test `math://test` resource
+  - [ ] Test `math://constants/pi` resource
+  - [ ] Test `math://constants/e` resource
+  - [ ] Test `math://functions` resource
+  - [ ] Test `math://workspace` resource
+
+- [ ] **MCP Prompts Testing**
+  - [ ] Test `math_tutor` prompt (all topic/level combinations)
+  - [ ] Test `formula_explainer` prompt (various formulas)
+
+- [ ] **Integration Workflows**
+  - [ ] Add end-to-end workflow tests (calculate → save → load → visualize)
+  - [ ] Add matrix operation chain tests
+  - [ ] Add statistical analysis workflow tests
+
+- [ ] **Performance Benchmarks**
+  - [ ] Matrix multiplication scaling benchmarks
+  - [ ] Visualization generation benchmarks
+  - [ ] Rate limiting behavior tests
+
+- [ ] **Documentation**
+  - [ ] Automate README example validation
+  - [ ] Verify EXAMPLES.md accuracy
+
+**Estimated Effort:** 10-15 hours
+**Target:** Q1 2025
+
+---
+
+### v0.12.0 - Production Hardening
+
+**Focus:** Advanced testing and reliability improvements
+
+#### Advanced Testing
+- [ ] Load testing (concurrent users)
+- [ ] Memory profiling (large datasets)
+- [ ] Fuzzing tests (random inputs)
+- [ ] Property-based testing with hypothesis
+
+#### Monitoring & Observability
+- [ ] Test coverage reporting (target: >90%)
+- [ ] Performance regression detection
+- [ ] Automated test report generation
+
+**Estimated Effort:** 15-20 hours
+**Target:** Q2 2025
+
+---
+
+### Future Considerations
+
+**Computational features:**
 - Monte Carlo simulations
 - Advanced optimization algorithms
 - Community-requested features
+
+**Testing enhancements:**
+- Documentation validation (automated example testing)
+- Load testing at scale
+- Fuzzing with property-based testing
 
 ---
 

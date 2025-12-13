@@ -159,16 +159,42 @@ git clone https://github.com/clouatre-labs/math-mcp-learning-server.git
 cd math-mcp-learning-server
 uv sync --extra dev --extra plotting
 
-# Run tests and checks
-uv run pytest tests/ -v
-uv run ruff check
-uv run ruff format --check
-
 # Test server locally
 uv run fastmcp dev src/math_mcp/server.py
 ```
 
-See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for detailed guidelines.
+### Testing
+
+```bash
+# Run all tests
+uv run pytest tests/ -v
+
+# Run with coverage
+uv run pytest tests/ --cov=src --cov-report=html --cov-report=term
+
+# Run specific test category
+uv run pytest tests/test_matrix_operations.py -v
+```
+
+**Test Suite:** 126 tests across 5 categories (HTTP, Math, Matrix, Persistence, Visualization)
+**Coverage:** See detailed [testing documentation](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/testing/)
+
+### Code Quality
+
+```bash
+# Linting
+uv run ruff check
+
+# Formatting
+uv run ruff format --check
+
+# Security checks
+uv run ruff check --select S
+```
+
+### Contributing
+
+See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for guidelines on submitting changes.
 
 ## Documentation
 
