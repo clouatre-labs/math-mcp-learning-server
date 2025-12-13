@@ -83,7 +83,7 @@ uv pip install math-mcp-learning-server
 **Primitives:**
 - **Tools**: 12 tools for mathematical operations, persistence, and visualization
 - **Resources**: 1 resource (`math://workspace`) for viewing persistent workspace
-- **Prompts**: 0 (future enhancement)
+- **Prompts**: 2 prompts (`math_tutor`, `formula_explainer`) for educational interactions
 
 **Transports:**
 - **stdio** - Standard input/output for local clients
@@ -112,6 +112,14 @@ Workspace persists across all transport modes and sessions.
 - `plot_financial_line`: Create financial trend plots with bullish/bearish/volatile patterns
 
 See [Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/EXAMPLES.md) for detailed examples of each tool.
+
+## Available Prompts
+
+### Educational Prompts
+- `math_tutor`: Generate structured tutoring prompts for mathematical concepts (configurable difficulty level)
+- `formula_explainer`: Generate comprehensive formula explanation prompts with step-by-step breakdowns
+
+See [Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/EXAMPLES.md) for detailed examples of each prompt.
 
 ## Available Resources
 
