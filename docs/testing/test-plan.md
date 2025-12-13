@@ -227,8 +227,8 @@ Tests run on:
 - Scheduled nightly builds
 
 **Test matrix:**
-- Python versions: 3.11, 3.12, 3.13
-- Operating systems: Ubuntu, macOS, Windows
+- Python versions: 3.11, 3.14
+- Operating systems: Ubuntu 24.04
 
 ---
 
