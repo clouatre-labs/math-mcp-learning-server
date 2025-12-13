@@ -63,6 +63,9 @@ plotting = [
     "matplotlib>=3.10.6",
     "numpy>=2.3.3",
 ]
+scientific = [
+    "numpy>=2.3.3",
+]
 
 [tool.ruff]
 target-version = "py314"
