@@ -1,14 +1,13 @@
 # Roadmap
 
-This document tracks the evolution from a basic math calculator to a persistent quantitative workspace that does what LLMs can't: maintain state, generate visuals, and access real-time data.
+This document tracks the evolution from a basic math calculator to a persistent quantitative workspace that does what LLMs can't: maintain state, generate visuals, and perform high-performance computing.
 
 ## Core Principle
 
 Build capabilities LLMs lack natively:
 - **Persistent state** across sessions
 - **Visual output** (plots, charts)
-- **Real-time data** via APIs
-- **High-performance computing**
+- **High-performance computing** (matrix operations, simulations)
 
 LLMs already excel at math explanations and reasoning. We focus on what they can't do.
 
@@ -39,38 +38,34 @@ Mathematical and statistical visualization capabilities.
 
 **Installation:** `uv pip install math-mcp-learning-server[plotting]`
 
-### Phase 3: Real-Time Data Integration 🎯 NEXT
+### Phase 3: Real-Time Data Integration ⏭️ DEFERRED
 
-Access live data LLMs can't reach directly.
+Real-time API integration deferred to maintain project focus on educational MCP fundamentals.
 
-**Potential APIs:**
-- **Financial:** Alpha Vantage, Twelvedata, Yahoo Finance
-- **Weather:** OpenWeatherMap (1M free calls/month, 100M for education)
-- **Economic:** FRED (Federal Reserve), World Bank Open Data
-- **Scientific:** NASA APIs, Open-Meteo
+**Rationale:**
+- Current feature set (12 tools, 1 resource, 2 prompts) already demonstrates core MCP concepts
+- API integration adds complexity without clear educational benefit for math-focused learning
+- Existing tools provide sufficient examples of MCP patterns
 
-**Example tools:**
+**Deferred until:** Community feedback indicates clear need for external data integration
+
+### Phase 4: Matrix Operations 🎯 NEXT (v0.10.0)
+
+High-performance matrix operations beyond LLM computational capabilities.
+
+**Planned tools:**
 ```python
-get_stock_price(symbol, provider="alpha_vantage")
-calculate_portfolio_value(holdings)
-get_weather_data(location, provider="openweather")
-get_economic_indicators(indicator, source="fred")
-```
-
-**Installation:** `uv pip install math-mcp-learning-server[data]`
-
-### Phase 4: High-Performance Computing 🔮 FUTURE
-
-Computational capabilities beyond LLM scope.
-
-**Example tools:**
-```python
-matrix_operations(operation, matrices)
-monte_carlo_simulation(params, iterations)
-optimize_portfolio(returns, risks, constraints)
+matrix_multiply(matrix_a, matrix_b)
+matrix_inverse(matrix)
+matrix_determinant(matrix)
+matrix_eigenvalues(matrix)
+matrix_transpose(matrix)
+solve_linear_system(coefficients, constants)
 ```
 
 **Installation:** `uv pip install math-mcp-learning-server[scientific]`
+
+**Dependencies:** NumPy for optimized numerical computation
 
 ## Architecture Principles
 
@@ -127,14 +122,15 @@ uv run fastmcp dev src/math_mcp/server.py
 ## Next Steps
 
 **Immediate (v0.10.0):**
-- Evaluate Phase 3 priority: Do we need real-time data integration?
-- Consider if current feature set meets educational goals
-- Gather user feedback on visualization tools
+- Phase 4: Matrix operations implementation
+- Add linear algebra capabilities (multiply, inverse, determinant, eigenvalues)
+- Maintain educational focus while adding high-performance computing
 
-**Future (if needed):**
-- Phase 3: Real-time data APIs (financial, weather, economic)
-- Phase 4: High-performance computing (matrix ops, simulations)
+**Future considerations:**
+- Monte Carlo simulations
+- Advanced optimization algorithms
+- Community-requested features
 
 ---
 
-*This roadmap transforms a basic calculator into a persistent quantitative workspace that does what LLMs can't: maintain state, generate visuals, and potentially access real-time data.*
+*This roadmap transforms a basic calculator into a persistent quantitative workspace that does what LLMs can't: maintain state, generate visuals, and perform high-performance matrix computations.*
