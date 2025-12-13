@@ -196,6 +196,128 @@ Generate synthetic financial price data with trends (requires matplotlib).
 days=60, trend="bullish", start_price=150.0, color="green"
 ```
 
+### matrix_multiply
+Multiply two matrices using NumPy (requires `[scientific]` extra).
+
+**Parameters:**
+- `matrix_a` (array of arrays, required): First matrix
+- `matrix_b` (array of arrays, required): Second matrix
+
+**Examples:**
+```
+matrix_a=[[1, 2], [3, 4]], matrix_b=[[5, 6], [7, 8]]
+→ [[19 22]
+   [43 50]]
+
+matrix_a=[[1, 2, 3], [4, 5, 6]], matrix_b=[[7, 8], [9, 10], [11, 12]]
+→ [[58  64]
+   [139 154]]
+
+matrix_a=[[1, 2], [3, 4]], matrix_b=[[1, 0], [0, 1]]
+→ [[1 2]
+   [3 4]]  (identity property)
+```
+
+**Error handling:**
+```
+matrix_a=[[1, 2], [3, 4]], matrix_b=[[1, 2, 3]]
+→ Error: Incompatible matrix dimensions for multiplication
+```
+
+### matrix_transpose
+Transpose a matrix (swap rows and columns).
+
+**Parameters:**
+- `matrix` (array of arrays, required): Matrix to transpose
+
+**Examples:**
+```
+matrix=[[1, 2, 3], [4, 5, 6]]
+→ [[1 4]
+   [2 5]
+   [3 6]]
+
+matrix=[[1, 2], [3, 4]]
+→ [[1 3]
+   [2 4]]
+
+matrix=[[1, 2, 3, 4]]
+→ [[1]
+   [2]
+   [3]
+   [4]]
+```
+
+### matrix_determinant
+Calculate determinant of a square matrix.
+
+**Parameters:**
+- `matrix` (array of arrays, required): Square matrix
+
+**Examples:**
+```
+matrix=[[4, 6], [3, 8]]
+→ 14.0
+
+matrix=[[1, 2, 3], [0, 1, 4], [5, 6, 0]]
+→ 1.0
+
+matrix=[[1, 2], [2, 4]]
+→ 0.0 (singular matrix)
+```
+
+**Error handling:**
+```
+matrix=[[1, 2, 3], [4, 5, 6]]
+→ Error: Matrix must be square
+```
+
+### matrix_inverse
+Compute the inverse of a square matrix.
+
+**Parameters:**
+- `matrix` (array of arrays, required): Square matrix to invert
+
+**Examples:**
+```
+matrix=[[4, 7], [2, 6]]
+→ [[ 0.6  -0.7 ]
+   [-0.2   0.4 ]]
+
+matrix=[[1, 0], [0, 1]]
+→ [[1. 0.]
+   [0. 1.]]  (identity inverse)
+```
+
+**Error handling:**
+```
+matrix=[[1, 2], [2, 4]]
+→ Error: Matrix is singular and cannot be inverted
+
+matrix=[[1, 2, 3], [4, 5, 6]]
+→ Error: Matrix must be square
+```
+
+### matrix_eigenvalues
+Calculate eigenvalues of a square matrix.
+
+**Parameters:**
+- `matrix` (array of arrays, required): Square matrix
+
+**Examples:**
+```
+matrix=[[4, 2], [1, 3]]
+→ [5.0, 2.0]
+
+matrix=[[3, 0, 0], [0, 5, 0], [0, 0, 7]]
+→ [3.0, 5.0, 7.0]  (diagonal elements)
+
+matrix=[[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+→ [1.0, 1.0, 1.0]  (identity matrix)
+```
+
+**Note:** Output may include complex eigenvalues for some matrices.
+
 ## Available Resources
 
 ### math://test

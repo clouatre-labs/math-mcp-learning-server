@@ -62,7 +62,17 @@ Connect your MCP client to the hosted server:
 
 **Manual installation:**
 ```bash
+# Basic installation
 uv pip install math-mcp-learning-server
+
+# With matrix operations support
+uv pip install math-mcp-learning-server[scientific]
+
+# With visualization support
+uv pip install math-mcp-learning-server[plotting]
+
+# All features
+uv pip install math-mcp-learning-server[scientific,plotting]
 ```
 
 ## Features
@@ -81,7 +91,7 @@ uv pip install math-mcp-learning-server
 ## MCP Implementation
 
 **Primitives:**
-- **Tools**: 12 tools for mathematical operations, persistence, and visualization
+- **Tools**: 17 tools for mathematical operations, persistence, visualization, and matrix operations
 - **Resources**: 1 resource (`math://workspace`) for viewing persistent workspace
 - **Prompts**: 2 prompts (`math_tutor`, `formula_explainer`) for educational interactions
 
@@ -110,6 +120,15 @@ Workspace persists across all transport modes and sessions.
 - `plot_scatter_chart`: Create scatter plots for relationship analysis
 - `plot_box_plot`: Create box plots for statistical distribution comparison
 - `plot_financial_line`: Create financial trend plots with bullish/bearish/volatile patterns
+
+### Matrix Operations (requires `[scientific]` extra)
+- `matrix_multiply`: Multiply two matrices with dimension validation
+- `matrix_transpose`: Transpose a matrix (swap rows and columns)
+- `matrix_determinant`: Calculate determinant of square matrices
+- `matrix_inverse`: Compute matrix inverse with singular matrix detection
+- `matrix_eigenvalues`: Calculate eigenvalues (supports complex numbers)
+
+**Note**: Matrix operations require NumPy. Install with `uv pip install math-mcp-learning-server[scientific]`
 
 See [Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/EXAMPLES.md) for detailed examples of each tool.
 
