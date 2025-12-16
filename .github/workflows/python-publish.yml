@@ -65,3 +65,29 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  mcp-registry:
+    name: Publish to MCP Registry
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+
+      - name: Sync version from release tag to server.json
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          jq --arg v "$VERSION" '.version = $v | .packages[0].version = $v' server.json > tmp.json && mv tmp.json server.json
+          cat server.json
+
+      - name: Install MCP Publisher
+        run: |
+          curl -sSL "https://github.com/modelcontextprotocol/registry/releases/download/v1.1.0/mcp-publisher_1.1.0_linux_amd64.tar.gz" | tar xz mcp-publisher
+
+      - name: Login to MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: ./mcp-publisher publish
