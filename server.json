@@ -7,12 +7,12 @@
     "url": "https://github.com/clouatre-labs/math-mcp-learning-server",
     "source": "github"
   },
-  "version": "0.10.2",
+  "version": "0.10.3",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "math-mcp-learning-server",
-      "version": "0.10.2",
+      "version": "0.10.3",
       "transport": {
         "type": "stdio"
       }
