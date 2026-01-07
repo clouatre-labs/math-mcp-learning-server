@@ -9,7 +9,7 @@ This project follows **FastMCP 2.0 best practices**:
 - **Optional features**: Defined in `[project.optional-dependencies]` for plotting, etc.
 - **Production**: Install via PyPI with optional groups: `uv pip install math-mcp-learning-server[plotting]`
 - **Development**: `uv sync --all-extras` for all optional dependencies
-- **Cloud deployment**: Automatic via FastMCP Cloud (https://math-mcp-learning.fastmcp.app/mcp)
+- **Cloud deployment**: Automatic via FastMCP Cloud (https://math-mcp.fastmcp.app/mcp)
 
 ## 🔌 **MCP Client Requirement**
 
@@ -92,7 +92,7 @@ get_workspace()  # Shows all saved calculations
 - ✅ **Unified workspace file** (`~/.math-mcp/workspace.json`) across all transports
 
 #### **1.3 FastMCP Cloud Deployment ✅ COMPLETE**
-- ✅ **Cloud hosting at https://math-mcp-learning.fastmcp.app/mcp**
+- ✅ **Cloud hosting at https://math-mcp.fastmcp.app/mcp**
 - ✅ **Automatic environment-based authentication** (OAuth, JWT via env vars)
 - ✅ **Production transport support** (SSE, HTTP)
 - ✅ **Zero-config deployment** from GitHub repository
@@ -290,7 +290,7 @@ uv run fastmcp dev src/math_mcp/server.py
 # Then connect via MCP client (Claude Desktop, Claude Code, OpenCode, etc.)
 
 # Cloud deployment:
-# Visit https://math-mcp-learning.fastmcp.app/mcp
+# Visit https://math-mcp.fastmcp.app/mcp
 # Or deploy your own via FastMCP Cloud
 ```
 
