@@ -4,11 +4,15 @@ on:
   push:
     branches: [ main ]
     paths-ignore:
-      - 'docs/**/*.md'
+      - '**/*.md'
+      - 'LICENSE'
+      - 'docs/**'
   pull_request:
     branches: [ main ]
     paths-ignore:
-      - 'docs/**/*.md'
+      - '**/*.md'
+      - 'LICENSE'
+      - 'docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
