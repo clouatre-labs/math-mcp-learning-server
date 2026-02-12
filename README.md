@@ -13,7 +13,7 @@ Educational MCP server demonstrating persistent workspace patterns and mathemati
 **Available on:**
 - [Official MCP Registry](https://registry.modelcontextprotocol.io/) - `io.github.clouatre-labs/math-mcp-learning-server`
 - [PyPI](https://pypi.org/project/math-mcp-learning-server/) - `math-mcp-learning-server`
-- [FastMCP Cloud](https://fastmcp.cloud/app/math-mcp) - No installation required
+- [Prefect Horizon](https://horizon.prefect.io/app/math-mcp) - No installation required
 
 ## Requirements
 
@@ -198,7 +198,7 @@ See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/
 
 ## Documentation
 
-- **[Cloud Deployment Guide](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/CLOUD_DEPLOYMENT.md)**: FastMCP Cloud deployment instructions and configuration
+- **[Cloud Deployment Guide](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/CLOUD_DEPLOYMENT.md)**: Prefect Horizon deployment instructions and configuration
 - **[Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/EXAMPLES.md)**: Practical examples for all tools and resources
 - **[Contributing Guidelines](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md)**: Development workflow, code standards, and testing procedures
 - **[Roadmap](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/ROADMAP.md)**: Planned features and enhancement opportunities

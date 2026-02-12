@@ -1,8 +1,8 @@
 # Cloud Deployment Guide
 
-## FastMCP Cloud Deployment
+## Prefect Horizon Deployment
 
-Deploy this server to [FastMCP Cloud](https://fastmcp.cloud) for hosted, production-ready access without local setup.
+Deploy this server to [Prefect Horizon](https://horizon.prefect.io) for hosted, production-ready access without local setup.
 
 ### Deployment Configuration
 
@@ -32,11 +32,11 @@ This server includes a `fastmcp.json` configuration file for seamless cloud depl
 }
 ```
 
-### Deploy to FastMCP Cloud
+### Deploy to Prefect Horizon
 
-1. **Navigate to**: [FastMCP Cloud Dashboard](https://fastmcp.cloud)
+1. **Navigate to**: [Prefect Horizon Dashboard](https://horizon.prefect.io)
 2. **Connect GitHub Repository**: `clouatre-labs/math-mcp-learning-server`
-3. **Deploy**: FastMCP Cloud auto-detects `fastmcp.json` configuration
+3. **Deploy**: Prefect Horizon auto-detects `fastmcp.json` configuration
 4. **Access via MCP Client**: Connect your MCP client to `https://math-mcp.fastmcp.app/mcp`
 
 ### Cloud Storage Considerations
