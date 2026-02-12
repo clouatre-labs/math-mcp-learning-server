@@ -144,6 +144,10 @@ Key points for maintainers:
 - Ensure test coverage remains above 80%
 - Document breaking changes clearly
 
+## Merge Queue
+
+Disabled (PR #130). Unnecessary overhead for a small project. To re-enable, see PR #71 for the original implementation.
+
 ---
 
 For questions, open an issue or contact the project maintainers.
