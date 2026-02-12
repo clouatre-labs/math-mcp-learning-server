@@ -176,6 +176,13 @@ ROADMAP.md                # Ideas for later consideration
    - Summary of testing performed
    - Note any breaking changes
 
+### Branch Cleanup
+When closing a PR without merging, please delete your remote branch to keep the repository clean:
+```bash
+git push origin --delete your-branch-name
+```
+Merged PRs automatically delete their branches due to the repository's `delete_branch_on_merge` setting, so no manual cleanup is needed for merged changes.
+
 ### PR Review
 - Automated checks must pass
 - Code review by maintainers
