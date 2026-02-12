@@ -60,7 +60,7 @@ dev = [
     # Pin ruff <0.15.0 to work around formatting regression in 0.15.0 that removes
     # parentheses from multi-exception except clauses. Remove this constraint when
     # ruff 0.15.1+ is released with the fix.
-    "ruff>=0.13.1,<0.15.0",
+    "ruff>=0.15.0,<0.16.0",
 ]
 plotting = [
     "matplotlib>=3.10.6",
