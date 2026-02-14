@@ -17,7 +17,6 @@ from functools import wraps
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
-from fastmcp.exceptions import ToolError
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
 from fastmcp.server.middleware.logging import StructuredLoggingMiddleware
 from fastmcp.server.middleware.rate_limiting import (
@@ -1464,11 +1463,14 @@ def _format_matrix(matrix_array: Any) -> str:
     return np.array2string(matrix_array, precision=4, suppress_small=True)
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={"title": "Matrix Multiplication", "readOnlyHint": False, "openWorldHint": False}
+)
+@validated_tool
 async def matrix_multiply(
-    matrix_a: list[list[float]],
-    matrix_b: list[list[float]],
-    ctx: Context = None,  # type: ignore[assignment]
+    matrix_a: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    matrix_b: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Multiply two matrices using NumPy.
 
@@ -1478,9 +1480,6 @@ async def matrix_multiply(
 
     Returns:
         Result matrix (m x p)
-
-    Raises:
-        ValueError: If matrices have incompatible dimensions
 
     Examples:
         matrix_multiply([[1, 2], [3, 4]], [[5, 6], [7, 8]])
@@ -1518,13 +1517,40 @@ async def matrix_multiply(
         }
 
     except ValueError as e:
-        raise ToolError(f"Matrix multiplication error: {str(e)}")
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Multiply Error:** {str(e)}",
+                    "annotations": {
+                        "error": "matrix_multiply_error",
+                        "difficulty": "intermediate",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
+    except Exception as e:
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "intermediate",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Matrix Transpose", "readOnlyHint": False, "openWorldHint": False})
+@validated_tool
 async def matrix_transpose(
-    matrix: list[list[float]],
-    ctx: Context = None,  # type: ignore[assignment]
+    matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Transpose a matrix (swap rows and columns).
 
@@ -1561,13 +1587,42 @@ async def matrix_transpose(
         }
 
     except ValueError as e:
-        raise ToolError(f"Matrix transpose error: {str(e)}")
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Transpose Error:** {str(e)}",
+                    "annotations": {
+                        "error": "matrix_transpose_error",
+                        "difficulty": "basic",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
+    except Exception as e:
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "basic",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={"title": "Matrix Determinant", "readOnlyHint": False, "openWorldHint": False}
+)
+@validated_tool
 async def matrix_determinant(
-    matrix: list[list[float]],
-    ctx: Context = None,  # type: ignore[assignment]
+    matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Calculate the determinant of a square matrix.
 
@@ -1576,9 +1631,6 @@ async def matrix_determinant(
 
     Returns:
         Determinant value
-
-    Raises:
-        ValueError: If matrix is not square
 
     Examples:
         matrix_determinant([[4, 6], [3, 8]])  # Returns 14
@@ -1614,13 +1666,40 @@ async def matrix_determinant(
         }
 
     except ValueError as e:
-        raise ToolError(f"Matrix determinant error: {str(e)}")
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Determinant Error:** {str(e)}",
+                    "annotations": {
+                        "error": "matrix_determinant_error",
+                        "difficulty": "intermediate",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
+    except Exception as e:
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "intermediate",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Matrix Inverse", "readOnlyHint": False, "openWorldHint": False})
+@validated_tool
 async def matrix_inverse(
-    matrix: list[list[float]],
-    ctx: Context = None,  # type: ignore[assignment]
+    matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Calculate the inverse of a square matrix.
 
@@ -1629,9 +1708,6 @@ async def matrix_inverse(
 
     Returns:
         Inverse matrix
-
-    Raises:
-        ValueError: If matrix is not square or is singular
 
     Examples:
         matrix_inverse([[4, 7], [2, 6]])
@@ -1673,13 +1749,42 @@ async def matrix_inverse(
         }
 
     except ValueError as e:
-        raise ToolError(f"Matrix inverse error: {str(e)}")
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Inverse Error:** {str(e)}",
+                    "annotations": {
+                        "error": "matrix_inverse_error",
+                        "difficulty": "advanced",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
+    except Exception as e:
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "advanced",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={"title": "Matrix Eigenvalues", "readOnlyHint": False, "openWorldHint": False}
+)
+@validated_tool
 async def matrix_eigenvalues(
-    matrix: list[list[float]],
-    ctx: Context = None,  # type: ignore[assignment]
+    matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Calculate the eigenvalues of a square matrix.
 
@@ -1688,9 +1793,6 @@ async def matrix_eigenvalues(
 
     Returns:
         List of eigenvalues (may be complex numbers)
-
-    Raises:
-        ValueError: If matrix is not square
 
     Examples:
         matrix_eigenvalues([[4, 2], [1, 3]])
@@ -1739,7 +1841,33 @@ async def matrix_eigenvalues(
         }
 
     except ValueError as e:
-        raise ToolError(f"Matrix eigenvalues error: {str(e)}")
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Matrix Eigenvalues Error:** {str(e)}",
+                    "annotations": {
+                        "error": "matrix_eigenvalues_error",
+                        "difficulty": "advanced",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
+    except Exception as e:
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"**Unexpected Error:** {str(e)}",
+                    "annotations": {
+                        "error": "unexpected_error",
+                        "difficulty": "advanced",
+                        "topic": "linear_algebra",
+                    },
+                }
+            ]
+        }
 
 
 # === RESOURCES: DATA EXPOSURE ===
