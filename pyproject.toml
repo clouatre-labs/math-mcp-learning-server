@@ -57,10 +57,10 @@ dev = [
     "pytest>=8.4.2",
     "pytest-asyncio>=0.25.2",
     "pytest-cov>=4.0.0",
-    # Pin ruff <0.15.0 to work around formatting regression in 0.15.0 that removes
-    # parentheses from multi-exception except clauses. Remove this constraint when
-    # ruff 0.15.1+ is released with the fix.
-    "ruff>=0.15.0,<0.16.0",
+    # Pin ruff <0.15.0: formatting regression in 0.15.0 and 0.15.1 strips parentheses
+    # from multi-exception except clauses when target-version = "py314" (invalid syntax).
+    # Revisit when a fix lands upstream. See follow-up issue.
+    "ruff>=0.14.0,<0.15.0",
 ]
 plotting = [
     "matplotlib>=3.10.6",
@@ -102,6 +102,7 @@ omit = [
 ]
 
 [tool.coverage.report]
+fail_under = 80
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",

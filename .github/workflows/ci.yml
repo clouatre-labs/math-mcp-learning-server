@@ -26,18 +26,19 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.draft == false
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - name: Checkout repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Ruff check
       uses: astral-sh/ruff-action@4919ec5cf1f49eff0871dbcea0da843445b837e6 # v3
       with:
-        version: '>=0.13.1,<0.15.0'
+        version: '>=0.14.0,<0.15.0'
         args: 'check'
     
     - name: Ruff format
       uses: astral-sh/ruff-action@4919ec5cf1f49eff0871dbcea0da843445b837e6 # v3
       with:
-        version: '>=0.13.1,<0.15.0'
+        version: '>=0.14.0,<0.15.0'
         args: 'format --check'
 
   security:
@@ -61,7 +62,8 @@ jobs:
       matrix:
         python-version: ["3.11", "3.14"]
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - name: Checkout repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up uv with Python ${{ matrix.python-version }}
       uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7
@@ -73,13 +75,14 @@ jobs:
       run: uv sync --all-extras
     
     - name: Run tests with coverage
-      run: uv run pytest tests/ -v --cov=math_mcp --cov-report=term-missing
+      run: uv run pytest tests/ -v --cov=math_mcp --cov-report=term-missing --cov-fail-under=80
 
   test-http-integration:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - name: Checkout repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up uv
       uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7
