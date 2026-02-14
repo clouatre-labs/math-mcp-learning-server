@@ -697,5 +697,80 @@ def test_regex_substitution_replaces_standalone_x_preserves_functions():
     assert result == pytest.approx(-4.0)
 
 
+# === REQUIRES_MATPLOTLIB DECORATOR TESTS ===
+
+
+@pytest.mark.asyncio
+async def test_requires_matplotlib_happy_path(mock_context):
+    """Test requires_matplotlib decorator allows normal execution when matplotlib is available.
+
+    Arrange: Create a simple async function decorated with requires_matplotlib
+    Act: Call the decorated function with matplotlib available
+    Assert: Function executes normally and returns expected result
+    """
+    from unittest.mock import AsyncMock, patch
+
+    from math_mcp.server import requires_matplotlib
+
+    # Arrange: Create a test function decorated with requires_matplotlib
+    @requires_matplotlib
+    async def test_decorated_function(value: int, context) -> dict:
+        """Simple test function that returns a dict."""
+        return {"result": value * 2, "type": "test"}
+
+    # Act: Mock _setup_matplotlib to succeed (no exception)
+    with patch("math_mcp.visualization._setup_matplotlib") as mock_setup:
+        mock_setup.return_value = None  # Successful setup
+        result = await test_decorated_function(5, mock_context)
+
+    # Assert: Function executed normally
+    assert isinstance(result, dict)
+    assert result["result"] == 10
+    assert result["type"] == "test"
+    assert mock_setup.called
+
+
+@pytest.mark.asyncio
+async def test_requires_matplotlib_import_error(mock_context):
+    """Test requires_matplotlib decorator returns error dict when matplotlib is missing.
+
+    Arrange: Create a decorated function and mock _setup_matplotlib to raise ImportError
+    Act: Call the decorated function
+    Assert: Returns standardized error dict with correct structure and annotations
+    """
+    from unittest.mock import patch
+
+    from math_mcp.server import requires_matplotlib
+
+    # Arrange: Create a test function decorated with requires_matplotlib
+    @requires_matplotlib
+    async def test_decorated_function(value: int, context) -> dict:
+        """Simple test function that should not be called."""
+        return {"result": value * 2}
+
+    # Act: Mock _setup_matplotlib to raise ImportError
+    with patch("math_mcp.visualization._setup_matplotlib") as mock_setup:
+        mock_setup.side_effect = ImportError("No module named 'matplotlib'")
+        result = await test_decorated_function(5, mock_context)
+
+    # Assert: Returns standardized error dict
+    assert isinstance(result, dict)
+    assert "content" in result
+    assert len(result["content"]) == 1
+
+    content = result["content"][0]
+    assert content["type"] == "text"
+    assert "Matplotlib not available" in content["text"]
+    assert "pip install math-mcp-learning-server[plotting]" in content["text"]
+    assert "uv sync --extra plotting" in content["text"]
+
+    # Verify annotations structure
+    annotations = content["annotations"]
+    assert annotations["error"] == "missing_dependency"
+    assert annotations["install_command"] == "pip install math-mcp-learning-server[plotting]"
+    assert annotations["difficulty"] == "intermediate"
+    assert annotations["topic"] == "visualization"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
