@@ -23,11 +23,23 @@ from fastmcp.server.middleware.rate_limiting import (
     RateLimitError,
     SlidingWindowRateLimitingMiddleware,
 )
-from pydantic import ConfigDict, Field, SkipValidation, field_validator, validate_call
-from pydantic_settings import BaseSettings
+from pydantic import Field, SkipValidation
 
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
 from math_mcp import visualization
+from math_mcp.eval import (
+    _classify_expression_difficulty,
+    _classify_expression_topic,
+    convert_temperature,
+    safe_eval_expression,
+    validate_variable_name,
+)
+from math_mcp.settings import (
+    ALLOWED_OPERATIONS,
+    ALLOWED_TRENDS,
+    MathMCPSettings,
+    validated_tool,
+)
 
 # Try importing numpy for matrix operations
 try:
@@ -39,33 +51,6 @@ except ImportError:
     NUMPY_AVAILABLE = False
     np = None  # type: ignore
     la = None  # type: ignore
-
-# === CONFIGURATION MANAGEMENT ===
-
-
-class MathMCPSettings(BaseSettings):
-    """Environment-based configuration with automatic validation."""
-
-    math_timeout: float = 5.0
-    mcp_rate_limit_per_minute: int = Field(default=100, ge=0)
-    max_expression_length: int = Field(default=500, ge=0)
-    max_string_param_length: int = Field(default=100, ge=0)
-    max_array_size: int = Field(default=10000, ge=0)
-    max_groups_count: int = Field(default=100, ge=0)
-    max_group_size: int = Field(default=1000, ge=0)
-    max_variable_name_length: int = Field(default=50, ge=0)
-    max_days_financial: int = Field(default=1000, ge=0)
-
-    model_config = ConfigDict(env_prefix="", case_sensitive=False)
-
-    @field_validator("math_timeout", mode="after")
-    @classmethod
-    def validate_timeout(cls, v: float) -> float:
-        """Ensure timeout is positive."""
-        if v <= 0:
-            raise ValueError("math_timeout must be positive")
-        return v
-
 
 # Initialize settings from environment
 settings = MathMCPSettings()
@@ -83,38 +68,6 @@ MAX_GROUPS_COUNT = settings.max_groups_count
 MAX_GROUP_SIZE = settings.max_group_size
 MAX_VARIABLE_NAME_LENGTH = settings.max_variable_name_length
 MAX_DAYS_FINANCIAL = settings.max_days_financial
-
-# Whitelist constants
-ALLOWED_OPERATIONS = {"mean", "median", "mode", "std_dev", "variance"}
-ALLOWED_TRENDS = {"bullish", "bearish", "volatile"}
-
-
-# === CONSTANTS ===
-
-MATH_FUNCTIONS_SINGLE = ["sin", "cos", "tan", "log", "sqrt", "abs"]
-MATH_FUNCTIONS_ALL = {"sin", "cos", "tan", "log", "sqrt", "abs", "pow", "exp"}
-DANGEROUS_PATTERNS = ["import", "exec", "__", "eval", "open", "file"]
-
-TOPIC_KEYWORDS = {
-    "finance": ["interest", "rate", "investment", "portfolio"],
-    "geometry": ["pi", "radius", "area", "volume"],
-    "trigonometry": ["sin", "cos", "tan"],
-    "logarithms": ["log", "ln", "exp"],
-}
-
-TEMP_CONVERSIONS = {
-    "c": {"f": lambda c: c * 9 / 5 + 32, "k": lambda c: c + 273.15},
-    "f": {"c": lambda f: (f - 32) * 5 / 9, "k": lambda f: (f - 32) * 5 / 9 + 273.15},
-    "k": {"c": lambda k: k - 273.15, "f": lambda k: (k - 273.15) * 9 / 5 + 32},
-}
-
-
-# === CUSTOM DECORATOR FOR TOOL VALIDATION ===
-
-
-def validated_tool(func):
-    """Apply Pydantic validation to tool functions with Context support."""
-    return validate_call(config={"arbitrary_types_allowed": True})(func)
 
 
 def requires_matplotlib(func: Callable) -> Callable:
@@ -218,74 +171,7 @@ if RATE_LIMIT_PER_MINUTE > 0:
     logging.info(f"Rate limiting enabled: {RATE_LIMIT_PER_MINUTE} requests/minute")
 
 
-# === SECURITY: SAFE EXPRESSION EVALUATION ===
-
-
-def _validate_expression_syntax(expression: str) -> None:
-    """Provide specific error messages for common syntax errors."""
-    clean_expr = expression.replace(" ", "").lower()
-
-    # Check for common function syntax issues
-    if "pow(" in clean_expr and "," not in clean_expr:
-        raise ValueError(
-            "Function 'pow()' requires two parameters: pow(base, exponent). Example: pow(2, 3)"
-        )
-
-    # Check for empty function calls (functions with no parameters)
-    for func in MATH_FUNCTIONS_SINGLE:
-        empty_call = f"{func}()"
-        if empty_call in clean_expr:
-            raise ValueError(f"Function '{func}()' requires one parameter. Example: {func}(3.14)")
-
-
-def safe_eval_expression(expression: str) -> float:
-    """Safely evaluate mathematical expressions with restricted scope."""
-    # Validate syntax and provide helpful error messages
-    _validate_expression_syntax(expression)
-
-    # Remove whitespace
-    clean_expr = expression.replace(" ", "")
-
-    # Only allow safe characters (including comma for function parameters)
-    allowed_chars = set("0123456789+-*/.(),e")
-
-    # Security check - log and block dangerous patterns
-    if any(pattern in clean_expr.lower() for pattern in DANGEROUS_PATTERNS):
-        logging.warning(f"Security: Blocked unsafe expression attempt: {expression[:50]}...")
-        raise ValueError(
-            "Expression contains forbidden operations. Only mathematical expressions are allowed."
-        )
-
-    # Check for unsafe characters
-    if not all(c in allowed_chars or c.isalpha() for c in clean_expr):
-        raise ValueError(
-            "Expression contains invalid characters. Use only numbers, +, -, *, /, (), and math functions."
-        )
-
-    # Replace math functions with safe alternatives
-    safe_expr = clean_expr
-    for func in MATH_FUNCTIONS_ALL:
-        if func in clean_expr:
-            if func != "abs":  # abs is built-in, others need math module
-                safe_expr = safe_expr.replace(func, f"math.{func}")
-
-    # Evaluate with restricted globals
-    try:
-        allowed_globals = {"__builtins__": {"abs": abs}, "math": math}
-        result = eval(safe_expr, allowed_globals, {})
-        return float(result)
-    except ZeroDivisionError:
-        raise ValueError("Mathematical error: Division by zero is undefined.")
-    except OverflowError:
-        raise ValueError("Mathematical error: Result is too large to compute.")
-    except ValueError as e:
-        if "math domain error" in str(e):
-            raise ValueError(
-                "Mathematical error: Invalid input for function (e.g., sqrt of negative number)."
-            )
-        raise ValueError(f"Mathematical expression error: {str(e)}")
-    except Exception as e:
-        raise ValueError(f"Expression evaluation failed: {str(e)}")
+# === EXPRESSION EVALUATION WITH TIMEOUT ===
 
 
 async def evaluate_with_timeout(expression: str) -> float:
@@ -324,17 +210,6 @@ async def evaluate_with_timeout(expression: str) -> float:
 # === CUSTOM VALIDATORS (for logic Field constraints can't handle) ===
 
 
-def validate_variable_name(name: str) -> str:
-    """Validate variable name for filesystem safety (alphanumeric + underscore/hyphen only)."""
-    if not name.strip():
-        raise ValueError("Variable name cannot be empty")
-    if not name.replace("_", "").replace("-", "").isalnum():
-        raise ValueError(
-            "Variable name must contain only letters, numbers, underscores, and hyphens"
-        )
-    return name
-
-
 def validate_nested_array_groups(groups: list[list[float]]) -> list[list[float]]:
     """Validate nested array group sizes."""
     for i, group in enumerate(groups):
@@ -346,62 +221,7 @@ def validate_nested_array_groups(groups: list[list[float]]) -> list[list[float]]
     return groups
 
 
-def convert_temperature(value: float, from_unit: str, to_unit: str) -> float:
-    """Convert temperature between Celsius, Fahrenheit, and Kelvin."""
-    from_lower = from_unit.lower()
-    to_lower = to_unit.lower()
-
-    # Direct conversion if same unit
-    if from_lower == to_lower:
-        return value
-
-    # Convert to Celsius first if not already
-    if from_lower == "c":
-        celsius = value
-    elif from_lower in TEMP_CONVERSIONS:
-        celsius = TEMP_CONVERSIONS[from_lower]["c"](value)
-    else:
-        raise ValueError(f"Unknown temperature unit '{from_unit}'")
-
-    # Convert from Celsius to target
-    if to_lower == "c":
-        return celsius
-    elif to_lower in TEMP_CONVERSIONS["c"]:
-        return TEMP_CONVERSIONS["c"][to_lower](celsius)
-    else:
-        raise ValueError(f"Unknown temperature unit '{to_unit}'")
-
-
 # === TOOLS: COMPUTATIONAL OPERATIONS ===
-
-
-def _classify_expression_difficulty(expression: str) -> str:
-    """Classify mathematical expression difficulty for educational annotations."""
-    clean_expr = expression.replace(" ", "").lower()
-
-    # Count complexity indicators
-    has_functions = any(func in clean_expr for func in MATH_FUNCTIONS_ALL)
-    has_parentheses = "(" in clean_expr
-    has_exponents = "**" in clean_expr or "^" in clean_expr
-    operator_count = sum(clean_expr.count(op) for op in "+-*/")
-
-    if has_functions or has_exponents:
-        return "advanced"
-    elif has_parentheses or operator_count > 2:
-        return "intermediate"
-    else:
-        return "basic"
-
-
-def _classify_expression_topic(expression: str) -> str:
-    """Enhanced topic classification for educational metadata."""
-    clean_expr = expression.lower()
-
-    for topic, keywords in TOPIC_KEYWORDS.items():
-        if any(word in clean_expr for word in keywords):
-            return topic
-
-    return "arithmetic"
 
 
 @mcp.tool(
