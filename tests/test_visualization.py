@@ -672,5 +672,30 @@ async def test_plot_financial_line_invalid_trend(mock_context):
         await plot_financial_line.fn(30, "invalid_trend", 100.0, None, mock_context)
 
 
+def test_regex_substitution_preserves_function_names_with_x():
+    """Verify exp(x) substitution returns math.exp(1.0) not NaN/error."""
+    import math
+    import re
+
+    from math_mcp.server import safe_eval_expression
+
+    expression = "exp(x)"
+    substituted = re.sub(r"\bx\b", "(1.0)", expression)
+    result = safe_eval_expression(substituted)
+    assert result == pytest.approx(math.exp(1.0))
+
+
+def test_regex_substitution_replaces_standalone_x_preserves_functions():
+    """Verify x*abs(x) with x=-2.0 returns -4.0 not NaN/error."""
+    import re
+
+    from math_mcp.server import safe_eval_expression
+
+    expression = "x*abs(x)"
+    substituted = re.sub(r"\bx\b", "(-2.0)", expression)
+    result = safe_eval_expression(substituted)
+    assert result == pytest.approx(-4.0)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
