@@ -8,6 +8,7 @@ Uses FastMCP 2.0 patterns with structured output and multi-transport support.
 import asyncio
 import logging
 import math
+import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -91,7 +92,7 @@ ALLOWED_TRENDS = {"bullish", "bearish", "volatile"}
 # === CONSTANTS ===
 
 MATH_FUNCTIONS_SINGLE = ["sin", "cos", "tan", "log", "sqrt", "abs"]
-MATH_FUNCTIONS_ALL = {"sin", "cos", "tan", "log", "sqrt", "abs", "pow"}
+MATH_FUNCTIONS_ALL = {"sin", "cos", "tan", "log", "sqrt", "abs", "pow", "exp"}
 DANGEROUS_PATTERNS = ["import", "exec", "__", "eval", "open", "file"]
 
 TOPIC_KEYWORDS = {
@@ -799,9 +800,11 @@ async def plot_function(
 
         # Evaluate expression for each x value
         y_values = []
+        var_pattern = re.compile(r"\bx\b")
         for x in x_values:
-            # Replace x in expression with actual value
-            expr_with_value = expression.replace("x", f"({x})")
+            # Replace x in expression with actual value using word boundaries
+            # to avoid corrupting function names like exp, max, hex
+            expr_with_value = var_pattern.sub(f"({x})", expression)
             try:
                 y = await evaluate_with_timeout(expr_with_value)
                 y_values.append(y)
