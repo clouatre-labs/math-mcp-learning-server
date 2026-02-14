@@ -9,10 +9,11 @@ import asyncio
 import logging
 import math
 import re
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
+from functools import wraps
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
@@ -115,6 +116,56 @@ TEMP_CONVERSIONS = {
 def validated_tool(func):
     """Apply Pydantic validation to tool functions with Context support."""
     return validate_call(config={"arbitrary_types_allowed": True})(func)
+
+
+def requires_matplotlib(func: Callable) -> Callable:
+    """Decorator that ensures matplotlib is available before executing visualization tools.
+
+    Wraps visualization functions to handle ImportError gracefully by returning
+    a standardized error response. Calls _setup_matplotlib() from visualization.py
+    to centralize matplotlib configuration.
+
+    This decorator eliminates ~80 lines of duplicated import/error-handling code
+    across 6 visualization tools by consolidating the pattern into a single,
+    reusable decorator.
+
+    Returns:
+        Standard error dict on ImportError with installation instructions.
+        Otherwise, executes the wrapped function normally.
+
+    Example:
+        @requires_matplotlib
+        async def plot_function(...):
+            # matplotlib is guaranteed to be available here
+            import matplotlib.pyplot as plt
+    """
+
+    @wraps(func)
+    async def wrapper(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        try:
+            # Attempt to setup matplotlib; raises ImportError if unavailable
+            visualization._setup_matplotlib()
+        except ImportError:
+            # Return standardized error response
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+                        "annotations": {
+                            "error": "missing_dependency",
+                            "install_command": "pip install math-mcp-learning-server[plotting]",
+                            "difficulty": "intermediate",
+                            "topic": "visualization",
+                        },
+                    }
+                ]
+            }
+
+        # matplotlib is available; execute the wrapped function
+        return await func(*args, **kwargs)
+
+    return wrapper
 
 
 # === APPLICATION CONTEXT ===
@@ -738,6 +789,7 @@ async def load_variable(name: str, ctx: Context) -> dict[str, Any]:
 
 @mcp.tool(annotations={"title": "Function Plotter", "readOnlyHint": False, "openWorldHint": False})
 @validated_tool
+@requires_matplotlib
 async def plot_function(
     expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
     x_range: tuple[float, float],
@@ -760,28 +812,12 @@ async def plot_function(
         plot_function("sin(x)", (-3.14, 3.14))
     """
 
-    # Try importing optional dependencies
-    try:
-        import matplotlib
+    # Matplotlib is guaranteed to be available (decorator handles ImportError)
+    import matplotlib
 
-        matplotlib.use("Agg")  # Non-interactive backend
-        import matplotlib.pyplot as plt
-        import numpy as np
-    except ImportError:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                    "annotations": {
-                        "error": "missing_dependency",
-                        "install_command": "pip install math-mcp-learning-server[plotting]",
-                        "difficulty": "intermediate",
-                        "topic": "visualization",
-                    },
-                }
-            ]
-        }
+    matplotlib.use("Agg")  # Non-interactive backend
+    import matplotlib.pyplot as plt
+    import numpy as np
 
     # FastMCP 2.0 Context logging
     if ctx:
@@ -887,6 +923,7 @@ async def plot_function(
     annotations={"title": "Statistical Histogram", "readOnlyHint": False, "openWorldHint": False}
 )
 @validated_tool
+@requires_matplotlib
 async def create_histogram(
     data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
     bins: int = 20,
@@ -910,28 +947,12 @@ async def create_histogram(
     if bins < 1:
         raise ValueError("bins must be at least 1")
 
-    # Try importing optional dependencies
-    try:
-        import matplotlib
+    # Matplotlib is guaranteed to be available (decorator handles ImportError)
+    import matplotlib
 
-        matplotlib.use("Agg")  # Non-interactive backend
-        import matplotlib.pyplot as plt
-        import numpy  # noqa: F401 - imported for side effects, required by matplotlib
-    except ImportError:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                    "annotations": {
-                        "error": "missing_dependency",
-                        "install_command": "pip install math-mcp-learning-server[plotting]",
-                        "difficulty": "intermediate",
-                        "topic": "visualization",
-                    },
-                }
-            ]
-        }
+    matplotlib.use("Agg")  # Non-interactive backend
+    import matplotlib.pyplot as plt
+    import numpy  # noqa: F401 - imported for side effects, required by matplotlib
 
     # FastMCP 2.0 Context logging
     if ctx:
@@ -1039,6 +1060,7 @@ async def create_histogram(
 
 @mcp.tool(annotations={"title": "Line Chart", "readOnlyHint": False, "openWorldHint": False})
 @validated_tool
+@requires_matplotlib
 async def plot_line_chart(
     x_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
     y_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
@@ -1068,24 +1090,8 @@ async def plot_line_chart(
         plot_line_chart([1, 2, 3, 4], [1, 4, 9, 16], title="Squares")
         plot_line_chart([0, 1, 2], [0, 1, 4], color='red', x_label='Time', y_label='Distance')
     """
-    try:
-        import matplotlib  # noqa: F401 - Check if available
-    except ImportError:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                    "annotations": {
-                        "error": "missing_dependency",
-                        "install_command": "pip install math-mcp-learning-server[plotting]",
-                        "difficulty": "intermediate",
-                        "topic": "visualization",
-                    },
-                }
-            ]
-        }
 
+    # Matplotlib is guaranteed to be available (decorator handles ImportError)
     if ctx:
         await ctx.info(f"Creating line chart with {len(x_data)} data points")
 
@@ -1149,6 +1155,7 @@ async def plot_line_chart(
 
 @mcp.tool(annotations={"title": "Scatter Plot", "readOnlyHint": False, "openWorldHint": False})
 @validated_tool
+@requires_matplotlib
 async def plot_scatter_chart(
     x_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
     y_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
@@ -1179,24 +1186,7 @@ async def plot_scatter_chart(
         plot_scatter_chart([1, 2, 3], [2, 4, 5], color='purple', point_size=100)
     """
 
-    try:
-        import matplotlib  # noqa: F401 - Check if available
-    except ImportError:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                    "annotations": {
-                        "error": "missing_dependency",
-                        "install_command": "pip install math-mcp-learning-server[plotting]",
-                        "difficulty": "intermediate",
-                        "topic": "visualization",
-                    },
-                }
-            ]
-        }
-
+    # Matplotlib is guaranteed to be available (decorator handles ImportError)
     if ctx:
         await ctx.info(f"Creating scatter plot with {len(x_data)} data points")
 
@@ -1260,6 +1250,7 @@ async def plot_scatter_chart(
 
 @mcp.tool(annotations={"title": "Box Plot", "readOnlyHint": False, "openWorldHint": False})
 @validated_tool
+@requires_matplotlib
 async def plot_box_plot(
     data_groups: Annotated[list[list[float]], Field(max_length=MAX_GROUPS_COUNT)],
     group_labels: Annotated[list[str] | None, Field(max_length=MAX_GROUPS_COUNT)] = None,
@@ -1288,24 +1279,7 @@ async def plot_box_plot(
     # Validate nested array group sizes
     validate_nested_array_groups(data_groups)
 
-    try:
-        import matplotlib  # noqa: F401 - Check if available
-    except ImportError:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                    "annotations": {
-                        "error": "missing_dependency",
-                        "install_command": "pip install math-mcp-learning-server[plotting]",
-                        "difficulty": "intermediate",
-                        "topic": "visualization",
-                    },
-                }
-            ]
-        }
-
+    # Matplotlib is guaranteed to be available (decorator handles ImportError)
     if ctx:
         await ctx.info(f"Creating box plot with {len(data_groups)} groups")
 
@@ -1369,6 +1343,7 @@ async def plot_box_plot(
     annotations={"title": "Financial Line Chart", "readOnlyHint": False, "openWorldHint": False}
 )
 @validated_tool
+@requires_matplotlib
 async def plot_financial_line(
     days: Annotated[int, Field(ge=2, le=MAX_DAYS_FINANCIAL)] = 30,
     trend: str = "bullish",
@@ -1399,24 +1374,7 @@ async def plot_financial_line(
     if trend not in ALLOWED_TRENDS:
         raise ValueError(f"Invalid trend: {trend}. Allowed: {', '.join(sorted(ALLOWED_TRENDS))}")
 
-    try:
-        import matplotlib  # noqa: F401 - Check if available
-    except ImportError:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                    "annotations": {
-                        "error": "missing_dependency",
-                        "install_command": "pip install math-mcp-learning-server[plotting]",
-                        "difficulty": "intermediate",
-                        "topic": "visualization",
-                    },
-                }
-            ]
-        }
-
+    # Matplotlib is guaranteed to be available (decorator handles ImportError)
     if ctx:
         await ctx.info(f"Generating synthetic {trend} price data for {days} days")
 
