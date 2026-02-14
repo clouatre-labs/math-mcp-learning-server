@@ -60,7 +60,7 @@ dev = [
     # Pin ruff <0.15.0: formatting regression in 0.15.0 and 0.15.1 strips parentheses
     # from multi-exception except clauses when target-version = "py314" (invalid syntax).
     # Revisit when a fix lands upstream. See follow-up issue.
-    "ruff>=0.14.0,<0.15.0",
+    "ruff>=0.15.0,<0.16.0",
 ]
 plotting = [
     "matplotlib>=3.10.6",
