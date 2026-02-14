@@ -12,7 +12,6 @@ Tools tested:
 """
 
 import pytest
-from fastmcp.exceptions import ToolError
 
 pytest.importorskip("numpy")
 
@@ -80,17 +79,16 @@ class TestMatrixMultiply:
     @pytest.mark.asyncio
     async def test_multiply_incompatible_dimensions(self, http_client):
         """Test error handling for incompatible matrix dimensions."""
-        with pytest.raises(ToolError) as exc_info:
-            await http_client.call_tool(
-                "matrix_multiply",
-                arguments={
-                    "matrix_a": [[1, 2], [3, 4]],  # 2x2
-                    "matrix_b": [[1, 2, 3]],  # 1x3 (incompatible)
-                },
-            )
-
-        error_msg = str(exc_info.value).lower()
-        assert "incompatible" in error_msg or "dimension" in error_msg or "shape" in error_msg
+        response = await http_client.call_tool(
+            "matrix_multiply",
+            arguments={
+                "matrix_a": [[1, 2], [3, 4]],  # 2x2
+                "matrix_b": [[1, 2, 3]],  # 1x3 (incompatible)
+            },
+        )
+        assert response.is_error is False
+        assert "error" in response.content[0].text.lower()
+        assert "incompatible" in response.content[0].text.lower()
 
     @pytest.mark.asyncio
     async def test_multiply_identity_matrix(self, http_client, test_matrix_2x2, identity_2x2):
@@ -229,14 +227,13 @@ class TestMatrixInverse:
     @pytest.mark.asyncio
     async def test_inverse_singular_matrix(self, http_client, singular_matrix):
         """Test error handling for singular matrix (no inverse)."""
-        with pytest.raises(ToolError) as exc_info:
-            await http_client.call_tool(
-                "matrix_inverse",
-                arguments={"matrix": singular_matrix},
-            )
-
-        error_msg = str(exc_info.value).lower()
-        assert "singular" in error_msg or "invertible" in error_msg or "not invertible" in error_msg
+        response = await http_client.call_tool(
+            "matrix_inverse",
+            arguments={"matrix": singular_matrix},
+        )
+        assert response.is_error is False
+        assert "error" in response.content[0].text.lower()
+        assert "singular" in response.content[0].text.lower()
 
     @pytest.mark.asyncio
     async def test_inverse_identity_matrix(self, http_client, identity_2x2):
@@ -322,11 +319,10 @@ class TestMatrixEigenvalues:
 )
 async def test_non_square_error(http_client, tool_name):
     """Test non-square matrix error."""
-    with pytest.raises(ToolError) as exc_info:
-        await http_client.call_tool(
-            tool_name,
-            arguments={"matrix": [[1, 2, 3], [4, 5, 6]]},
-        )
-
-    error_msg = str(exc_info.value).lower()
-    assert "square" in error_msg
+    response = await http_client.call_tool(
+        tool_name,
+        arguments={"matrix": [[1, 2, 3], [4, 5, 6]]},
+    )
+    assert response.is_error is False
+    assert "error" in response.content[0].text.lower()
+    assert "square" in response.content[0].text.lower()
