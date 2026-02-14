@@ -812,13 +812,6 @@ async def plot_function(
         plot_function("sin(x)", (-3.14, 3.14))
     """
 
-    # Matplotlib is guaranteed to be available (decorator handles ImportError)
-    import matplotlib
-
-    matplotlib.use("Agg")  # Non-interactive backend
-    import matplotlib.pyplot as plt
-    import numpy as np
-
     # FastMCP 2.0 Context logging
     if ctx:
         await ctx.info(f"Plotting function: {expression} over range {x_range}")
@@ -831,7 +824,9 @@ async def plot_function(
         if num_points < 2:
             raise ValueError("num_points must be at least 2")
 
-        # Generate x values
+        # Generate x values and evaluate expression
+        import numpy as np
+
         x_values = np.linspace(x_min, x_max, num_points)
 
         # Evaluate expression for each x value
@@ -848,25 +843,10 @@ async def plot_function(
                 # Handle domain errors (like sqrt of negative) or timeout
                 y_values.append(float("nan"))
 
-        # Create figure and plot
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(x_values, y_values, linewidth=2, color="#2E86AB")
-        ax.set_xlabel("x", fontsize=12)
-        ax.set_ylabel("f(x)", fontsize=12)
-        ax.set_title(f"Plot of f(x) = {expression}", fontsize=14, fontweight="bold")
-        ax.grid(True, alpha=0.3)
-        ax.axhline(y=0, color="k", linewidth=0.5)
-        ax.axvline(x=0, color="k", linewidth=0.5)
-
-        # Save to base64
-        import base64
-        from io import BytesIO
-
-        buffer = BytesIO()
-        plt.savefig(buffer, format="png", dpi=100, bbox_inches="tight")
-        plt.close(fig)
-        buffer.seek(0)
-        image_base64 = base64.b64encode(buffer.read()).decode("utf-8")
+        # Delegate rendering to visualization helper
+        image_base64 = visualization.create_function_plot(
+            x_values.tolist(), y_values, expression
+        ).decode("utf-8")
 
         # Classify difficulty
         difficulty = _classify_expression_difficulty(expression)
@@ -947,13 +927,6 @@ async def create_histogram(
     if bins < 1:
         raise ValueError("bins must be at least 1")
 
-    # Matplotlib is guaranteed to be available (decorator handles ImportError)
-    import matplotlib
-
-    matplotlib.use("Agg")  # Non-interactive backend
-    import matplotlib.pyplot as plt
-    import numpy  # noqa: F401 - imported for side effects, required by matplotlib
-
     # FastMCP 2.0 Context logging
     if ctx:
         await ctx.info(f"Creating histogram with {len(data)} data points and {bins} bins")
@@ -974,39 +947,10 @@ async def create_histogram(
         median_val = stats.median(data)
         std_dev = stats.stdev(data) if len(data) > 1 else 0
 
-        # Create histogram
-        fig, ax = plt.subplots(figsize=(10, 6))
-        n, bins_edges, patches = ax.hist(
-            data, bins=bins, color="#A23B72", alpha=0.7, edgecolor="black"
-        )
-
-        # Add vertical lines for mean and median
-        ax.axvline(
-            mean_val, color="#F18F01", linestyle="--", linewidth=2, label=f"Mean: {mean_val:.2f}"
-        )
-        ax.axvline(
-            median_val,
-            color="#C73E1D",
-            linestyle="-.",
-            linewidth=2,
-            label=f"Median: {median_val:.2f}",
-        )
-
-        ax.set_xlabel("Value", fontsize=12)
-        ax.set_ylabel("Frequency", fontsize=12)
-        ax.set_title(title, fontsize=14, fontweight="bold")
-        ax.legend()
-        ax.grid(True, alpha=0.3, axis="y")
-
-        # Save to base64
-        import base64
-        from io import BytesIO
-
-        buffer = BytesIO()
-        plt.savefig(buffer, format="png", dpi=100, bbox_inches="tight")
-        plt.close(fig)
-        buffer.seek(0)
-        image_base64 = base64.b64encode(buffer.read()).decode("utf-8")
+        # Delegate rendering to visualization helper
+        image_base64 = visualization.create_histogram_chart(
+            data, bins, title, mean_val, median_val, std_dev
+        ).decode("utf-8")
 
         return {
             "content": [

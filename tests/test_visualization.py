@@ -772,5 +772,101 @@ async def test_requires_matplotlib_import_error(mock_context):
     assert annotations["topic"] == "visualization"
 
 
+def test_create_function_plot_basic():
+    """Test create_function_plot with simple x/y data (happy path).
+
+    Arrange: Create simple x and y value lists
+    Act: Call create_function_plot with valid inputs
+    Assert: Returns base64-encoded PNG bytes
+    """
+    from math_mcp.visualization import create_function_plot
+
+    # Arrange: Simple linear function data
+    x_values = [0.0, 1.0, 2.0, 3.0, 4.0]
+    y_values = [0.0, 1.0, 2.0, 3.0, 4.0]
+    expression = "x"
+
+    # Act: Call the helper function
+    result = create_function_plot(x_values, y_values, expression)
+
+    # Assert: Returns bytes (base64-encoded PNG)
+    assert isinstance(result, bytes)
+    assert result.startswith(b"iVBORw0KGgo")  # PNG magic bytes in base64
+
+
+def test_create_function_plot_with_nan():
+    """Test create_function_plot handles NaN values in y_values (edge case).
+
+    Arrange: Create x/y data with NaN values (domain errors)
+    Act: Call create_function_plot with NaN in y_values
+    Assert: Returns valid PNG despite NaN (matplotlib handles gracefully)
+    """
+    import math
+
+    from math_mcp.visualization import create_function_plot
+
+    # Arrange: Data with NaN (simulating domain error like sqrt(-1))
+    x_values = [-2.0, -1.0, 0.0, 1.0, 2.0]
+    y_values = [float("nan"), float("nan"), 0.0, 1.0, 2.0]
+    expression = "sqrt(x)"
+
+    # Act: Call the helper function
+    result = create_function_plot(x_values, y_values, expression)
+
+    # Assert: Returns valid PNG despite NaN values
+    assert isinstance(result, bytes)
+    assert result.startswith(b"iVBORw0KGgo")
+
+
+def test_create_histogram_chart_basic():
+    """Test create_histogram_chart with sample data (happy path).
+
+    Arrange: Create sample data and pre-computed statistics
+    Act: Call create_histogram_chart with valid inputs
+    Assert: Returns base64-encoded PNG bytes
+    """
+    from math_mcp.visualization import create_histogram_chart
+
+    # Arrange: Sample data with pre-computed statistics
+    data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
+    bins = 5
+    title = "Test Distribution"
+    mean_val = 3.0
+    median_val = 3.0
+    std_dev = 1.2
+
+    # Act: Call the helper function
+    result = create_histogram_chart(data, bins, title, mean_val, median_val, std_dev)
+
+    # Assert: Returns bytes (base64-encoded PNG)
+    assert isinstance(result, bytes)
+    assert result.startswith(b"iVBORw0KGgo")  # PNG magic bytes in base64
+
+
+def test_create_histogram_chart_bins_exceeds_data():
+    """Test create_histogram_chart when bins > data points (edge case).
+
+    Arrange: Create data with fewer points than bins
+    Act: Call create_histogram_chart with bins > len(data)
+    Assert: Returns valid PNG (matplotlib handles gracefully)
+    """
+    from math_mcp.visualization import create_histogram_chart
+
+    # Arrange: Only 3 data points but 10 bins requested
+    data = [1.0, 2.0, 3.0]
+    bins = 10
+    title = "Sparse Distribution"
+    mean_val = 2.0
+    median_val = 2.0
+    std_dev = 1.0
+
+    # Act: Call the helper function
+    result = create_histogram_chart(data, bins, title, mean_val, median_val, std_dev)
+
+    # Assert: Returns valid PNG despite bins > data points
+    assert isinstance(result, bytes)
+    assert result.startswith(b"iVBORw0KGgo")
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

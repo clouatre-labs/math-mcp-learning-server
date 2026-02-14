@@ -86,6 +86,96 @@ def _validate_color_scheme(color: str | None) -> str:
     return "#2E86AB"
 
 
+def create_function_plot(
+    x_values: list[float],
+    y_values: list[float],
+    expression: str,
+) -> bytes:
+    """Create a function plot from pre-computed x/y values.
+
+    Args:
+        x_values: X-axis values (pre-computed by caller)
+        y_values: Y-axis values (pre-computed by caller, may contain NaN)
+        expression: Expression string for chart title
+
+    Returns:
+        Base64-encoded PNG image bytes
+
+    Raises:
+        ValueError: If x_values and y_values have different lengths
+    """
+    if len(x_values) != len(y_values):
+        raise ValueError("x_values and y_values must have the same length")
+
+    _, plt, _ = _setup_matplotlib()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(x_values, y_values, linewidth=2, color="#2E86AB")
+    ax.set_xlabel("x", fontsize=12)
+    ax.set_ylabel("f(x)", fontsize=12)
+    ax.set_title(f"Plot of f(x) = {expression}", fontsize=14, fontweight="bold")
+    ax.grid(True, alpha=0.3)
+    ax.axhline(y=0, color="k", linewidth=0.5)
+    ax.axvline(x=0, color="k", linewidth=0.5)
+
+    return _encode_figure_to_base64(fig).encode("utf-8")
+
+
+def create_histogram_chart(
+    data: list[float],
+    bins: int,
+    title: str,
+    mean_val: float,
+    median_val: float,
+    std_dev: float,
+) -> bytes:
+    """Create a histogram from data with mean and median lines.
+
+    Args:
+        data: Data points for histogram
+        bins: Number of bins
+        title: Chart title
+        mean_val: Pre-computed mean value
+        median_val: Pre-computed median value
+        std_dev: Pre-computed standard deviation
+
+    Returns:
+        Base64-encoded PNG image bytes
+
+    Raises:
+        ValueError: If data is empty or bins < 1
+    """
+    if not data:
+        raise ValueError("Cannot create histogram with empty data")
+    if bins < 1:
+        raise ValueError("bins must be at least 1")
+
+    _, plt, _ = _setup_matplotlib()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.hist(data, bins=bins, color="#A23B72", alpha=0.7, edgecolor="black")
+
+    # Add vertical lines for mean and median
+    ax.axvline(
+        mean_val, color="#F18F01", linestyle="--", linewidth=2, label=f"Mean: {mean_val:.2f}"
+    )
+    ax.axvline(
+        median_val,
+        color="#C73E1D",
+        linestyle="-.",
+        linewidth=2,
+        label=f"Median: {median_val:.2f}",
+    )
+
+    ax.set_xlabel("Value", fontsize=12)
+    ax.set_ylabel("Frequency", fontsize=12)
+    ax.set_title(title, fontsize=14, fontweight="bold")
+    ax.legend()
+    ax.grid(True, alpha=0.3, axis="y")
+
+    return _encode_figure_to_base64(fig).encode("utf-8")
+
+
 # === CHART GENERATORS ===
 
 
