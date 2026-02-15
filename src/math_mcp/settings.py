@@ -1,7 +1,30 @@
 """Configuration management for Math MCP Server."""
 
+from typing import Final
+
 from pydantic import ConfigDict, Field, field_validator, validate_call
 from pydantic_settings import BaseSettings
+
+__all__ = [
+    "MathMCPSettings",
+    "validated_tool",
+    "MATH_FUNCTIONS_SINGLE",
+    "MATH_FUNCTIONS_ALL",
+    "DANGEROUS_PATTERNS",
+    "ALLOWED_OPERATIONS",
+    "ALLOWED_TRENDS",
+    "TOPIC_KEYWORDS",
+    "TEMP_CONVERSIONS",
+    "EXPRESSION_TIMEOUT_SECONDS",
+    "RATE_LIMIT_PER_MINUTE",
+    "MAX_EXPRESSION_LENGTH",
+    "MAX_STRING_PARAM_LENGTH",
+    "MAX_ARRAY_SIZE",
+    "MAX_GROUPS_COUNT",
+    "MAX_GROUP_SIZE",
+    "MAX_VARIABLE_NAME_LENGTH",
+    "MAX_DAYS_FINANCIAL",
+]
 
 
 class MathMCPSettings(BaseSettings):
@@ -64,12 +87,12 @@ _settings = MathMCPSettings()
 
 # === DERIVED CONSTANTS (from shared _settings instance) ===
 
-EXPRESSION_TIMEOUT_SECONDS: float = _settings.math_timeout
-RATE_LIMIT_PER_MINUTE: int = _settings.mcp_rate_limit_per_minute
-MAX_EXPRESSION_LENGTH: int = _settings.max_expression_length
-MAX_STRING_PARAM_LENGTH: int = _settings.max_string_param_length
-MAX_ARRAY_SIZE: int = _settings.max_array_size
-MAX_GROUPS_COUNT: int = _settings.max_groups_count
-MAX_GROUP_SIZE: int = _settings.max_group_size
-MAX_VARIABLE_NAME_LENGTH: int = _settings.max_variable_name_length
-MAX_DAYS_FINANCIAL: int = _settings.max_days_financial
+EXPRESSION_TIMEOUT_SECONDS: Final[float] = _settings.math_timeout
+RATE_LIMIT_PER_MINUTE: Final[int] = _settings.mcp_rate_limit_per_minute
+MAX_EXPRESSION_LENGTH: Final[int] = _settings.max_expression_length
+MAX_STRING_PARAM_LENGTH: Final[int] = _settings.max_string_param_length
+MAX_ARRAY_SIZE: Final[int] = _settings.max_array_size
+MAX_GROUPS_COUNT: Final[int] = _settings.max_groups_count
+MAX_GROUP_SIZE: Final[int] = _settings.max_group_size
+MAX_VARIABLE_NAME_LENGTH: Final[int] = _settings.max_variable_name_length
+MAX_DAYS_FINANCIAL: Final[int] = _settings.max_days_financial
