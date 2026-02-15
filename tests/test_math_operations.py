@@ -3,7 +3,9 @@
 Test cases for the FastMCP Math Server
 """
 
+import asyncio
 import os
+import unittest.mock
 from unittest.mock import patch
 
 import pytest
@@ -346,12 +348,20 @@ async def test_evaluate_with_timeout_fast_expression():
 
 @pytest.mark.asyncio
 async def test_evaluate_with_timeout_slow_expression(monkeypatch):
-    """Test that timeout triggers with very short timeout value."""
+    """Test that timeout triggers when evaluation takes too long."""
     import math_mcp.eval
 
-    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.0001)
-    with pytest.raises(ValueError, match="exceeded.*timeout"):
-        await evaluate_with_timeout("2 + 3")
+    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.01)
+
+    async def never_complete(*args, **kwargs):
+        await asyncio.sleep(10)
+
+    loop = asyncio.get_running_loop()
+    with unittest.mock.patch.object(
+        loop, "run_in_executor", side_effect=lambda *a, **kw: never_complete()
+    ):
+        with pytest.raises(ValueError, match="exceeded.*timeout"):
+            await evaluate_with_timeout("2 + 3")
 
 
 @pytest.mark.asyncio
@@ -359,9 +369,17 @@ async def test_evaluate_with_timeout_custom_timeout(monkeypatch):
     """Test that custom timeout value is included in error message."""
     import math_mcp.eval
 
-    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.00001)
-    with pytest.raises(ValueError, match="exceeded.*1e-05.*timeout"):
-        await evaluate_with_timeout("1 + 1")
+    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.05)
+
+    async def never_complete(*args, **kwargs):
+        await asyncio.sleep(10)
+
+    loop = asyncio.get_running_loop()
+    with unittest.mock.patch.object(
+        loop, "run_in_executor", side_effect=lambda *a, **kw: never_complete()
+    ):
+        with pytest.raises(ValueError, match="exceeded.*0.05.*timeout"):
+            await evaluate_with_timeout("1 + 1")
 
 
 # === RATE LIMITING TESTS ===
