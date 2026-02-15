@@ -356,7 +356,7 @@ async def test_evaluate_with_timeout_custom_timeout(monkeypatch):
     """Test timeout configuration via environment variable."""
     import math_mcp.eval
 
-    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.1)
+    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.1)  # type: ignore[misc]
 
     def slow_eval(expr):
         import time
@@ -377,7 +377,7 @@ async def test_rate_limit_env_var_configuration(monkeypatch):
     """Test rate limit configuration via environment variable."""
     import math_mcp.server
 
-    monkeypatch.setattr(math_mcp.server, "RATE_LIMIT_PER_MINUTE", 50)
+    monkeypatch.setattr(math_mcp.server, "RATE_LIMIT_PER_MINUTE", 50)  # type: ignore[misc]
 
     assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 50
 
@@ -387,7 +387,7 @@ async def test_rate_limit_disabled_when_zero(monkeypatch):
     """Test rate limiting can be disabled by setting to 0."""
     import math_mcp.server
 
-    monkeypatch.setattr(math_mcp.server, "RATE_LIMIT_PER_MINUTE", 0)
+    monkeypatch.setattr(math_mcp.server, "RATE_LIMIT_PER_MINUTE", 0)  # type: ignore[misc]
 
     assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 0
 
@@ -426,7 +426,7 @@ async def test_rate_limit_default_value(monkeypatch):
     """Test default rate limit is 100 requests per minute."""
     import math_mcp.server
 
-    monkeypatch.setattr(math_mcp.server, "RATE_LIMIT_PER_MINUTE", 100)
+    monkeypatch.setattr(math_mcp.server, "RATE_LIMIT_PER_MINUTE", 100)  # type: ignore[misc]
 
     assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 100
 
@@ -731,7 +731,7 @@ async def test_env_var_configuration(monkeypatch):
     """Test that size limits can be configured via environment variables."""
     import math_mcp.server
 
-    monkeypatch.setattr(math_mcp.server, "MAX_EXPRESSION_LENGTH", 100)
+    monkeypatch.setattr(math_mcp.server, "MAX_EXPRESSION_LENGTH", 100)  # type: ignore[misc]
 
     assert math_mcp.server.MAX_EXPRESSION_LENGTH == 100
 
