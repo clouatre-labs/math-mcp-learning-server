@@ -5,7 +5,7 @@ Thank you for your interest in contributing to the Math MCP Server! This guide w
 ## Quick Start
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.14+
 - [uv](https://docs.astral.sh/uv/) package manager
 - Git
 
@@ -97,7 +97,7 @@ All pull requests run automated checks in parallel:
 
 - **Linting** (ruff) - Code quality and formatting
 - **Type checking** (pyright) - Type safety
-- **Tests** (pytest) - Functionality validation across Python 3.11 and 3.13
+- **Tests** (pytest) - Functionality validation on Python 3.14
 
 All checks must pass before merge. Jobs run in parallel for faster feedback.
 
