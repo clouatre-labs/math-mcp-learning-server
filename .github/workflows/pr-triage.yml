@@ -1,0 +1,24 @@
+name: Triage Pull Requests
+
+on:
+  pull_request:
+    types: [opened]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  label:
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+      issues: write
+      contents: read
+    steps:
+    - name: Run Aptu
+      continue-on-error: true
+      uses: clouatre-labs/aptu@aaa024bee86d4113bede0ff170e7ee4e690c6f33 # v0.2.15
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
+        skip-labeled: 'false'
