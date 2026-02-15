@@ -1,6 +1,7 @@
 """Expression evaluation and validation utilities."""
 
 import asyncio
+import atexit
 import logging
 import math
 from concurrent.futures import ProcessPoolExecutor
@@ -16,6 +17,9 @@ from math_mcp.settings import (
 )
 
 _executor: ProcessPoolExecutor = ProcessPoolExecutor(max_workers=1)
+# Register graceful shutdown on interpreter exit; wait=False prevents blocking
+# the interpreter if in-flight evaluations are still running
+atexit.register(_executor.shutdown, wait=False)
 
 
 def _validate_expression_syntax(expression: str) -> None:
