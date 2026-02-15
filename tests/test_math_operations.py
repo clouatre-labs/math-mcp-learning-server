@@ -8,14 +8,16 @@ from unittest.mock import patch
 
 import pytest
 
+from math_mcp.eval import (
+    convert_temperature,
+    evaluate_with_timeout,
+    safe_eval_expression,
+)
 from math_mcp.server import (
     calculate,
     compound_interest,
-    convert_temperature,
     convert_units,
-    evaluate_with_timeout,
     get_math_constant,
-    safe_eval_expression,
 )
 from math_mcp.server import statistics as stats_tool
 
@@ -344,7 +346,7 @@ async def test_evaluate_with_timeout_slow_expression():
         time.sleep(10)  # Exceeds default 5s timeout
         return 42.0
 
-    with patch("math_mcp.server.safe_eval_expression", side_effect=slow_eval):
+    with patch("math_mcp.eval.safe_eval_expression", side_effect=slow_eval):
         with pytest.raises(ValueError, match="exceeded.*timeout"):
             await evaluate_with_timeout("slow_expression")
 
@@ -353,12 +355,12 @@ async def test_evaluate_with_timeout_slow_expression():
 async def test_evaluate_with_timeout_custom_timeout():
     """Test timeout configuration via environment variable."""
     with patch.dict(os.environ, {"MATH_TIMEOUT": "0.1"}):
-        # Reload module to pick up new env var
+        # Reload eval module to pick up new env var
         import importlib
 
-        import math_mcp.server
+        import math_mcp.eval
 
-        importlib.reload(math_mcp.server)
+        importlib.reload(math_mcp.eval)
 
         def slow_eval(expr):
             import time
@@ -366,9 +368,9 @@ async def test_evaluate_with_timeout_custom_timeout():
             time.sleep(0.5)  # Exceeds 0.1s timeout
             return 42.0
 
-        with patch("math_mcp.server.safe_eval_expression", side_effect=slow_eval):
+        with patch("math_mcp.eval.safe_eval_expression", side_effect=slow_eval):
             with pytest.raises(ValueError, match="exceeded.*timeout"):
-                await math_mcp.server.evaluate_with_timeout("slow")
+                await math_mcp.eval.evaluate_with_timeout("slow")
 
 
 # === RATE LIMITING TESTS ===
@@ -582,7 +584,7 @@ async def test_variable_name_validation():
 @pytest.mark.asyncio
 async def test_string_param_validation():
     """Test string parameter validation."""
-    from math_mcp.server import MAX_STRING_PARAM_LENGTH, create_histogram
+    from math_mcp.tools.visualization import MAX_STRING_PARAM_LENGTH, create_histogram
 
     # Valid: at limit
     valid_title = "a" * MAX_STRING_PARAM_LENGTH
@@ -601,7 +603,7 @@ async def test_string_param_validation():
 @pytest.mark.asyncio
 async def test_nested_array_validation():
     """Test nested array validation for plot_box_plot."""
-    from math_mcp.server import MAX_GROUP_SIZE, MAX_GROUPS_COUNT, plot_box_plot
+    from math_mcp.tools.visualization import MAX_GROUP_SIZE, MAX_GROUPS_COUNT, plot_box_plot
 
     # Valid: at group limit
     valid_groups = [[1.0, 2.0]] * MAX_GROUPS_COUNT
@@ -627,7 +629,7 @@ async def test_nested_array_validation():
 @pytest.mark.asyncio
 async def test_days_validation():
     """Test days validation for plot_financial_line."""
-    from math_mcp.server import MAX_DAYS_FINANCIAL, plot_financial_line
+    from math_mcp.tools.visualization import MAX_DAYS_FINANCIAL, plot_financial_line
 
     # Valid: at limit
     result = await plot_financial_line.fn(MAX_DAYS_FINANCIAL, "bullish", 100.0, None, None)
@@ -647,7 +649,7 @@ async def test_days_validation():
 @pytest.mark.asyncio
 async def test_trend_whitelist_validation():
     """Test trend whitelist validation."""
-    from math_mcp.server import plot_financial_line
+    from math_mcp.tools.visualization import plot_financial_line
 
     # Valid trends
     for trend in ["bullish", "bearish", "volatile"]:
@@ -662,7 +664,7 @@ async def test_trend_whitelist_validation():
 @pytest.mark.asyncio
 async def test_num_points_validation():
     """Test num_points validation for plot_function."""
-    from math_mcp.server import MAX_ARRAY_SIZE, plot_function
+    from math_mcp.tools.visualization import MAX_ARRAY_SIZE, plot_function
 
     # Valid: at limit
     result = await plot_function.fn("x**2", (-5, 5), MAX_ARRAY_SIZE, None)
@@ -680,7 +682,7 @@ async def test_num_points_validation():
 @pytest.mark.asyncio
 async def test_bins_validation():
     """Test bins validation for create_histogram."""
-    from math_mcp.server import create_histogram
+    from math_mcp.tools.visualization import create_histogram
 
     # Valid: positive bins
     result = await create_histogram.fn([1.0, 2.0, 3.0], 10, "Test", None)

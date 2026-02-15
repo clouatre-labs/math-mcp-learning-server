@@ -72,7 +72,7 @@ async def test_plot_function_basic_quadratic(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_function
+    from math_mcp.tools.visualization import plot_function
 
     result = await plot_function.fn("x**2", (-5.0, 5.0), 50, mock_context)
 
@@ -110,7 +110,7 @@ async def test_plot_function_trigonometric(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_function
+    from math_mcp.tools.visualization import plot_function
 
     result = await plot_function.fn("sin(x)", (-3.14159, 3.14159), 100, mock_context)
 
@@ -131,7 +131,7 @@ async def test_plot_function_invalid_range(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_function
+    from math_mcp.tools.visualization import plot_function
 
     # x_min >= x_max
     result = await plot_function.fn("x**2", (5.0, 5.0), 100, mock_context)
@@ -152,7 +152,7 @@ async def test_plot_function_invalid_num_points(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_function
+    from math_mcp.tools.visualization import plot_function
 
     # Now raises ValueError due to input validation
     with pytest.raises(ValueError, match="Input should be greater than or equal to 2"):
@@ -168,7 +168,7 @@ async def test_plot_function_with_domain_error(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_function
+    from math_mcp.tools.visualization import plot_function
 
     # sqrt of negative numbers will cause domain errors for negative x
     result = await plot_function.fn("sqrt(x)", (-5.0, 5.0), 50, mock_context)
@@ -189,7 +189,7 @@ async def test_plot_function_without_context():
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_function
+    from math_mcp.tools.visualization import plot_function
 
     result = await plot_function.fn("x**2", (-5.0, 5.0), 50, None)
 
@@ -244,7 +244,7 @@ async def test_create_histogram_basic(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import create_histogram
+    from math_mcp.tools.visualization import create_histogram
 
     data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
     result = await create_histogram.fn(data, 5, "Test Distribution", mock_context)
@@ -286,7 +286,7 @@ async def test_create_histogram_empty_data(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import create_histogram
+    from math_mcp.tools.visualization import create_histogram
 
     result = await create_histogram.fn([], 10, "Test", mock_context)
 
@@ -307,7 +307,7 @@ async def test_create_histogram_single_value(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import create_histogram
+    from math_mcp.tools.visualization import create_histogram
 
     result = await create_histogram.fn([42.0], 10, "Test", mock_context)
 
@@ -327,7 +327,7 @@ async def test_create_histogram_invalid_bins(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import create_histogram
+    from math_mcp.tools.visualization import create_histogram
 
     # Now raises ValueError due to input validation
     with pytest.raises(ValueError, match="must be at least 1"):
@@ -343,7 +343,7 @@ async def test_create_histogram_large_dataset(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import create_histogram
+    from math_mcp.tools.visualization import create_histogram
 
     # Generate normally distributed data
     data = [float(i) for i in range(100)]
@@ -365,7 +365,7 @@ async def test_create_histogram_custom_title(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import create_histogram
+    from math_mcp.tools.visualization import create_histogram
 
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
     result = await create_histogram.fn(data, 5, "Custom Title", mock_context)
@@ -385,7 +385,7 @@ async def test_create_histogram_without_context():
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import create_histogram
+    from math_mcp.tools.visualization import create_histogram
 
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
     result = await create_histogram.fn(data, 5, "Test", None)
@@ -407,7 +407,7 @@ async def test_visualization_tools_return_proper_structure(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import create_histogram, plot_function
+    from math_mcp.tools.visualization import create_histogram, plot_function
 
     # Test plot_function
     plot_result = await plot_function.fn("x**2", (-5.0, 5.0), 50, mock_context)
@@ -433,7 +433,7 @@ async def test_visualization_educational_annotations():
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import create_histogram, plot_function
+    from math_mcp.tools.visualization import create_histogram, plot_function
 
     # Test plot_function annotations
     plot_result = await plot_function.fn("sin(x)", (-3.14, 3.14), 100, None)
@@ -552,7 +552,7 @@ async def test_plot_line_chart_basic(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_line_chart
+    from math_mcp.tools.visualization import plot_line_chart
 
     result = await plot_line_chart.fn(
         [1.0, 2.0, 3.0, 4.0],
@@ -580,7 +580,7 @@ async def test_plot_scatter_chart_basic(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_scatter_chart
+    from math_mcp.tools.visualization import plot_scatter_chart
 
     result = await plot_scatter_chart.fn(
         [1.0, 2.0, 3.0], [2.0, 4.0, 6.0], "Test Scatter", "X", "Y", "purple", 50, mock_context
@@ -600,7 +600,7 @@ async def test_plot_box_plot_basic(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_box_plot
+    from math_mcp.tools.visualization import plot_box_plot
 
     result = await plot_box_plot.fn(
         [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
@@ -626,7 +626,7 @@ async def test_plot_financial_line_basic(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_financial_line
+    from math_mcp.tools.visualization import plot_financial_line
 
     result = await plot_financial_line.fn(30, "bullish", 100.0, None, mock_context)
 
@@ -647,7 +647,7 @@ async def test_plot_line_chart_error_mismatched_length(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_line_chart
+    from math_mcp.tools.visualization import plot_line_chart
 
     result = await plot_line_chart.fn([1.0, 2.0], [1.0], "Test", "X", "Y", None, True, mock_context)
 
@@ -665,7 +665,7 @@ async def test_plot_financial_line_invalid_trend(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.server import plot_financial_line
+    from math_mcp.tools.visualization import plot_financial_line
 
     # Now raises ValueError due to input validation
     with pytest.raises(ValueError, match="Invalid trend"):
@@ -677,7 +677,7 @@ def test_regex_substitution_preserves_function_names_with_x():
     import math
     import re
 
-    from math_mcp.server import safe_eval_expression
+    from math_mcp.eval import safe_eval_expression
 
     expression = "exp(x)"
     substituted = re.sub(r"\bx\b", "(1.0)", expression)
@@ -689,7 +689,7 @@ def test_regex_substitution_replaces_standalone_x_preserves_functions():
     """Verify x*abs(x) with x=-2.0 returns -4.0 not NaN/error."""
     import re
 
-    from math_mcp.server import safe_eval_expression
+    from math_mcp.eval import safe_eval_expression
 
     expression = "x*abs(x)"
     substituted = re.sub(r"\bx\b", "(-2.0)", expression)
@@ -710,7 +710,7 @@ async def test_requires_matplotlib_happy_path(mock_context):
     """
     from unittest.mock import AsyncMock, patch
 
-    from math_mcp.server import requires_matplotlib
+    from math_mcp.tools.visualization import requires_matplotlib
 
     # Arrange: Create a test function decorated with requires_matplotlib
     @requires_matplotlib
@@ -740,7 +740,7 @@ async def test_requires_matplotlib_import_error(mock_context):
     """
     from unittest.mock import patch
 
-    from math_mcp.server import requires_matplotlib
+    from math_mcp.tools.visualization import requires_matplotlib
 
     # Arrange: Create a test function decorated with requires_matplotlib
     @requires_matplotlib

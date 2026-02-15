@@ -1,5 +1,6 @@
 """Expression evaluation and validation utilities."""
 
+import asyncio
 import logging
 import math
 
@@ -9,6 +10,7 @@ from math_mcp.settings import (
     MATH_FUNCTIONS_SINGLE,
     TEMP_CONVERSIONS,
     TOPIC_KEYWORDS,
+    MathMCPSettings,
 )
 
 
@@ -143,3 +145,41 @@ def _classify_expression_topic(expression: str) -> str:
             return topic
 
     return "arithmetic"
+
+
+# Timeout constant from settings (used by visualization tools and server)
+_settings = MathMCPSettings()
+EXPRESSION_TIMEOUT_SECONDS: float = _settings.math_timeout
+
+
+async def evaluate_with_timeout(expression: str) -> float:
+    """
+    Safely evaluate mathematical expression with execution timeout.
+
+    Prevents denial-of-service by ensuring expression evaluation completes
+    within EXPRESSION_TIMEOUT_SECONDS. Wraps synchronous safe_eval_expression()
+    in an async executor to allow timeout enforcement.
+
+    This is an educational example of wrapping CPU-bound synchronous operations
+    in async context using asyncio.wait_for() and loop.run_in_executor().
+
+    Args:
+        expression: Mathematical expression string to evaluate.
+
+    Returns:
+        float: Result of the expression evaluation.
+
+    Raises:
+        ValueError: If expression evaluation exceeds timeout or is invalid.
+    """
+    loop = asyncio.get_running_loop()
+    try:
+        return await asyncio.wait_for(
+            loop.run_in_executor(None, safe_eval_expression, expression),
+            timeout=EXPRESSION_TIMEOUT_SECONDS,
+        )
+    except TimeoutError as e:
+        raise ValueError(
+            f"Expression evaluation exceeded {EXPRESSION_TIMEOUT_SECONDS}s timeout. "
+            f"Try simplifying the expression or breaking it into smaller parts."
+        ) from e
