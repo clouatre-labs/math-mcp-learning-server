@@ -345,36 +345,23 @@ async def test_evaluate_with_timeout_fast_expression():
 
 
 @pytest.mark.asyncio
-async def test_evaluate_with_timeout_slow_expression():
-    """Test that slow expressions trigger timeout."""
-    # Mock safe_eval_expression to simulate slow execution
-    import time
+async def test_evaluate_with_timeout_slow_expression(monkeypatch):
+    """Test that timeout triggers with very short timeout value."""
+    import math_mcp.eval
 
-    def slow_eval(expr):
-        time.sleep(10)  # Exceeds default 5s timeout
-        return 42.0
-
-    with patch("math_mcp.eval.safe_eval_expression", side_effect=slow_eval):
-        with pytest.raises(ValueError, match="exceeded.*timeout"):
-            await evaluate_with_timeout("slow_expression")
+    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.0001)
+    with pytest.raises(ValueError, match="exceeded.*timeout"):
+        await evaluate_with_timeout("2 + 3")
 
 
 @pytest.mark.asyncio
 async def test_evaluate_with_timeout_custom_timeout(monkeypatch):
-    """Test timeout configuration via environment variable."""
+    """Test that custom timeout value is included in error message."""
     import math_mcp.eval
 
-    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.1)  # type: ignore[misc]
-
-    def slow_eval(expr):
-        import time
-
-        time.sleep(0.5)  # Exceeds 0.1s timeout
-        return 42.0
-
-    with patch("math_mcp.eval.safe_eval_expression", side_effect=slow_eval):
-        with pytest.raises(ValueError, match="exceeded.*timeout"):
-            await evaluate_with_timeout("slow")
+    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.00001)
+    with pytest.raises(ValueError, match="exceeded.*1e-05.*timeout"):
+        await evaluate_with_timeout("1 + 1")
 
 
 # === RATE LIMITING TESTS ===
