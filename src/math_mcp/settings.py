@@ -2,8 +2,8 @@
 
 from typing import Final
 
-from pydantic import ConfigDict, Field, field_validator, validate_call
-from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator, validate_call
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 __all__ = [
     "MathMCPSettings",
@@ -40,7 +40,7 @@ class MathMCPSettings(BaseSettings):
     max_variable_name_length: int = Field(default=50, ge=0)
     max_days_financial: int = Field(default=1000, ge=0)
 
-    model_config = ConfigDict(env_prefix="", case_sensitive=False)
+    model_config = SettingsConfigDict(env_prefix="", case_sensitive=False)
 
     @field_validator("math_timeout", mode="after")
     @classmethod
