@@ -19,10 +19,15 @@ def mock_context():
     class MockContext:
         def __init__(self):
             self.info_logs = []
+            self.progress_reports = []
 
         async def info(self, message: str):
             """Mock info logging."""
             self.info_logs.append(message)
+
+        async def report_progress(self, current: int, total: int):
+            """Mock progress reporting."""
+            self.progress_reports.append((current, total))
 
     return MockContext()
 
@@ -866,6 +871,74 @@ def test_create_histogram_chart_bins_exceeds_data():
     # Assert: Returns valid PNG despite bins > data points
     assert isinstance(result, bytes)
     assert result.startswith(b"iVBORw0KGgo")
+
+
+# === PROGRESS REPORTING TESTS ===
+
+
+@pytest.mark.asyncio
+async def test_plot_function_progress_reporting(mock_context):
+    """Test plot_function reports progress at regular intervals.
+
+    Arrange: Create mock context and call plot_function
+    Act: Call plot_function with mock context
+    Assert: progress_reports contains entries at ~10% intervals, starts with (0, num_points), ends with (num_points, num_points)
+    """
+    try:
+        import matplotlib  # noqa: F401
+        import numpy as np  # noqa: F401
+    except ImportError:
+        pytest.skip("matplotlib not available")
+
+    from math_mcp.tools.visualization import plot_function
+
+    # Arrange: Simple linear function
+    expression = "x"
+    x_range = (0.0, 10.0)
+    num_points = 100
+
+    # Act: Call plot_function with mock context
+    await plot_function.fn(expression, x_range, num_points, mock_context)
+
+    # Assert: Progress reports start with (0, num_points)
+    assert len(mock_context.progress_reports) > 0
+    assert mock_context.progress_reports[0] == (0, num_points)
+
+    # Assert: Progress reports end with (num_points, num_points)
+    assert mock_context.progress_reports[-1] == (num_points, num_points)
+
+    # Assert: Progress reports are at regular intervals (approximately every 10%)
+    # With 100 points, we expect reports roughly every 10 points
+    assert len(mock_context.progress_reports) >= 10
+
+
+@pytest.mark.asyncio
+async def test_create_histogram_progress_reporting(mock_context):
+    """Test create_histogram reports progress through 4 stages.
+
+    Arrange: Create mock context and call create_histogram
+    Act: Call create_histogram with mock context
+    Assert: progress_reports matches expected 4 stages: [(0, 3), (1, 3), (2, 3), (3, 3)]
+    """
+    try:
+        import matplotlib  # noqa: F401
+        import numpy as np  # noqa: F401
+    except ImportError:
+        pytest.skip("matplotlib not available")
+
+    from math_mcp.tools.visualization import create_histogram
+
+    # Arrange: Sample data
+    data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
+    bins = 5
+    title = "Test Distribution"
+
+    # Act: Call create_histogram with mock context
+    await create_histogram.fn(data, bins, title, mock_context)
+
+    # Assert: Progress reports match expected 4 stages
+    expected_progress = [(0, 3), (1, 3), (2, 3), (3, 3)]
+    assert mock_context.progress_reports == expected_progress
 
 
 if __name__ == "__main__":

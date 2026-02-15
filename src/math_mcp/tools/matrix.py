@@ -409,6 +409,14 @@ async def matrix_inverse(
         await ctx.info("Calculating matrix inverse")
 
     try:
+        # Report initial progress
+        if ctx:
+            await ctx.report_progress(0, 3)
+
+        # Stage 1: Validate matrix
+        if ctx:
+            await ctx.report_progress(1, 3)
+
         mat = _validate_matrix(matrix)
 
         if mat.shape[0] != mat.shape[1]:
@@ -417,12 +425,20 @@ async def matrix_inverse(
                 f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
             )
 
+        # Stage 2: Check singularity
+        if ctx:
+            await ctx.report_progress(2, 3)
+
         det = la.det(mat)  # type: ignore
         if abs(det) < 1e-10:
             raise ValueError(
                 "Matrix is singular (determinant ≈ 0). "
                 "Cannot compute inverse for singular matrices."
             )
+
+        # Stage 3: Compute inverse and complete
+        if ctx:
+            await ctx.report_progress(3, 3)
 
         result = la.inv(mat)  # type: ignore
 
@@ -502,6 +518,14 @@ async def matrix_eigenvalues(
         await ctx.info("Calculating matrix eigenvalues")
 
     try:
+        # Report initial progress
+        if ctx:
+            await ctx.report_progress(0, 2)
+
+        # Stage 1: Validate matrix
+        if ctx:
+            await ctx.report_progress(1, 2)
+
         mat = _validate_matrix(matrix)
 
         if mat.shape[0] != mat.shape[1]:
@@ -509,6 +533,10 @@ async def matrix_eigenvalues(
                 f"Eigenvalues require a square matrix. "
                 f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
             )
+
+        # Stage 2: Calculate eigenvalues and complete
+        if ctx:
+            await ctx.report_progress(2, 2)
 
         eigenvalues = la.eigvals(mat)  # type: ignore
 
