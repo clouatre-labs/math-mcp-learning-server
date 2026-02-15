@@ -20,7 +20,8 @@ from math_mcp.persistence.storage import (
     get_workspace_file,
 )
 from math_mcp.persistence.workspace import _workspace_manager
-from math_mcp.server import get_workspace, load_variable, save_calculation
+from math_mcp.resources import get_workspace
+from math_mcp.tools.persistence import load_variable, save_calculation
 
 # === FIXTURES ===
 

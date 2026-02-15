@@ -13,13 +13,21 @@ from math_mcp.eval import (
     evaluate_with_timeout,
     safe_eval_expression,
 )
-from math_mcp.server import (
+from math_mcp.resources import get_math_constant, get_workspace
+from math_mcp.settings import (
+    MAX_ARRAY_SIZE,
+    MAX_EXPRESSION_LENGTH,
+    MAX_VARIABLE_NAME_LENGTH,
+)
+from math_mcp.tools.calculate import (
     calculate,
     compound_interest,
     convert_units,
-    get_math_constant,
 )
-from math_mcp.server import statistics as stats_tool
+from math_mcp.tools.calculate import (
+    statistics as stats_tool,
+)
+from math_mcp.tools.persistence import load_variable, save_calculation
 
 # === SECURITY TESTS ===
 
@@ -437,7 +445,6 @@ async def test_rate_limit_default_value(monkeypatch):
 @pytest.mark.asyncio
 async def test_expression_length_validation():
     """Test expression length validation."""
-    from math_mcp.server import MAX_EXPRESSION_LENGTH
 
     # Mock context
     class MockLifespanContext:
@@ -481,7 +488,6 @@ async def test_expression_length_validation():
 @pytest.mark.asyncio
 async def test_array_size_validation():
     """Test array size validation."""
-    from math_mcp.server import MAX_ARRAY_SIZE
 
     # Mock context
     class MockContext:
@@ -525,7 +531,6 @@ async def test_operation_whitelist_validation():
 @pytest.mark.asyncio
 async def test_variable_name_validation():
     """Test variable name validation."""
-    from math_mcp.server import MAX_VARIABLE_NAME_LENGTH, save_calculation
 
     # Mock context
     class MockLifespanContext:
@@ -705,7 +710,6 @@ async def test_empty_input_validation():
 @pytest.mark.asyncio
 async def test_validation_error_messages():
     """Test that validation error messages are clear and include limits."""
-    from math_mcp.server import MAX_EXPRESSION_LENGTH
 
     # Mock context
     class MockContext:
@@ -729,11 +733,11 @@ async def test_validation_error_messages():
 @pytest.mark.asyncio
 async def test_env_var_configuration(monkeypatch):
     """Test that size limits can be configured via environment variables."""
-    import math_mcp.server
+    import math_mcp.settings
 
-    monkeypatch.setattr(math_mcp.server, "MAX_EXPRESSION_LENGTH", 100)  # type: ignore[misc]
+    monkeypatch.setattr(math_mcp.settings, "MAX_EXPRESSION_LENGTH", 100)
 
-    assert math_mcp.server.MAX_EXPRESSION_LENGTH == 100
+    assert math_mcp.settings.MAX_EXPRESSION_LENGTH == 100
 
 
 if __name__ == "__main__":
