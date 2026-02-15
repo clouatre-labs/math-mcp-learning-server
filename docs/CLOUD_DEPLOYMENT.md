@@ -17,7 +17,7 @@ This server includes a `fastmcp.json` configuration file for seamless cloud depl
   },
   "environment": {
     "type": "uv",
-    "python": ">=3.11",
+    "python": ">=3.14",
     "dependencies": [
       "fastmcp>=2.0.0",
       "pydantic>=2.11.9",
