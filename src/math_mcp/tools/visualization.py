@@ -13,16 +13,16 @@ from pydantic import Field, SkipValidation
 
 from math_mcp import visualization
 from math_mcp.eval import _classify_expression_difficulty, evaluate_with_timeout
-from math_mcp.settings import ALLOWED_TRENDS, MathMCPSettings, validated_tool
-
-# --- Settings-derived constants ---
-_settings = MathMCPSettings()
-MAX_EXPRESSION_LENGTH = _settings.max_expression_length
-MAX_STRING_PARAM_LENGTH = _settings.max_string_param_length
-MAX_ARRAY_SIZE = _settings.max_array_size
-MAX_GROUPS_COUNT = _settings.max_groups_count
-MAX_GROUP_SIZE = _settings.max_group_size
-MAX_DAYS_FINANCIAL = _settings.max_days_financial
+from math_mcp.settings import (
+    ALLOWED_TRENDS,
+    MAX_ARRAY_SIZE,
+    MAX_DAYS_FINANCIAL,
+    MAX_EXPRESSION_LENGTH,
+    MAX_GROUP_SIZE,
+    MAX_GROUPS_COUNT,
+    MAX_STRING_PARAM_LENGTH,
+    validated_tool,
+)
 
 # --- Sub-server instance ---
 visualization_mcp = FastMCP("visualization-tools")
@@ -80,9 +80,9 @@ def requires_matplotlib(func: Any) -> Any:
 def validate_nested_array_groups(groups: list[list[float]]) -> list[list[float]]:
     """Validate nested array group sizes."""
     for i, group in enumerate(groups):
-        if len(group) > _settings.max_group_size:
+        if len(group) > MAX_GROUP_SIZE:
             raise ValueError(
-                f"Group {i} exceeds maximum size of {_settings.max_group_size} elements. "
+                f"Group {i} exceeds maximum size of {MAX_GROUP_SIZE} elements. "
                 f"Current size: {len(group)}"
             )
     return groups
