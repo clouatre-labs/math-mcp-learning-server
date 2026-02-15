@@ -1,8 +1,11 @@
 """Expression evaluation and validation utilities."""
 
 import asyncio
+import atexit
 import logging
 import math
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 
 from math_mcp.settings import (
     DANGEROUS_PATTERNS,
@@ -12,6 +15,11 @@ from math_mcp.settings import (
     TEMP_CONVERSIONS,
     TOPIC_KEYWORDS,
 )
+
+_executor: ProcessPoolExecutor = ProcessPoolExecutor(max_workers=1)
+# Register graceful shutdown on interpreter exit; wait=False prevents blocking
+# the interpreter if in-flight evaluations are still running
+atexit.register(_executor.shutdown, wait=False)
 
 
 def _validate_expression_syntax(expression: str) -> None:
@@ -153,7 +161,8 @@ async def evaluate_with_timeout(expression: str) -> float:
 
     Prevents denial-of-service by ensuring expression evaluation completes
     within EXPRESSION_TIMEOUT_SECONDS. Wraps synchronous safe_eval_expression()
-    in an async executor to allow timeout enforcement.
+    in a ProcessPoolExecutor to allow timeout enforcement and eliminate GIL
+    contention for CPU-bound evaluation.
 
     This is an educational example of wrapping CPU-bound synchronous operations
     in async context using asyncio.wait_for() and loop.run_in_executor().
@@ -170,7 +179,7 @@ async def evaluate_with_timeout(expression: str) -> float:
     loop = asyncio.get_running_loop()
     try:
         return await asyncio.wait_for(
-            loop.run_in_executor(None, safe_eval_expression, expression),
+            loop.run_in_executor(_executor, safe_eval_expression, expression),
             timeout=EXPRESSION_TIMEOUT_SECONDS,
         )
     except TimeoutError as e:
@@ -178,3 +187,5 @@ async def evaluate_with_timeout(expression: str) -> float:
             f"Expression evaluation exceeded {EXPRESSION_TIMEOUT_SECONDS}s timeout. "
             f"Try simplifying the expression or breaking it into smaller parts."
         ) from e
+    except BrokenProcessPool as e:
+        raise ValueError("Expression evaluation failed: subprocess error") from e
