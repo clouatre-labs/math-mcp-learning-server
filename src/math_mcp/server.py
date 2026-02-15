@@ -14,6 +14,8 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as pkg_version
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
@@ -24,9 +26,11 @@ from fastmcp.server.middleware.rate_limiting import (
     SlidingWindowRateLimitingMiddleware,
 )
 from pydantic import Field, SkipValidation
+from starlette.responses import JSONResponse
 
 # Import visualization functions (using absolute import for FastMCP Cloud compatibility)
 from math_mcp import visualization
+from math_mcp.agent_card import AgentCard, AgentSkill
 from math_mcp.eval import (
     _classify_expression_difficulty,
     _classify_expression_topic,
@@ -1390,11 +1394,102 @@ Make your explanation clear and educational, suitable for someone learning about
 """
 
 
+# === AGENT CARD ENDPOINT ===
+
+
+async def build_agent_card() -> AgentCard:
+    """Build A2A v0.3 agent card with dynamic tool introspection.
+
+    Introspects the MCP server's tools and builds a complete agent card
+    that describes this server's capabilities, skills, and interfaces.
+    This enables agent discovery and capability advertisement per A2A spec.
+
+    Returns:
+        AgentCard: Complete A2A v0.3 agent card with all required fields.
+    """
+    # Introspect tools from the MCP server
+    tools = (await mcp.get_tools()).values()
+
+    # Build skills from tools
+    skills: list[AgentSkill] = []
+    for tool in tools:
+        skill = AgentSkill.model_validate(
+            {
+                "id": tool.name,
+                "name": tool.name.replace("_", " ").title(),
+                "description": tool.description or f"Tool: {tool.name}",
+                "tags": ["mcp", "tool"],
+                "inputModes": ["application/json"],
+                "outputModes": ["application/json", "text/plain"],
+            }
+        )
+        skills.append(skill)
+
+    # Get dynamic version from package metadata
+    try:
+        version = pkg_version("math-mcp-learning-server")
+    except PackageNotFoundError:
+        # Fallback if package metadata is unavailable
+        version = "0.10.3"
+
+    # Build agent card with server metadata
+    agent_card = AgentCard.model_validate(
+        {
+            "protocolVersion": "1.0",
+            "name": "Math Learning Server",
+            "description": "Educational MCP server demonstrating FastMCP 2.0 best practices for math operations, visualization, and persistent workspaces.",
+            "version": version,
+            "capabilities": {
+                "streaming": False,
+                "pushNotifications": False,
+                "stateTransitionHistory": False,
+            },
+            "defaultInputModes": ["application/json"],
+            "defaultOutputModes": ["application/json", "text/plain", "image/png"],
+            "skills": [s.model_dump(by_alias=True) for s in skills],
+            "documentationUrl": "https://github.com/clouatre-labs/math-mcp-learning-server",
+            "supportsExtendedAgentCard": False,
+        }
+    )
+
+    return agent_card
+
+
+# === A2A AGENT CARD ENDPOINT ===
+
+
+@mcp.custom_route("/.well-known/agent-card.json", methods=["GET"])
+async def agent_card_endpoint(request) -> JSONResponse:
+    """Serve A2A v0.3 agent card for server discovery.
+
+    This endpoint implements the A2A (Agent-to-Agent) v0.3 specification
+    for agent discovery. It provides metadata about the MCP server's
+    capabilities, skills, and interfaces in a standardized format.
+
+    The response uses camelCase JSON serialization as required by the
+    A2A specification, with Pydantic model_dump_json(by_alias=True).
+
+    Args:
+        request: Starlette Request object (unused but required by route handler).
+
+    Returns:
+        JSONResponse: A2A v0.3 agent card with server metadata and skills.
+    """
+    card = await build_agent_card()
+    # Use model_dump with by_alias=True for camelCase JSON serialization
+    return JSONResponse(card.model_dump(by_alias=True, mode="json"))
+
+
 # === MAIN ENTRY POINT ===
 
 
 def main() -> None:
-    """Main entry point supporting multiple transports."""
+    """Main entry point supporting multiple transports.
+
+    Supports stdio, sse, and streamable-http transports. The A2A agent
+    card endpoint is automatically registered via @mcp.custom_route()
+    and available on all HTTP-based transports.
+    """
     import sys
     from typing import Literal, cast
 
@@ -1404,7 +1499,7 @@ def main() -> None:
         if sys.argv[1] in ["stdio", "sse", "streamable-http"]:
             transport = cast(Literal["stdio", "sse", "streamable-http"], sys.argv[1])
 
-    # Run with specified transport
+    # Run the MCP server with the specified transport
     mcp.run(transport=transport)
 
 
