@@ -5,12 +5,43 @@ calculations using NumPy. All tools include input validation, error handling,
 and educational annotations.
 """
 
-from typing import Annotated, Any
+from typing import Annotated, Any, NotRequired
 
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
+from typing_extensions import TypedDict
 
 from math_mcp.settings import MAX_ARRAY_SIZE, validated_tool
+
+
+class ToolAnnotations(TypedDict):
+    """Annotations for tool response content items."""
+
+    difficulty: str
+    topic: str
+    operation: str
+    error: NotRequired[str]
+    result_shape: NotRequired[str]
+    original_shape: NotRequired[str]
+    matrix_size: NotRequired[str]
+    count: NotRequired[int]
+    value: NotRequired[float]
+    determinant: NotRequired[float]
+
+
+class ToolContentItem(TypedDict):
+    """Content item in tool response."""
+
+    type: str
+    text: str
+    annotations: ToolAnnotations
+
+
+class ToolResponse(TypedDict):
+    """Response structure for matrix operation tools."""
+
+    content: list[ToolContentItem]
+
 
 # Try importing numpy for matrix operations
 try:
@@ -108,7 +139,7 @@ async def matrix_multiply(
     matrix_a: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     matrix_b: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> ToolResponse:
     """Multiply two matrices (A × B).
 
     Args:
@@ -163,6 +194,7 @@ async def matrix_multiply(
                         "error": "matrix_multiply_error",
                         "difficulty": "intermediate",
                         "topic": "linear_algebra",
+                        "operation": "matrix_multiply",
                     },
                 }
             ]
@@ -177,6 +209,7 @@ async def matrix_multiply(
                         "error": "unexpected_error",
                         "difficulty": "intermediate",
                         "topic": "linear_algebra",
+                        "operation": "matrix_multiply",
                     },
                 }
             ]
@@ -194,7 +227,7 @@ async def matrix_multiply(
 async def matrix_transpose(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> ToolResponse:
     """Transpose a matrix (swap rows and columns).
 
     Args:
@@ -240,6 +273,7 @@ async def matrix_transpose(
                         "error": "matrix_transpose_error",
                         "difficulty": "beginner",
                         "topic": "linear_algebra",
+                        "operation": "matrix_transpose",
                     },
                 }
             ]
@@ -254,6 +288,7 @@ async def matrix_transpose(
                         "error": "unexpected_error",
                         "difficulty": "beginner",
                         "topic": "linear_algebra",
+                        "operation": "matrix_transpose",
                     },
                 }
             ]
@@ -271,7 +306,7 @@ async def matrix_transpose(
 async def matrix_determinant(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> ToolResponse:
     """Calculate the determinant of a square matrix.
 
     Args:
@@ -324,6 +359,7 @@ async def matrix_determinant(
                         "error": "matrix_determinant_error",
                         "difficulty": "intermediate",
                         "topic": "linear_algebra",
+                        "operation": "matrix_determinant",
                     },
                 }
             ]
@@ -338,6 +374,7 @@ async def matrix_determinant(
                         "error": "unexpected_error",
                         "difficulty": "intermediate",
                         "topic": "linear_algebra",
+                        "operation": "matrix_determinant",
                     },
                 }
             ]
@@ -355,7 +392,7 @@ async def matrix_determinant(
 async def matrix_inverse(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> ToolResponse:
     """Calculate the inverse of a square matrix.
 
     Args:
@@ -415,6 +452,7 @@ async def matrix_inverse(
                         "error": "matrix_inverse_error",
                         "difficulty": "advanced",
                         "topic": "linear_algebra",
+                        "operation": "matrix_inverse",
                     },
                 }
             ]
@@ -429,6 +467,7 @@ async def matrix_inverse(
                         "error": "unexpected_error",
                         "difficulty": "advanced",
                         "topic": "linear_algebra",
+                        "operation": "matrix_inverse",
                     },
                 }
             ]
@@ -446,7 +485,7 @@ async def matrix_inverse(
 async def matrix_eigenvalues(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> ToolResponse:
     """Calculate the eigenvalues of a square matrix.
 
     Args:
@@ -511,6 +550,7 @@ async def matrix_eigenvalues(
                         "error": "matrix_eigenvalues_error",
                         "difficulty": "advanced",
                         "topic": "linear_algebra",
+                        "operation": "matrix_eigenvalues",
                     },
                 }
             ]
@@ -525,7 +565,18 @@ async def matrix_eigenvalues(
                         "error": "unexpected_error",
                         "difficulty": "advanced",
                         "topic": "linear_algebra",
+                        "operation": "matrix_eigenvalues",
                     },
                 }
             ]
         }
+
+
+__all__ = [
+    "matrix_mcp",
+    "matrix_multiply",
+    "matrix_transpose",
+    "matrix_determinant",
+    "matrix_inverse",
+    "matrix_eigenvalues",
+]
