@@ -57,3 +57,19 @@ TEMP_CONVERSIONS = {
     "f": {"c": lambda f: (f - 32) * 5 / 9, "k": lambda f: (f - 32) * 5 / 9 + 273.15},
     "k": {"c": lambda k: k - 273.15, "f": lambda k: (k - 273.15) * 9 / 5 + 32},
 }
+
+# === SHARED SETTINGS INSTANCE ===
+
+_settings = MathMCPSettings()
+
+# === DERIVED CONSTANTS (from shared _settings instance) ===
+
+EXPRESSION_TIMEOUT_SECONDS: float = _settings.math_timeout
+RATE_LIMIT_PER_MINUTE: int = _settings.mcp_rate_limit_per_minute
+MAX_EXPRESSION_LENGTH: int = _settings.max_expression_length
+MAX_STRING_PARAM_LENGTH: int = _settings.max_string_param_length
+MAX_ARRAY_SIZE: int = _settings.max_array_size
+MAX_GROUPS_COUNT: int = _settings.max_groups_count
+MAX_GROUP_SIZE: int = _settings.max_group_size
+MAX_VARIABLE_NAME_LENGTH: int = _settings.max_variable_name_length
+MAX_DAYS_FINANCIAL: int = _settings.max_days_financial

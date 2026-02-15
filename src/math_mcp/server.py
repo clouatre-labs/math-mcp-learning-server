@@ -35,7 +35,10 @@ from math_mcp.eval import (
 )
 from math_mcp.settings import (
     ALLOWED_OPERATIONS,
-    MathMCPSettings,
+    MAX_ARRAY_SIZE,
+    MAX_EXPRESSION_LENGTH,
+    MAX_VARIABLE_NAME_LENGTH,
+    RATE_LIMIT_PER_MINUTE,
     validated_tool,
 )
 from math_mcp.tools import matrix_mcp, visualization_mcp
@@ -50,19 +53,6 @@ except ImportError:
     NUMPY_AVAILABLE = False
     np = None  # type: ignore
     la = None  # type: ignore
-
-# Initialize settings from environment
-settings = MathMCPSettings()
-
-# Keep constants for backward compatibility
-RATE_LIMIT_PER_MINUTE = settings.mcp_rate_limit_per_minute
-
-# === INPUT SIZE LIMITS ===
-
-MAX_EXPRESSION_LENGTH = settings.max_expression_length
-MAX_STRING_PARAM_LENGTH = settings.max_string_param_length
-MAX_ARRAY_SIZE = settings.max_array_size
-MAX_VARIABLE_NAME_LENGTH = settings.max_variable_name_length
 
 # === APPLICATION CONTEXT ===
 

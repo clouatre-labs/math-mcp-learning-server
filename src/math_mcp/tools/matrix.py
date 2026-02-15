@@ -10,7 +10,7 @@ from typing import Annotated, Any
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
 
-from math_mcp.settings import validated_tool
+from math_mcp.settings import MAX_ARRAY_SIZE, validated_tool
 
 # Try importing numpy for matrix operations
 try:
@@ -22,9 +22,6 @@ except ImportError:
     NUMPY_AVAILABLE = False
     np = None  # type: ignore
     la = None  # type: ignore
-
-# Fallback if create_matrix_tools() is not called with a custom value
-MAX_ARRAY_SIZE = 10000
 
 
 def _check_numpy_available() -> None:
@@ -95,15 +92,12 @@ def _format_matrix(matrix_array: Any) -> str:
     return np.array2string(matrix_array, separator=", ", suppress_small=True, precision=6)  # type: ignore
 
 
-def create_matrix_tools(mcp: FastMCP, max_array_size: int = 10000) -> None:
+def create_matrix_tools(mcp: FastMCP) -> None:
     """Create and register matrix operation tools with the MCP instance.
 
     Args:
         mcp: FastMCP instance to register tools with
-        max_array_size: Maximum array size for validation
     """
-    global MAX_ARRAY_SIZE
-    MAX_ARRAY_SIZE = max_array_size
 
     @mcp.tool(
         annotations={

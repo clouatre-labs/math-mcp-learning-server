@@ -6,11 +6,11 @@ import math
 
 from math_mcp.settings import (
     DANGEROUS_PATTERNS,
+    EXPRESSION_TIMEOUT_SECONDS,
     MATH_FUNCTIONS_ALL,
     MATH_FUNCTIONS_SINGLE,
     TEMP_CONVERSIONS,
     TOPIC_KEYWORDS,
-    MathMCPSettings,
 )
 
 
@@ -145,11 +145,6 @@ def _classify_expression_topic(expression: str) -> str:
             return topic
 
     return "arithmetic"
-
-
-# Timeout constant from settings (used by visualization tools and server)
-_settings = MathMCPSettings()
-EXPRESSION_TIMEOUT_SECONDS: float = _settings.math_timeout
 
 
 async def evaluate_with_timeout(expression: str) -> float:

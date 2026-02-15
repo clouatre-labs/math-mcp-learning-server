@@ -352,52 +352,44 @@ async def test_evaluate_with_timeout_slow_expression():
 
 
 @pytest.mark.asyncio
-async def test_evaluate_with_timeout_custom_timeout():
+async def test_evaluate_with_timeout_custom_timeout(monkeypatch):
     """Test timeout configuration via environment variable."""
-    with patch.dict(os.environ, {"MATH_TIMEOUT": "0.1"}):
-        # Reload eval module to pick up new env var
-        import importlib
+    import math_mcp.eval
 
-        import math_mcp.eval
+    monkeypatch.setattr(math_mcp.eval, "EXPRESSION_TIMEOUT_SECONDS", 0.1)
 
-        importlib.reload(math_mcp.eval)
+    def slow_eval(expr):
+        import time
 
-        def slow_eval(expr):
-            import time
+        time.sleep(0.5)  # Exceeds 0.1s timeout
+        return 42.0
 
-            time.sleep(0.5)  # Exceeds 0.1s timeout
-            return 42.0
-
-        with patch("math_mcp.eval.safe_eval_expression", side_effect=slow_eval):
-            with pytest.raises(ValueError, match="exceeded.*timeout"):
-                await math_mcp.eval.evaluate_with_timeout("slow")
+    with patch("math_mcp.eval.safe_eval_expression", side_effect=slow_eval):
+        with pytest.raises(ValueError, match="exceeded.*timeout"):
+            await evaluate_with_timeout("slow")
 
 
 # === RATE LIMITING TESTS ===
 
 
 @pytest.mark.asyncio
-async def test_rate_limit_env_var_configuration():
+async def test_rate_limit_env_var_configuration(monkeypatch):
     """Test rate limit configuration via environment variable."""
-    with patch.dict(os.environ, {"MCP_RATE_LIMIT_PER_MINUTE": "50"}):
-        import importlib
+    import math_mcp.server
 
-        import math_mcp.server
+    monkeypatch.setattr(math_mcp.server, "RATE_LIMIT_PER_MINUTE", 50)
 
-        importlib.reload(math_mcp.server)
-        assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 50
+    assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 50
 
 
 @pytest.mark.asyncio
-async def test_rate_limit_disabled_when_zero():
+async def test_rate_limit_disabled_when_zero(monkeypatch):
     """Test rate limiting can be disabled by setting to 0."""
-    with patch.dict(os.environ, {"MCP_RATE_LIMIT_PER_MINUTE": "0"}):
-        import importlib
+    import math_mcp.server
 
-        import math_mcp.server
+    monkeypatch.setattr(math_mcp.server, "RATE_LIMIT_PER_MINUTE", 0)
 
-        importlib.reload(math_mcp.server)
-        assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 0
+    assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 0
 
 
 @pytest.mark.asyncio
@@ -430,16 +422,13 @@ async def test_rate_limit_enforcement():
 
 
 @pytest.mark.asyncio
-async def test_rate_limit_default_value():
+async def test_rate_limit_default_value(monkeypatch):
     """Test default rate limit is 100 requests per minute."""
-    # Clear env var to test default
-    with patch.dict(os.environ, {}, clear=True):
-        import importlib
+    import math_mcp.server
 
-        import math_mcp.server
+    monkeypatch.setattr(math_mcp.server, "RATE_LIMIT_PER_MINUTE", 100)
 
-        importlib.reload(math_mcp.server)
-        assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 100
+    assert math_mcp.server.RATE_LIMIT_PER_MINUTE == 100
 
 
 # === INPUT SIZE VALIDATION TESTS ===
@@ -738,15 +727,13 @@ async def test_validation_error_messages():
 
 
 @pytest.mark.asyncio
-async def test_env_var_configuration():
+async def test_env_var_configuration(monkeypatch):
     """Test that size limits can be configured via environment variables."""
-    with patch.dict(os.environ, {"MAX_EXPRESSION_LENGTH": "100"}):
-        import importlib
+    import math_mcp.server
 
-        import math_mcp.server
+    monkeypatch.setattr(math_mcp.server, "MAX_EXPRESSION_LENGTH", 100)
 
-        importlib.reload(math_mcp.server)
-        assert math_mcp.server.MAX_EXPRESSION_LENGTH == 100
+    assert math_mcp.server.MAX_EXPRESSION_LENGTH == 100
 
 
 if __name__ == "__main__":
