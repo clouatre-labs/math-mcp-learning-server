@@ -411,11 +411,11 @@ async def matrix_inverse(
     try:
         # Report initial progress
         if ctx:
-            await ctx.report_progress(0, 3)
+            await ctx.report_progress(0, 3, "Validating matrix")
 
         # Stage 1: Validate matrix
         if ctx:
-            await ctx.report_progress(1, 3)
+            await ctx.report_progress(1, 3, "Checking singularity")
 
         mat = _validate_matrix(matrix)
 
@@ -427,7 +427,7 @@ async def matrix_inverse(
 
         # Stage 2: Check singularity
         if ctx:
-            await ctx.report_progress(2, 3)
+            await ctx.report_progress(2, 3, "Computing inverse")
 
         det = la.det(mat)  # type: ignore
         if abs(det) < 1e-10:
@@ -438,7 +438,7 @@ async def matrix_inverse(
 
         # Stage 3: Compute inverse and complete
         if ctx:
-            await ctx.report_progress(3, 3)
+            await ctx.report_progress(3, 3, "Complete")
 
         result = la.inv(mat)  # type: ignore
 
@@ -520,11 +520,11 @@ async def matrix_eigenvalues(
     try:
         # Report initial progress
         if ctx:
-            await ctx.report_progress(0, 2)
+            await ctx.report_progress(0, 2, "Validating matrix")
 
         # Stage 1: Validate matrix
         if ctx:
-            await ctx.report_progress(1, 2)
+            await ctx.report_progress(1, 2, "Calculating eigenvalues")
 
         mat = _validate_matrix(matrix)
 
@@ -536,7 +536,7 @@ async def matrix_eigenvalues(
 
         # Stage 2: Calculate eigenvalues and complete
         if ctx:
-            await ctx.report_progress(2, 2)
+            await ctx.report_progress(2, 2, "Complete")
 
         eigenvalues = la.eigvals(mat)  # type: ignore
 

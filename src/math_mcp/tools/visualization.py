@@ -145,7 +145,7 @@ async def plot_function(
         for i, x in enumerate(x_values):
             # Report progress at ~10% intervals
             if ctx and i % max(1, num_points // 10) == 0:
-                await ctx.report_progress(i, num_points)
+                await ctx.report_progress(i, num_points, f"Evaluating points: {i}/{num_points}")
 
             # Replace x in expression with actual value using word boundaries
             # to avoid corrupting function names like exp, max, hex
@@ -159,7 +159,7 @@ async def plot_function(
 
         # Report final progress
         if ctx:
-            await ctx.report_progress(num_points, num_points)
+            await ctx.report_progress(num_points, num_points, "Rendering plot")
 
         # Delegate rendering to visualization helper
         image_base64 = visualization.create_function_plot(
@@ -264,11 +264,11 @@ async def create_histogram(
 
         # Report initial progress
         if ctx:
-            await ctx.report_progress(0, 3)
+            await ctx.report_progress(0, 3, "Validating inputs")
 
         # Stage 1: Calculate statistics
         if ctx:
-            await ctx.report_progress(1, 3)
+            await ctx.report_progress(1, 3, "Calculating statistics")
 
         import statistics as stats
 
@@ -278,7 +278,7 @@ async def create_histogram(
 
         # Stage 2: Render visualization
         if ctx:
-            await ctx.report_progress(2, 3)
+            await ctx.report_progress(2, 3, "Rendering histogram")
 
         image_base64 = visualization.create_histogram_chart(
             data, bins, title, mean_val, median_val, std_dev
@@ -286,7 +286,7 @@ async def create_histogram(
 
         # Stage 3: Complete
         if ctx:
-            await ctx.report_progress(3, 3)
+            await ctx.report_progress(3, 3, "Complete")
 
         return {
             "content": [
@@ -380,15 +380,15 @@ async def plot_line_chart(
     try:
         # Stage 0: Start
         if ctx:
-            await ctx.report_progress(0, 2)
+            await ctx.report_progress(0, 2, "Validating data")
 
         # Stage 1: Validate data
         if ctx:
-            await ctx.report_progress(1, 2)
+            await ctx.report_progress(1, 2, "Creating chart")
 
         # Stage 2: Render and complete
         if ctx:
-            await ctx.report_progress(2, 2)
+            await ctx.report_progress(2, 2, "Complete")
 
         image_base64 = visualization.create_line_chart(
             x_data=x_data,
@@ -493,15 +493,15 @@ async def plot_scatter_chart(
     try:
         # Stage 0: Start
         if ctx:
-            await ctx.report_progress(0, 2)
+            await ctx.report_progress(0, 2, "Validating data")
 
         # Stage 1: Validate data
         if ctx:
-            await ctx.report_progress(1, 2)
+            await ctx.report_progress(1, 2, "Creating chart")
 
         # Stage 2: Render and complete
         if ctx:
-            await ctx.report_progress(2, 2)
+            await ctx.report_progress(2, 2, "Complete")
 
         image_base64 = visualization.create_scatter_plot(
             x_data=x_data,
@@ -601,15 +601,15 @@ async def plot_box_plot(
     try:
         # Stage 0: Start
         if ctx:
-            await ctx.report_progress(0, 2)
+            await ctx.report_progress(0, 2, "Validating data")
 
         # Stage 1: Validate data
         if ctx:
-            await ctx.report_progress(1, 2)
+            await ctx.report_progress(1, 2, "Creating chart")
 
         # Stage 2: Render and complete
         if ctx:
-            await ctx.report_progress(2, 2)
+            await ctx.report_progress(2, 2, "Complete")
 
         image_base64 = visualization.create_box_plot(
             data_groups=data_groups,
@@ -712,11 +712,11 @@ async def plot_financial_line(
     try:
         # Stage 0: Start
         if ctx:
-            await ctx.report_progress(0, 3)
+            await ctx.report_progress(0, 3, "Validating parameters")
 
         # Stage 1: Validate and generate data
         if ctx:
-            await ctx.report_progress(1, 3)
+            await ctx.report_progress(1, 3, "Generating synthetic data")
 
         # Validate trend parameter
         if trend not in ["bullish", "bearish", "volatile"]:
@@ -731,7 +731,7 @@ async def plot_financial_line(
 
         # Stage 2: Create financial chart
         if ctx:
-            await ctx.report_progress(2, 3)
+            await ctx.report_progress(2, 3, "Creating financial chart")
 
         # Create financial chart
         image_base64 = visualization.create_financial_line_chart(
@@ -744,7 +744,7 @@ async def plot_financial_line(
 
         # Stage 3: Complete
         if ctx:
-            await ctx.report_progress(3, 3)
+            await ctx.report_progress(3, 3, "Complete")
 
         # Calculate statistics
         import statistics as stats

@@ -517,20 +517,20 @@ def mock_context():
             """Mock info logging."""
             self.info_logs.append(message)
 
-        async def report_progress(self, current: int, total: int):
+        async def report_progress(self, current: int, total: int, message: str = ""):
             """Mock progress reporting."""
-            self.progress_reports.append((current, total))
+            self.progress_reports.append((current, total, message))
 
     return MockContext()
 
 
 @pytest.mark.asyncio
 async def test_matrix_inverse_progress_reporting(mock_context):
-    """Test matrix_inverse reports progress through 3 stages.
+    """Test matrix_inverse reports progress through 4 stages with messages.
 
     Arrange: Create mock context and call matrix_inverse
     Act: Call matrix_inverse with mock context and a valid invertible matrix
-    Assert: progress_reports matches expected 3 stages: [(0, 3), (1, 3), (2, 3), (3, 3)]
+    Assert: progress_reports contains 4 stages with 3-tuples (current, total, message)
     """
     from math_mcp.tools.matrix import matrix_inverse
 
@@ -540,18 +540,24 @@ async def test_matrix_inverse_progress_reporting(mock_context):
     # Act: Call matrix_inverse with mock context
     await matrix_inverse.fn(matrix, mock_context)
 
-    # Assert: Progress reports match expected 3 stages (0, 1, 2, 3 out of 3)
-    expected_progress = [(0, 3), (1, 3), (2, 3), (3, 3)]
-    assert mock_context.progress_reports == expected_progress
+    # Assert: Progress reports contain 4 stages with 3-tuples
+    assert len(mock_context.progress_reports) == 4
+
+    # Check each stage has correct structure (current, total, message)
+    for i, (current, total, message) in enumerate(mock_context.progress_reports):
+        assert current == i
+        assert total == 3
+        assert isinstance(message, str)
+        assert len(message) > 0
 
 
 @pytest.mark.asyncio
 async def test_matrix_eigenvalues_progress_reporting(mock_context):
-    """Test matrix_eigenvalues reports progress through 2 stages.
+    """Test matrix_eigenvalues reports progress through 3 stages with messages.
 
     Arrange: Create mock context and call matrix_eigenvalues
     Act: Call matrix_eigenvalues with mock context and a valid square matrix
-    Assert: progress_reports matches expected 2 stages: [(0, 2), (1, 2), (2, 2)]
+    Assert: progress_reports contains 3 stages with 3-tuples (current, total, message)
     """
     from math_mcp.tools.matrix import matrix_eigenvalues
 
@@ -561,6 +567,12 @@ async def test_matrix_eigenvalues_progress_reporting(mock_context):
     # Act: Call matrix_eigenvalues with mock context
     await matrix_eigenvalues.fn(matrix, mock_context)
 
-    # Assert: Progress reports match expected 2 stages (0, 1, 2 out of 2)
-    expected_progress = [(0, 2), (1, 2), (2, 2)]
-    assert mock_context.progress_reports == expected_progress
+    # Assert: Progress reports contain 3 stages with 3-tuples
+    assert len(mock_context.progress_reports) == 3
+
+    # Check each stage has correct structure (current, total, message)
+    for i, (current, total, message) in enumerate(mock_context.progress_reports):
+        assert current == i
+        assert total == 2
+        assert isinstance(message, str)
+        assert len(message) > 0
