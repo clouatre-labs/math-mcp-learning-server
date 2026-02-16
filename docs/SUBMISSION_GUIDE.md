@@ -1,6 +1,6 @@
 # MCP Server Publication Guide
 
-Educational MCP server with 12 math/stats tools, persistent workspace, and cloud hosting. Demonstrates FastMCP 2.0 best practices with 86% test coverage.
+Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Demonstrates FastMCP 2.0 best practices.
 
 **Links:** [PyPI](https://pypi.org/project/math-mcp-learning-server/) | [GitHub](https://github.com/clouatre-labs/math-mcp-learning-server)
 
