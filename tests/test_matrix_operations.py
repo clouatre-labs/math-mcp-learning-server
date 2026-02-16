@@ -332,8 +332,13 @@ class TestMatrixEdgeCases:
     """Test edge cases for matrix operations."""
 
     @pytest.mark.asyncio
-    async def test_multiply_1x1_matrices(self, http_client):
-        """Test multiplying 1x1 matrices (edge case: minimal matrix)."""
+    async def test_multiply_minimal_and_zero(self, http_client):
+        """Test multiply with 1x1 matrices and zero matrices (edge cases: minimal and all zeros).
+
+        Happy path: 1x1 matrices [[5]] * [[3]] = [[15]]
+        Edge case: zero matrix [[0,0],[0,0]] * [[1,2],[3,4]] = [[0,0],[0,0]]
+        """
+        # Happy path: minimal 1x1 matrices
         response = await http_client.call_tool(
             "matrix_multiply",
             arguments={
@@ -342,12 +347,9 @@ class TestMatrixEdgeCases:
             },
         )
         assert response.is_error is False
-        result = response.content[0].text
-        assert "15" in result
+        assert "15" in response.content[0].text
 
-    @pytest.mark.asyncio
-    async def test_multiply_empty_result_check(self, http_client):
-        """Test multiply with zero matrices (edge case: all zeros)."""
+        # Edge case: zero matrix
         response = await http_client.call_tool(
             "matrix_multiply",
             arguments={
@@ -356,23 +358,24 @@ class TestMatrixEdgeCases:
             },
         )
         assert response.is_error is False
-        result = response.content[0].text
-        assert "0" in result
+        assert "0" in response.content[0].text
 
     @pytest.mark.asyncio
-    async def test_transpose_1x1_matrix(self, http_client):
-        """Test transposing 1x1 matrix (edge case: minimal matrix)."""
+    async def test_transpose_minimal_and_rectangular(self, http_client):
+        """Test transpose with 1x1 matrix and rectangular matrix (edge cases: minimal and shape change).
+
+        Happy path: 1x1 matrix [[42]] transposes to [[42]]
+        Edge case: 3x1 column vector transposes to 1x3 row vector
+        """
+        # Happy path: minimal 1x1 matrix
         response = await http_client.call_tool(
             "matrix_transpose",
             arguments={"matrix": [[42]]},
         )
         assert response.is_error is False
-        result = response.content[0].text
-        assert "42" in result
+        assert "42" in response.content[0].text
 
-    @pytest.mark.asyncio
-    async def test_transpose_single_column(self, http_client):
-        """Test transposing single column to row (edge case: Nx1 to 1xN)."""
+        # Edge case: column to row transpose
         response = await http_client.call_tool(
             "matrix_transpose",
             arguments={"matrix": [[1], [2], [3]]},
@@ -382,88 +385,105 @@ class TestMatrixEdgeCases:
         assert "1" in result and "2" in result and "3" in result
 
     @pytest.mark.asyncio
-    async def test_determinant_1x1_matrix(self, http_client):
-        """Test determinant of 1x1 matrix (edge case: minimal square)."""
+    async def test_determinant_minimal_and_zero(self, http_client):
+        """Test determinant with 1x1 matrix and zero matrix (edge cases: minimal and singular).
+
+        Happy path: 1x1 matrix [[7]] has determinant 7
+        Edge case: zero matrix [[0,0],[0,0]] has determinant 0
+        """
+        # Happy path: minimal 1x1 matrix
         response = await http_client.call_tool(
             "matrix_determinant",
             arguments={"matrix": [[7]]},
         )
         assert response.is_error is False
-        result = response.content[0].text
-        assert "7" in result
+        assert "7" in response.content[0].text
 
-    @pytest.mark.asyncio
-    async def test_determinant_zero_matrix(self, http_client):
-        """Test determinant of zero matrix (edge case: all zeros)."""
+        # Edge case: zero matrix
         response = await http_client.call_tool(
             "matrix_determinant",
             arguments={"matrix": [[0, 0], [0, 0]]},
         )
         assert response.is_error is False
-        result = response.content[0].text
-        assert "0" in result
+        assert "0" in response.content[0].text
 
     @pytest.mark.asyncio
-    async def test_determinant_large_matrix(self, http_client):
-        """Test determinant of 100x100 matrix (edge case: boundary size)."""
-        # Create a 100x100 identity matrix (determinant = 1)
+    async def test_determinant_large_and_negative(self, http_client):
+        """Test determinant with large matrix and negative result (edge cases: boundary and sign).
+
+        Happy path: 100x100 identity matrix has determinant 1
+        Edge case: [[0,1],[1,0]] has determinant -1
+        """
+        # Happy path: large identity matrix
         large_matrix = [[1.0 if i == j else 0.0 for j in range(100)] for i in range(100)]
         response = await http_client.call_tool(
             "matrix_determinant",
             arguments={"matrix": large_matrix},
         )
         assert response.is_error is False
-        result = response.content[0].text
-        assert "1" in result
+        assert "1" in response.content[0].text
+
+        # Edge case: negative determinant
+        response = await http_client.call_tool(
+            "matrix_determinant",
+            arguments={"matrix": [[0, 1], [1, 0]]},
+        )
+        assert response.is_error is False
+        assert "-1" in response.content[0].text
 
     @pytest.mark.asyncio
-    async def test_inverse_1x1_matrix(self, http_client):
-        """Test inverse of 1x1 matrix (edge case: minimal square)."""
+    async def test_inverse_minimal_and_permutation(self, http_client):
+        """Test inverse with 1x1 matrix and permutation matrix (edge cases: minimal and special form).
+
+        Happy path: 1x1 matrix [[2]] has inverse [[0.5]]
+        Edge case: permutation matrix [[0,1],[1,0]] is its own inverse
+        """
+        # Happy path: minimal 1x1 matrix
         response = await http_client.call_tool(
             "matrix_inverse",
             arguments={"matrix": [[2]]},
         )
         assert response.is_error is False
-        result = response.content[0].text
-        assert "0.5" in result or "1/2" in result.lower()
+        assert "0.5" in response.content[0].text or "1/2" in response.content[0].text.lower()
 
-    @pytest.mark.asyncio
-    async def test_inverse_zero_diagonal(self, http_client):
-        """Test inverse of matrix with zero on diagonal (edge case: singular)."""
+        # Edge case: permutation matrix (invertible)
         response = await http_client.call_tool(
             "matrix_inverse",
             arguments={"matrix": [[0, 1], [1, 0]]},
         )
         assert response.is_error is False
         result = response.content[0].text
-        # This matrix is invertible, should have inverse
         assert "error" not in result.lower() or "0" in result
 
     @pytest.mark.asyncio
-    async def test_eigenvalues_1x1_matrix(self, http_client):
-        """Test eigenvalues of 1x1 matrix (edge case: minimal square)."""
+    async def test_eigenvalues_minimal_and_zero(self, http_client):
+        """Test eigenvalues with 1x1 matrix and zero matrix (edge cases: minimal and singular).
+
+        Happy path: 1x1 matrix [[5]] has eigenvalue 5
+        Edge case: zero matrix [[0,0],[0,0]] has eigenvalue 0
+        """
+        # Happy path: minimal 1x1 matrix
         response = await http_client.call_tool(
             "matrix_eigenvalues",
             arguments={"matrix": [[5]]},
         )
         assert response.is_error is False
-        result = response.content[0].text
-        assert "5" in result
+        assert "5" in response.content[0].text
 
-    @pytest.mark.asyncio
-    async def test_eigenvalues_zero_matrix(self, http_client):
-        """Test eigenvalues of zero matrix (edge case: all zeros)."""
+        # Edge case: zero matrix
         response = await http_client.call_tool(
             "matrix_eigenvalues",
             arguments={"matrix": [[0, 0], [0, 0]]},
         )
         assert response.is_error is False
-        result = response.content[0].text
-        assert "0" in result
+        assert "0" in response.content[0].text
 
     @pytest.mark.asyncio
     async def test_multiply_negative_values(self, http_client):
-        """Test multiply with negative values (edge case: sign handling)."""
+        """Test multiply with negative values (edge case: sign handling).
+
+        Edge case: [[-1,-2],[-3,-4]] * [[1,2],[3,4]] produces negative results
+        """
         response = await http_client.call_tool(
             "matrix_multiply",
             arguments={
@@ -473,24 +493,14 @@ class TestMatrixEdgeCases:
         )
         assert response.is_error is False
         result = response.content[0].text
-        # (-1)*1 + (-2)*3 = -7
         assert "-7" in result
 
     @pytest.mark.asyncio
-    async def test_determinant_negative_result(self, http_client):
-        """Test determinant with negative result (edge case: sign)."""
-        response = await http_client.call_tool(
-            "matrix_determinant",
-            arguments={"matrix": [[0, 1], [1, 0]]},
-        )
-        assert response.is_error is False
-        result = response.content[0].text
-        assert "-1" in result
+    async def test_transpose_large_rectangular(self, http_client):
+        """Test transpose of large rectangular matrix (edge case: boundary size).
 
-    @pytest.mark.asyncio
-    async def test_transpose_rectangular_large(self, http_client):
-        """Test transpose of large rectangular matrix (edge case: boundary)."""
-        # 50x100 matrix transposed to 100x50
+        Edge case: 50x100 matrix transposed to 100x50
+        """
         large_rect = [[float(i + j) for j in range(100)] for i in range(50)]
         response = await http_client.call_tool(
             "matrix_transpose",
