@@ -66,6 +66,8 @@ jobs:
     name: Create GitHub release
     needs: verify-tag-signature
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
       dry_run: ${{ steps.dry_run.outputs.dry_run }}
@@ -118,7 +120,8 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       id-token: write
-      contents: read
+      contents: write
+      attestations: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
