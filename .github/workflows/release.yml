@@ -132,7 +132,7 @@ jobs:
         run: uv build
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v1
+        uses: actions/attest-build-provenance@ef244123eb79f2f7a7e75d99086184180e6d0018 # v1
         with:
           subject-path: dist/
 
