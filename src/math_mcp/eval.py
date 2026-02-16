@@ -1,11 +1,14 @@
-"""Expression evaluation and validation utilities."""
+"""Expression evaluation and validation utilities.
+
+Note: This module uses the default ThreadPoolExecutor (via asyncio.to_thread)
+for timeout enforcement. ProcessPoolExecutor is intentionally avoided because
+it triggers fork_exec(sys.executable) at construction, which fails on
+serverless runtimes (e.g., AWS Lambda) where sys.executable may be invalid.
+"""
 
 import asyncio
-import atexit
 import logging
 import math
-from concurrent.futures import ProcessPoolExecutor
-from concurrent.futures.process import BrokenProcessPool
 
 from math_mcp.settings import (
     DANGEROUS_PATTERNS,
@@ -15,11 +18,6 @@ from math_mcp.settings import (
     TEMP_CONVERSIONS,
     TOPIC_KEYWORDS,
 )
-
-_executor: ProcessPoolExecutor = ProcessPoolExecutor(max_workers=1)
-# Register graceful shutdown on interpreter exit; wait=False prevents blocking
-# the interpreter if in-flight evaluations are still running
-atexit.register(_executor.shutdown, wait=False)
 
 
 def _validate_expression_syntax(expression: str) -> None:
@@ -161,11 +159,10 @@ async def evaluate_with_timeout(expression: str) -> float:
 
     Prevents denial-of-service by ensuring expression evaluation completes
     within EXPRESSION_TIMEOUT_SECONDS. Wraps synchronous safe_eval_expression()
-    in a ProcessPoolExecutor to allow timeout enforcement and eliminate GIL
-    contention for CPU-bound evaluation.
+    in the default ThreadPoolExecutor to allow timeout enforcement.
 
-    This is an educational example of wrapping CPU-bound synchronous operations
-    in async context using asyncio.wait_for() and loop.run_in_executor().
+    This is an educational example of wrapping synchronous operations
+    in async context using asyncio.wait_for() and asyncio.to_thread().
 
     Args:
         expression: Mathematical expression string to evaluate.
@@ -176,10 +173,9 @@ async def evaluate_with_timeout(expression: str) -> float:
     Raises:
         ValueError: If expression evaluation exceeds timeout or is invalid.
     """
-    loop = asyncio.get_running_loop()
     try:
         return await asyncio.wait_for(
-            loop.run_in_executor(_executor, safe_eval_expression, expression),
+            asyncio.to_thread(safe_eval_expression, expression),
             timeout=EXPRESSION_TIMEOUT_SECONDS,
         )
     except TimeoutError as e:
@@ -187,5 +183,3 @@ async def evaluate_with_timeout(expression: str) -> float:
             f"Expression evaluation exceeded {EXPRESSION_TIMEOUT_SECONDS}s timeout. "
             f"Try simplifying the expression or breaking it into smaller parts."
         ) from e
-    except BrokenProcessPool as e:
-        raise ValueError("Expression evaluation failed: subprocess error") from e
