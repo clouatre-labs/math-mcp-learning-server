@@ -9,9 +9,11 @@ import os
 import tempfile
 import threading
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
+from fastmcp import FastMCP
+from fastmcp.server.context import Context, set_context
 
 from math_mcp.persistence.models import WorkspaceData, WorkspaceVariable
 from math_mcp.persistence.storage import (
@@ -400,8 +402,12 @@ async def test_workspace_resource(temp_workspace, mock_context):
     _workspace_manager.save_variable("var1", "2 + 2", 4.0, {"difficulty": "basic"})
     _workspace_manager.save_variable("var2", "sqrt(16)", 4.0, {"difficulty": "intermediate"})
 
-    # Get workspace resource
-    result = await get_workspace.fn(mock_context)
+    # Get workspace resource with context
+    mcp = FastMCP("test")
+    ctx = Context(mcp)
+    ctx.info = AsyncMock()  # Mock the info method to avoid needing request_context
+    with set_context(ctx):
+        result = await get_workspace.fn()
 
     assert isinstance(result, str)
     assert "2 variables" in result
@@ -414,7 +420,11 @@ async def test_workspace_resource(temp_workspace, mock_context):
 @pytest.mark.asyncio
 async def test_workspace_resource_empty(temp_workspace, mock_context):
     """Test math://workspace resource when empty."""
-    result = await get_workspace.fn(mock_context)
+    mcp = FastMCP("test")
+    ctx = Context(mcp)
+    ctx.info = AsyncMock()  # Mock the info method to avoid needing request_context
+    with set_context(ctx):
+        result = await get_workspace.fn()
 
     assert isinstance(result, str)
     assert "Workspace is empty" in result
