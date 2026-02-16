@@ -424,8 +424,8 @@ async def test_rate_limit_enforcement():
         return "success"
 
     async with Client(transport=test_mcp) as client:
-        # Make 8 successful tool calls (leaves room for 2 more requests)
-        for _ in range(8):
+        # Make 7 successful tool calls (Client init consumes 3 of 10 requests: initialize, notifications/initialized, tools/list)
+        for _ in range(7):
             result = await client.call_tool("test_tool", {})
             assert result.content[0].text == "success"
 

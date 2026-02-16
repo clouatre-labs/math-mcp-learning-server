@@ -496,13 +496,24 @@ class TestMatrixEdgeCases:
         assert "-7" in result
 
     @pytest.mark.asyncio
-    async def test_transpose_large_rectangular(self, http_client):
+    async def test_determinant_negative_result(self, http_client_high_limit):
+        """Test determinant with negative result (edge case: sign)."""
+        response = await http_client_high_limit.call_tool(
+            "matrix_determinant",
+            arguments={"matrix": [[0, 1], [1, 0]]},
+        )
+        assert response.is_error is False
+        result = response.content[0].text
+        assert "-1" in result
+
+    @pytest.mark.asyncio
+    async def test_transpose_large_rectangular(self, http_client_high_limit):
         """Test transpose of large rectangular matrix (edge case: boundary size).
 
         Edge case: 50x100 matrix transposed to 100x50
         """
         large_rect = [[float(i + j) for j in range(100)] for i in range(50)]
-        response = await http_client.call_tool(
+        response = await http_client_high_limit.call_tool(
             "matrix_transpose",
             arguments={"matrix": large_rect},
         )
