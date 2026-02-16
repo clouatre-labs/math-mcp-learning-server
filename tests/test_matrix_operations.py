@@ -499,3 +499,68 @@ class TestMatrixEdgeCases:
         assert response.is_error is False
         result = response.content[0].text
         assert "[" in result or any(c.isdigit() for c in result)
+
+
+# === PROGRESS REPORTING TESTS ===
+
+
+@pytest.fixture
+def mock_context():
+    """Create a mock FastMCP context for testing progress reporting."""
+
+    class MockContext:
+        def __init__(self):
+            self.info_logs = []
+            self.progress_reports = []
+
+        async def info(self, message: str):
+            """Mock info logging."""
+            self.info_logs.append(message)
+
+        async def report_progress(self, current: int, total: int):
+            """Mock progress reporting."""
+            self.progress_reports.append((current, total))
+
+    return MockContext()
+
+
+@pytest.mark.asyncio
+async def test_matrix_inverse_progress_reporting(mock_context):
+    """Test matrix_inverse reports progress through 3 stages.
+
+    Arrange: Create mock context and call matrix_inverse
+    Act: Call matrix_inverse with mock context and a valid invertible matrix
+    Assert: progress_reports matches expected 3 stages: [(0, 3), (1, 3), (2, 3), (3, 3)]
+    """
+    from math_mcp.tools.matrix import matrix_inverse
+
+    # Arrange: Valid invertible 2x2 matrix
+    matrix = [[1, 2], [3, 4]]
+
+    # Act: Call matrix_inverse with mock context
+    await matrix_inverse.fn(matrix, mock_context)
+
+    # Assert: Progress reports match expected 3 stages (0, 1, 2, 3 out of 3)
+    expected_progress = [(0, 3), (1, 3), (2, 3), (3, 3)]
+    assert mock_context.progress_reports == expected_progress
+
+
+@pytest.mark.asyncio
+async def test_matrix_eigenvalues_progress_reporting(mock_context):
+    """Test matrix_eigenvalues reports progress through 2 stages.
+
+    Arrange: Create mock context and call matrix_eigenvalues
+    Act: Call matrix_eigenvalues with mock context and a valid square matrix
+    Assert: progress_reports matches expected 2 stages: [(0, 2), (1, 2), (2, 2)]
+    """
+    from math_mcp.tools.matrix import matrix_eigenvalues
+
+    # Arrange: Valid square matrix
+    matrix = [[4, 2], [1, 3]]
+
+    # Act: Call matrix_eigenvalues with mock context
+    await matrix_eigenvalues.fn(matrix, mock_context)
+
+    # Assert: Progress reports match expected 2 stages (0, 1, 2 out of 2)
+    expected_progress = [(0, 2), (1, 2), (2, 2)]
+    assert mock_context.progress_reports == expected_progress

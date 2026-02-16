@@ -142,7 +142,11 @@ async def plot_function(
         # Evaluate expression for each x value
         y_values = []
         var_pattern = re.compile(r"\bx\b")
-        for x in x_values:
+        for i, x in enumerate(x_values):
+            # Report progress at ~10% intervals
+            if ctx and i % max(1, num_points // 10) == 0:
+                await ctx.report_progress(i, num_points)
+
             # Replace x in expression with actual value using word boundaries
             # to avoid corrupting function names like exp, max, hex
             expr_with_value = var_pattern.sub(f"({x})", expression)
@@ -152,6 +156,10 @@ async def plot_function(
             except ValueError:
                 # Handle domain errors (like sqrt of negative) or timeout
                 y_values.append(float("nan"))
+
+        # Report final progress
+        if ctx:
+            await ctx.report_progress(num_points, num_points)
 
         # Delegate rendering to visualization helper
         image_base64 = visualization.create_function_plot(
@@ -254,17 +262,31 @@ async def create_histogram(
         if len(data) == 1:
             raise ValueError("Histogram requires at least 2 data points")
 
-        # Calculate statistics
+        # Report initial progress
+        if ctx:
+            await ctx.report_progress(0, 3)
+
+        # Stage 1: Calculate statistics
+        if ctx:
+            await ctx.report_progress(1, 3)
+
         import statistics as stats
 
         mean_val = stats.mean(data)
         median_val = stats.median(data)
         std_dev = stats.stdev(data) if len(data) > 1 else 0
 
-        # Delegate rendering to visualization helper
+        # Stage 2: Render visualization
+        if ctx:
+            await ctx.report_progress(2, 3)
+
         image_base64 = visualization.create_histogram_chart(
             data, bins, title, mean_val, median_val, std_dev
         ).decode("utf-8")
+
+        # Stage 3: Complete
+        if ctx:
+            await ctx.report_progress(3, 3)
 
         return {
             "content": [
@@ -356,6 +378,18 @@ async def plot_line_chart(
         await ctx.info(f"Creating line chart with {len(x_data)} data points")
 
     try:
+        # Stage 0: Start
+        if ctx:
+            await ctx.report_progress(0, 2)
+
+        # Stage 1: Validate data
+        if ctx:
+            await ctx.report_progress(1, 2)
+
+        # Stage 2: Render and complete
+        if ctx:
+            await ctx.report_progress(2, 2)
+
         image_base64 = visualization.create_line_chart(
             x_data=x_data,
             y_data=y_data,
@@ -457,6 +491,18 @@ async def plot_scatter_chart(
         await ctx.info(f"Creating scatter plot with {len(x_data)} data points")
 
     try:
+        # Stage 0: Start
+        if ctx:
+            await ctx.report_progress(0, 2)
+
+        # Stage 1: Validate data
+        if ctx:
+            await ctx.report_progress(1, 2)
+
+        # Stage 2: Render and complete
+        if ctx:
+            await ctx.report_progress(2, 2)
+
         image_base64 = visualization.create_scatter_plot(
             x_data=x_data,
             y_data=y_data,
@@ -553,6 +599,18 @@ async def plot_box_plot(
         await ctx.info(f"Creating box plot with {len(data_groups)} groups")
 
     try:
+        # Stage 0: Start
+        if ctx:
+            await ctx.report_progress(0, 2)
+
+        # Stage 1: Validate data
+        if ctx:
+            await ctx.report_progress(1, 2)
+
+        # Stage 2: Render and complete
+        if ctx:
+            await ctx.report_progress(2, 2)
+
         image_base64 = visualization.create_box_plot(
             data_groups=data_groups,
             group_labels=group_labels,
@@ -652,6 +710,14 @@ async def plot_financial_line(
         await ctx.info(f"Generating synthetic {trend} price data for {days} days")
 
     try:
+        # Stage 0: Start
+        if ctx:
+            await ctx.report_progress(0, 3)
+
+        # Stage 1: Validate and generate data
+        if ctx:
+            await ctx.report_progress(1, 3)
+
         # Validate trend parameter
         if trend not in ["bullish", "bearish", "volatile"]:
             raise ValueError("trend must be 'bullish', 'bearish', or 'volatile'")
@@ -663,6 +729,10 @@ async def plot_financial_line(
             start_price=start_price,
         )
 
+        # Stage 2: Create financial chart
+        if ctx:
+            await ctx.report_progress(2, 3)
+
         # Create financial chart
         image_base64 = visualization.create_financial_line_chart(
             dates=dates,
@@ -671,6 +741,10 @@ async def plot_financial_line(
             y_label="Price ($)",
             color=color,
         ).decode("utf-8")
+
+        # Stage 3: Complete
+        if ctx:
+            await ctx.report_progress(3, 3)
 
         # Calculate statistics
         import statistics as stats
