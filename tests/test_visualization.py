@@ -25,9 +25,9 @@ def mock_context():
             """Mock info logging."""
             self.info_logs.append(message)
 
-        async def report_progress(self, current: int, total: int):
+        async def report_progress(self, current: int, total: int, message: str = ""):
             """Mock progress reporting."""
-            self.progress_reports.append((current, total))
+            self.progress_reports.append((current, total, message))
 
     return MockContext()
 
@@ -882,7 +882,7 @@ async def test_plot_function_progress_reporting(mock_context):
 
     Arrange: Create mock context and call plot_function
     Act: Call plot_function with mock context
-    Assert: progress_reports contains entries at ~10% intervals, starts with (0, num_points), ends with (num_points, num_points)
+    Assert: progress_reports contains 3-tuples with messages, starts with (0, num_points, message), ends with (num_points, num_points, message)
     """
     try:
         import matplotlib  # noqa: F401
@@ -900,12 +900,17 @@ async def test_plot_function_progress_reporting(mock_context):
     # Act: Call plot_function with mock context
     await plot_function.fn(expression, x_range, num_points, mock_context)
 
-    # Assert: Progress reports start with (0, num_points)
+    # Assert: Progress reports start with (0, num_points, message)
     assert len(mock_context.progress_reports) > 0
-    assert mock_context.progress_reports[0] == (0, num_points)
+    assert mock_context.progress_reports[0][0] == 0
+    assert mock_context.progress_reports[0][1] == num_points
+    assert isinstance(mock_context.progress_reports[0][2], str)
+    assert len(mock_context.progress_reports[0][2]) > 0
 
-    # Assert: Progress reports end with (num_points, num_points)
-    assert mock_context.progress_reports[-1] == (num_points, num_points)
+    # Assert: Progress reports end with (num_points, num_points, message)
+    assert mock_context.progress_reports[-1][0] == num_points
+    assert mock_context.progress_reports[-1][1] == num_points
+    assert isinstance(mock_context.progress_reports[-1][2], str)
 
     # Assert: Progress reports are at regular intervals (approximately every 10%)
     # With 100 points, we expect reports roughly every 10 points
@@ -914,11 +919,11 @@ async def test_plot_function_progress_reporting(mock_context):
 
 @pytest.mark.asyncio
 async def test_create_histogram_progress_reporting(mock_context):
-    """Test create_histogram reports progress through 4 stages.
+    """Test create_histogram reports progress through 4 stages with messages.
 
     Arrange: Create mock context and call create_histogram
     Act: Call create_histogram with mock context
-    Assert: progress_reports matches expected 4 stages: [(0, 3), (1, 3), (2, 3), (3, 3)]
+    Assert: progress_reports contains 4 stages with 3-tuples (current, total, message)
     """
     try:
         import matplotlib  # noqa: F401
@@ -936,9 +941,15 @@ async def test_create_histogram_progress_reporting(mock_context):
     # Act: Call create_histogram with mock context
     await create_histogram.fn(data, bins, title, mock_context)
 
-    # Assert: Progress reports match expected 4 stages
-    expected_progress = [(0, 3), (1, 3), (2, 3), (3, 3)]
-    assert mock_context.progress_reports == expected_progress
+    # Assert: Progress reports contain 4 stages with 3-tuples
+    assert len(mock_context.progress_reports) == 4
+
+    # Check each stage has correct structure (current, total, message)
+    for i, (current, total, message) in enumerate(mock_context.progress_reports):
+        assert current == i
+        assert total == 3
+        assert isinstance(message, str)
+        assert len(message) > 0
 
 
 if __name__ == "__main__":
