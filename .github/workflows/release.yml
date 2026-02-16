@@ -147,7 +147,7 @@ jobs:
 
   publish:
     name: Publish to PyPI
-    needs: create-release
+    needs: [create-release, build-and-attest]
     runs-on: ubuntu-24.04
     if: needs.create-release.outputs.dry_run != 'true'
     environment:
