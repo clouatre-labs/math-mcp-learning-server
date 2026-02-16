@@ -13,7 +13,6 @@ Educational MCP server demonstrating persistent workspace patterns and mathemati
 **Available on:**
 - [Official MCP Registry](https://registry.modelcontextprotocol.io/) - `io.github.clouatre-labs/math-mcp-learning-server`
 - [PyPI](https://pypi.org/project/math-mcp-learning-server/) - `math-mcp-learning-server`
-- [Prefect Horizon](https://horizon.prefect.io/app/math-mcp) - No installation required
 
 ## Requirements
 

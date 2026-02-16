@@ -2,7 +2,7 @@
 
 Educational MCP server with 12 math/stats tools, persistent workspace, and cloud hosting. Demonstrates FastMCP 2.0 best practices with 86% test coverage.
 
-**Links:** [PyPI](https://pypi.org/project/math-mcp-learning-server/) | [Cloud](https://math-mcp.fastmcp.app/mcp) | [GitHub](https://github.com/clouatre-labs/math-mcp-learning-server)
+**Links:** [PyPI](https://pypi.org/project/math-mcp-learning-server/) | [GitHub](https://github.com/clouatre-labs/math-mcp-learning-server)
 
 ---
 
