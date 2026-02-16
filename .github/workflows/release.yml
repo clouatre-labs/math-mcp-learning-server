@@ -1,0 +1,197 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*.*.*
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release (e.g., 0.10.4)
+        required: true
+        type: string
+      dry_run:
+        description: Perform a dry run without publishing
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  verify-tag-signature:
+    name: Verify GPG tag signature
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push'
+    outputs:
+      tag: ${{ steps.extract.outputs.tag }}
+    steps:
+      - name: Extract tag
+        id: extract
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag is annotated and GPG-signed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.extract.outputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Fetch tag object to verify it's annotated and signed
+          TAG_OBJECT=$(gh api repos/"$REPO"/git/refs/tags/"$TAG" --jq '.object.sha' 2>/dev/null || echo "")
+          
+          if [ -z "$TAG_OBJECT" ]; then
+            echo "ERROR: Tag $TAG not found"
+            exit 1
+          fi
+          
+          # Get tag object details
+          TAG_TYPE=$(gh api repos/"$REPO"/git/tags/"$TAG_OBJECT" --jq '.object.type' 2>/dev/null || echo "")
+          TAG_SIGNATURE=$(gh api repos/"$REPO"/git/tags/"$TAG_OBJECT" --jq '.signature' 2>/dev/null || echo "")
+          
+          if [ "$TAG_TYPE" != "commit" ]; then
+            echo "ERROR: Tag $TAG is not annotated (type: $TAG_TYPE). Lightweight tags are not allowed."
+            exit 1
+          fi
+          
+          if [ -z "$TAG_SIGNATURE" ] || [ "$TAG_SIGNATURE" = "null" ]; then
+            echo "ERROR: Tag $TAG is not GPG-signed. All releases must be signed."
+            exit 1
+          fi
+          
+          echo "Tag $TAG verified: annotated and GPG-signed"
+
+  create-release:
+    name: Create GitHub release
+    needs: verify-tag-signature
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      dry_run: ${{ steps.dry_run.outputs.dry_run }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine dry-run mode
+        id: dry_run
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "dry_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=${{ inputs.version }}
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Validate tag version matches pyproject.toml
+        if: github.event_name == 'push'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          if [ "$VERSION" != "$PYPROJECT_VERSION" ]; then
+            echo "ERROR: Tag version v$VERSION does not match pyproject.toml version $PYPROJECT_VERSION"
+            exit 1
+          fi
+          echo "Version $VERSION matches pyproject.toml"
+
+      - name: Create GitHub release
+        if: steps.dry_run.outputs.dry_run != 'true'
+        uses: taiki-e/create-gh-release-action@56a8b3f8449593aa02b91f7b84da564f476e94f0 # v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-and-attest:
+    name: Build distributions and attest provenance
+    needs: create-release
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7
+        with:
+          enable-cache: true
+
+      - name: Build package
+        run: uv build
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v1
+        with:
+          subject-path: dist/
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: release-dists
+          path: dist/
+
+  publish:
+    name: Publish to PyPI
+    needs: create-release
+    runs-on: ubuntu-24.04
+    if: needs.create-release.outputs.dry_run != 'true'
+    environment:
+      name: pypi
+      url: https://pypi.org/project/math-mcp-learning-server/
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: release-dists
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          attestations: true
+
+  mcp-registry:
+    name: Publish to MCP Registry
+    needs: [create-release, publish]
+    runs-on: ubuntu-24.04
+    if: needs.create-release.outputs.dry_run != 'true'
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Sync version from release tag to server.json
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          jq --arg v "$VERSION" '.version = $v | .packages[0].version = $v' server.json > tmp.json && mv tmp.json server.json
+          cat server.json
+
+      - name: Install MCP Publisher
+        run: |
+          VERSION=$(curl -sI https://github.com/modelcontextprotocol/registry/releases/latest | grep -i '^location:' | sed 's/.*tag\///' | tr -d '\r\n')
+          echo "Installing mcp-publisher ${VERSION}"
+          curl -sSL "https://github.com/modelcontextprotocol/registry/releases/download/${VERSION}/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher --version
+
+      - name: Login to MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: ./mcp-publisher publish

@@ -12,31 +12,47 @@ We use [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 
 ### Create a Release
 
-The project uses **PyPI Trusted Publishing** for secure, automated releases without API tokens.
+The project uses **GPG-signed annotated tags** with **PyPI Trusted Publishing** for secure, automated releases without API tokens.
 
-#### Step 1: Create GitHub Release
+#### Step 1: Update Version and Prepare
 
 ```bash
-# For production releases
-gh release create v1.2.0 \
-  --title "v1.2.0 - Add matrix operations" \
-  --notes-file RELEASE_NOTES_v1.2.0.md
+# Update version in pyproject.toml
+# Update CHANGELOG.md or release notes
+# Ensure uv.lock is up to date
+uv lock --upgrade
 
-# For pre-releases (testing)
-gh release create v1.2.0-rc1 \
-  --title "v1.2.0-rc1 - Release Candidate" \
-  --prerelease
+# Verify all tests pass
+uv run pytest -v
 ```
 
-#### Step 2: Automated Workflow
+#### Step 2: Create GPG-Signed Annotated Tag
 
-Once the release is published, GitHub Actions automatically:
+```bash
+# Create an annotated, GPG-signed tag
+git tag -s v1.2.0 -m "Release v1.2.0 - Add matrix operations"
 
-1. Runs the test suite (ensures code quality)
-2. Builds the wheel and sdist packages
-3. Publishes to PyPI using Trusted Publishing
+# Verify the tag is signed
+git tag -v v1.2.0
 
-#### Step 3: Verify Release
+# Push the tag to trigger the release workflow
+git push origin v1.2.0
+```
+
+**Important:** Only annotated, GPG-signed tags are accepted. Lightweight tags will be rejected by the release workflow.
+
+#### Step 3: Automated Workflow
+
+Once the tag is pushed, GitHub Actions automatically:
+
+1. Verifies the tag is annotated and GPG-signed
+2. Validates tag version matches `pyproject.toml`
+3. Creates a GitHub release
+4. Builds wheel and sdist packages with SLSA provenance attestation
+5. Publishes to PyPI using Trusted Publishing with Sigstore attestations
+6. Syncs version to MCP Registry
+
+#### Step 4: Verify Release
 
 Monitor progress at: https://github.com/clouatre-labs/math-mcp-learning-server/actions
 
@@ -44,6 +60,21 @@ Verify installation:
 ```bash
 uv pip install math-mcp-learning-server==1.2.0
 ```
+
+### Dry-Run Release
+
+To test the release workflow without publishing:
+
+```bash
+# Trigger workflow_dispatch with dry_run=true
+gh workflow run release.yml -f version=1.2.0 -f dry_run=true
+```
+
+This will:
+- Skip GitHub release creation
+- Skip PyPI publishing
+- Skip MCP Registry sync
+- Still build and attest packages (for validation)
 
 ### Manual Publishing (Emergency Only)
 
@@ -69,18 +100,29 @@ For new maintainers, PyPI Trusted Publishing must be configured once:
 
 ### Troubleshooting Releases
 
+**Tag Verification Fails:**
+- Ensure tag is annotated (not lightweight): `git tag -v v1.2.0`
+- Ensure tag is GPG-signed: `git tag -v v1.2.0` should show signature
+- Recreate tag if needed: `git tag -d v1.2.0 && git tag -s v1.2.0 -m "Release v1.2.0"`
+- Push updated tag: `git push origin v1.2.0 --force`
+
+**Version Mismatch:**
+- Ensure `pyproject.toml` version matches tag: `grep '^version = ' pyproject.toml`
+- Tag should be `v<version>` (e.g., `v1.2.0` for version `1.2.0`)
+- Update `pyproject.toml` and recreate tag if needed
+
 **Tests Fail:**
 - Fix issues locally and push to main
-- Create new release tag
+- Create new release tag after fixes
 
 **Build Fails:**
-- Check GitHub Actions logs
+- Check GitHub Actions logs at: https://github.com/clouatre-labs/math-mcp-learning-server/actions
 - Verify `pyproject.toml` is valid
 - Ensure `uv.lock` is up to date
 
 **Publish Fails:**
 - Verify PyPI Trusted Publisher is configured correctly
-- Check [python-publish.yml](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/.github/workflows/python-publish.yml) has `id-token: write`
+- Check [release.yml](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/.github/workflows/release.yml) has `id-token: write`
 - Ensure environment `pypi` exists in GitHub settings
 
 For detailed help, see [PyPI Trusted Publishing Configuration](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/.github/PYPI_TRUSTED_PUBLISHING.md).
@@ -110,11 +152,13 @@ Required for Trusted Publishing:
 
 - Project: https://pypi.org/project/math-mcp-learning-server/
 - Trusted Publisher: GitHub Actions (clouatre-labs/math-mcp-learning-server)
+- Workflow filename in Trusted Publisher config must match: `release.yml`
+- Environment name in Trusted Publisher config must match: `pypi`
 
 ### Workflow Files
 
 - `.github/workflows/ci.yml` - Runs tests, linting, type checking on every push/PR
-- `.github/workflows/python-publish.yml` - Publishes to PyPI on release tags
+- `.github/workflows/release.yml` - Publishes to PyPI on GPG-signed tag push or workflow_dispatch
 
 ## Maintenance Tasks
 
