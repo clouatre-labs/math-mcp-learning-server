@@ -1,4 +1,10 @@
-"""Expression evaluation and validation utilities."""
+"""Expression evaluation and validation utilities.
+
+Note: This module uses the default ThreadPoolExecutor (via asyncio.to_thread)
+for timeout enforcement. ProcessPoolExecutor is intentionally avoided because
+it triggers fork_exec(sys.executable) at construction, which fails on
+serverless runtimes (e.g., AWS Lambda) where sys.executable may be invalid.
+"""
 
 import asyncio
 import logging
@@ -156,7 +162,7 @@ async def evaluate_with_timeout(expression: str) -> float:
     in the default ThreadPoolExecutor to allow timeout enforcement.
 
     This is an educational example of wrapping synchronous operations
-    in async context using asyncio.wait_for() and loop.run_in_executor().
+    in async context using asyncio.wait_for() and asyncio.to_thread().
 
     Args:
         expression: Mathematical expression string to evaluate.
@@ -167,10 +173,9 @@ async def evaluate_with_timeout(expression: str) -> float:
     Raises:
         ValueError: If expression evaluation exceeds timeout or is invalid.
     """
-    loop = asyncio.get_running_loop()
     try:
         return await asyncio.wait_for(
-            loop.run_in_executor(None, safe_eval_expression, expression),
+            asyncio.to_thread(safe_eval_expression, expression),
             timeout=EXPRESSION_TIMEOUT_SECONDS,
         )
     except TimeoutError as e:
