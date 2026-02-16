@@ -5,43 +5,12 @@ calculations using NumPy. All tools include input validation, error handling,
 and educational annotations.
 """
 
-from typing import Annotated, Any, NotRequired
+from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
-from typing_extensions import TypedDict
 
 from math_mcp.settings import MAX_ARRAY_SIZE, validated_tool
-
-
-class ToolAnnotations(TypedDict):
-    """Annotations for tool response content items."""
-
-    difficulty: str
-    topic: str
-    operation: str
-    error: NotRequired[str]
-    result_shape: NotRequired[str]
-    original_shape: NotRequired[str]
-    matrix_size: NotRequired[str]
-    count: NotRequired[int]
-    value: NotRequired[float]
-    determinant: NotRequired[float]
-
-
-class ToolContentItem(TypedDict):
-    """Content item in tool response."""
-
-    type: str
-    text: str
-    annotations: ToolAnnotations
-
-
-class ToolResponse(TypedDict):
-    """Response structure for matrix operation tools."""
-
-    content: list[ToolContentItem]
-
 
 # Try importing numpy for matrix operations
 try:
@@ -139,7 +108,7 @@ async def matrix_multiply(
     matrix_a: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     matrix_b: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> ToolResponse:
+) -> dict[str, Any]:
     """Multiply two matrices (A × B).
 
     Args:
@@ -227,7 +196,7 @@ async def matrix_multiply(
 async def matrix_transpose(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> ToolResponse:
+) -> dict[str, Any]:
     """Transpose a matrix (swap rows and columns).
 
     Args:
@@ -306,7 +275,7 @@ async def matrix_transpose(
 async def matrix_determinant(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> ToolResponse:
+) -> dict[str, Any]:
     """Calculate the determinant of a square matrix.
 
     Args:
@@ -392,7 +361,7 @@ async def matrix_determinant(
 async def matrix_inverse(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> ToolResponse:
+) -> dict[str, Any]:
     """Calculate the inverse of a square matrix.
 
     Args:
@@ -501,7 +470,7 @@ async def matrix_inverse(
 async def matrix_eigenvalues(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> ToolResponse:
+) -> dict[str, Any]:
     """Calculate the eigenvalues of a square matrix.
 
     Args:
