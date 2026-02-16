@@ -46,17 +46,17 @@ jobs:
             exit 1
           fi
           
-          # Get tag object details
+          # Get tag object details (signature lives under .verification, not top-level)
           TAG_TYPE=$(gh api repos/"$REPO"/git/tags/"$TAG_OBJECT" --jq '.object.type' 2>/dev/null || echo "")
-          TAG_SIGNATURE=$(gh api repos/"$REPO"/git/tags/"$TAG_OBJECT" --jq '.signature' 2>/dev/null || echo "")
+          TAG_VERIFIED=$(gh api repos/"$REPO"/git/tags/"$TAG_OBJECT" --jq '.verification.verified' 2>/dev/null || echo "")
           
           if [ "$TAG_TYPE" != "commit" ]; then
             echo "ERROR: Tag $TAG is not annotated (type: $TAG_TYPE). Lightweight tags are not allowed."
             exit 1
           fi
           
-          if [ -z "$TAG_SIGNATURE" ] || [ "$TAG_SIGNATURE" = "null" ]; then
-            echo "ERROR: Tag $TAG is not GPG-signed. All releases must be signed."
+          if [ "$TAG_VERIFIED" != "true" ]; then
+            echo "ERROR: Tag $TAG is not GPG-signed or signature is invalid. All releases must be signed."
             exit 1
           fi
           
