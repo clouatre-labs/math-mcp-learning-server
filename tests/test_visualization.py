@@ -159,9 +159,14 @@ async def test_plot_function_invalid_num_points(mock_context):
 
     from math_mcp.tools.visualization import plot_function
 
-    # Now raises ValueError due to input validation
-    with pytest.raises(ValueError, match="Input should be greater than or equal to 2"):
-        await plot_function.raw_function("x**2", (-5.0, 5.0), 1, mock_context)
+    # raw_function bypasses validate_call; the manual guard returns an error dict
+    result = await plot_function.raw_function("x**2", (-5.0, 5.0), 1, mock_context)
+
+    assert isinstance(result, dict)
+    content = result["content"][0]
+    assert content["type"] == "text"
+    assert "Plot Error" in content["text"]
+    assert "num_points must be at least 2" in content["text"]
 
 
 @pytest.mark.asyncio
