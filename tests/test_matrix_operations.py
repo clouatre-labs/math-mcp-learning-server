@@ -559,7 +559,7 @@ async def test_matrix_inverse_progress_reporting(mock_context):
     matrix = [[1, 2], [3, 4]]
 
     # Act: Call matrix_inverse with mock context
-    await matrix_inverse.fn(matrix, mock_context)
+    await matrix_inverse.raw_function(matrix, mock_context)
 
     # Assert: Progress reports contain 4 stages with 3-tuples
     assert len(mock_context.progress_reports) == 4
@@ -586,7 +586,7 @@ async def test_matrix_eigenvalues_progress_reporting(mock_context):
     matrix = [[4, 2], [1, 3]]
 
     # Act: Call matrix_eigenvalues with mock context
-    await matrix_eigenvalues.fn(matrix, mock_context)
+    await matrix_eigenvalues.raw_function(matrix, mock_context)
 
     # Assert: Progress reports contain 3 stages with 3-tuples
     assert len(mock_context.progress_reports) == 3

@@ -94,17 +94,9 @@ async def test_calculate_tool():
     """Test the calculate tool returns structured output with annotations."""
 
     # Mock context for calculation history
-    class MockLifespanContext:
-        def __init__(self):
-            self.calculation_history = []
-
-    class MockRequestContext:
-        def __init__(self):
-            self.lifespan_context = MockLifespanContext()
-
     class MockContext:
         def __init__(self):
-            self.request_context = MockRequestContext()
+            self.lifespan_context = type("LC", (), {"calculation_history": []})()
             self.info_logs = []
 
         async def info(self, message: str):
@@ -112,7 +104,7 @@ async def test_calculate_tool():
             self.info_logs.append(message)
 
     ctx = MockContext()
-    result = await calculate.fn("2 + 3", ctx)
+    result = await calculate.raw_function("2 + 3", ctx)
 
     assert isinstance(result, dict)
     assert "content" in result
@@ -141,7 +133,7 @@ async def test_statistics_tool():
     ctx = MockContext()
 
     # Test mean
-    result = await stats_tool.fn([1, 2, 3, 4, 5], "mean", ctx)
+    result = await stats_tool.raw_function([1, 2, 3, 4, 5], "mean", ctx)
     assert isinstance(result, dict)
     assert "content" in result
     content = result["content"][0]
@@ -152,17 +144,17 @@ async def test_statistics_tool():
     assert content["annotations"]["sample_size"] == 5
 
     # Test median
-    result = await stats_tool.fn([1, 2, 3, 4, 5], "median", ctx)
+    result = await stats_tool.raw_function([1, 2, 3, 4, 5], "median", ctx)
     assert "Median" in result["content"][0]["text"]
     assert "3.0" in result["content"][0]["text"]
 
     # Test empty list
     with pytest.raises(ValueError, match="Cannot calculate statistics on empty list"):
-        await stats_tool.fn([], "mean", ctx)
+        await stats_tool.raw_function([], "mean", ctx)
 
     # Test invalid operation
     with pytest.raises(ValueError, match="Invalid operation"):
-        await stats_tool.fn([1, 2, 3], "invalid_op", ctx)
+        await stats_tool.raw_function([1, 2, 3], "invalid_op", ctx)
 
 
 @pytest.mark.asyncio
@@ -179,7 +171,7 @@ async def test_compound_interest_tool():
             self.info_logs.append(message)
 
     ctx = MockContext()
-    result = await compound_interest.fn(1000.0, 0.05, 5.0, 12, ctx)
+    result = await compound_interest(1000.0, 0.05, 5.0, 12, ctx)
 
     assert isinstance(result, dict)
     assert "content" in result
@@ -192,10 +184,10 @@ async def test_compound_interest_tool():
 
     # Test validation errors
     with pytest.raises(ValueError, match="Principal must be greater than 0"):
-        await compound_interest.fn(0, 0.05, 5.0, 1, ctx)
+        await compound_interest(0, 0.05, 5.0, 1, ctx)
 
     with pytest.raises(ValueError, match="Interest rate cannot be negative"):
-        await compound_interest.fn(1000, -0.01, 5.0, 1, ctx)
+        await compound_interest(1000, -0.01, 5.0, 1, ctx)
 
 
 @pytest.mark.asyncio
@@ -214,7 +206,7 @@ async def test_convert_units_tool():
     ctx = MockContext()
 
     # Test length conversion
-    result = await convert_units.fn(100, "cm", "m", "length", ctx)
+    result = await convert_units(100, "cm", "m", "length", ctx)
 
     assert isinstance(result, dict)
     assert "content" in result
@@ -226,12 +218,12 @@ async def test_convert_units_tool():
     assert content["annotations"]["to_unit"] == "m"
 
     # Test temperature conversion
-    result = await convert_units.fn(0, "c", "f", "temperature", ctx)
+    result = await convert_units(0, "c", "f", "temperature", ctx)
     assert "32" in result["content"][0]["text"]
 
     # Test invalid unit type
     with pytest.raises(ValueError, match="Unknown unit type"):
-        await convert_units.fn(100, "cm", "m", "invalid_type", ctx)
+        await convert_units(100, "cm", "m", "invalid_type", ctx)
 
 
 # === RESOURCE TESTS ===
@@ -240,13 +232,13 @@ async def test_convert_units_tool():
 def test_math_constants_resource():
     """Test math constants resource."""
     # Test known constant
-    result = get_math_constant.fn("pi")
+    result = get_math_constant("pi")
     assert "pi:" in result
     assert "3.14159" in result
     assert "Description:" in result
 
     # Test unknown constant
-    result = get_math_constant.fn("unknown_constant")
+    result = get_math_constant("unknown_constant")
     assert "Unknown constant" in result
     assert "Available constants:" in result
 
@@ -300,15 +292,15 @@ async def test_statistical_edge_cases():
     ctx = MockContext()
 
     # Single value
-    result = await stats_tool.fn([42.0], "mean", ctx)
+    result = await stats_tool.raw_function([42.0], "mean", ctx)
     assert "42.0" in result["content"][0]["text"]
 
     # Standard deviation with single value
-    result = await stats_tool.fn([42.0], "std_dev", ctx)
+    result = await stats_tool.raw_function([42.0], "std_dev", ctx)
     assert "0" in result["content"][0]["text"]  # Should not raise error
 
     # Variance with single value
-    result = await stats_tool.fn([42.0], "variance", ctx)
+    result = await stats_tool.raw_function([42.0], "variance", ctx)
     assert "0" in result["content"][0]["text"]  # Should not raise error
 
 
@@ -328,11 +320,11 @@ async def test_unit_conversion_edge_cases():
     ctx = MockContext()
 
     # Convert to same unit
-    result = await convert_units.fn(100, "m", "m", "length", ctx)
+    result = await convert_units(100, "m", "m", "length", ctx)
     assert "100 m = 100 m" in result["content"][0]["text"]
 
     # Test case insensitivity
-    result = await convert_units.fn(1, "M", "KM", "length", ctx)
+    result = await convert_units(1, "M", "KM", "length", ctx)
     assert "0.001" in result["content"][0]["text"]
 
 
@@ -452,17 +444,9 @@ async def test_expression_length_validation():
     """Test expression length validation."""
 
     # Mock context
-    class MockLifespanContext:
-        def __init__(self):
-            self.calculation_history = []
-
-    class MockRequestContext:
-        def __init__(self):
-            self.lifespan_context = MockLifespanContext()
-
     class MockContext:
         def __init__(self):
-            self.request_context = MockRequestContext()
+            self.lifespan_context = type("LC", (), {"calculation_history": []})()
 
         async def info(self, message: str):
             pass
@@ -472,13 +456,13 @@ async def test_expression_length_validation():
     # Valid: below limit (off-by-one boundary test)
     # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH - 1 chars
     below_limit_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH) // 2))[: MAX_EXPRESSION_LENGTH - 1]
-    result = await calculate.fn(below_limit_expr, ctx)
+    result = await calculate.raw_function(below_limit_expr, ctx)
     assert "content" in result
 
     # Valid: at limit (use a valid expression that's exactly at the limit)
     # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH chars
     valid_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH + 1) // 2))[:MAX_EXPRESSION_LENGTH]
-    result = await calculate.fn(valid_expr, ctx)
+    result = await calculate.raw_function(valid_expr, ctx)
     assert "content" in result
 
     # Invalid: exceeds limit
@@ -487,7 +471,7 @@ async def test_expression_length_validation():
     with pytest.raises(
         ValueError, match=f"String should have at most {MAX_EXPRESSION_LENGTH} characters"
     ):
-        await calculate.fn(invalid_expr, ctx)
+        await calculate(invalid_expr, ctx)
 
 
 @pytest.mark.asyncio
@@ -503,13 +487,13 @@ async def test_array_size_validation():
 
     # Valid: at limit
     valid_array = [1.0] * MAX_ARRAY_SIZE
-    result = await stats_tool.fn(valid_array, "mean", ctx)
+    result = await stats_tool.raw_function(valid_array, "mean", ctx)
     assert "content" in result
 
     # Invalid: exceeds limit
     invalid_array = [1.0] * (MAX_ARRAY_SIZE + 1)
     with pytest.raises(ValueError, match=f"List should have at most {MAX_ARRAY_SIZE} items"):
-        await stats_tool.fn(invalid_array, "mean", ctx)
+        await stats_tool(invalid_array, "mean", ctx)
 
 
 @pytest.mark.asyncio
@@ -525,12 +509,12 @@ async def test_operation_whitelist_validation():
 
     # Valid operations
     for op in ["mean", "median", "mode", "std_dev", "variance"]:
-        result = await stats_tool.fn([1.0, 2.0, 3.0], op, ctx)
+        result = await stats_tool.raw_function([1.0, 2.0, 3.0], op, ctx)
         assert "content" in result
 
     # Invalid operation
     with pytest.raises(ValueError, match="Invalid operation"):
-        await stats_tool.fn([1.0, 2.0, 3.0], "invalid_op", ctx)
+        await stats_tool.raw_function([1.0, 2.0, 3.0], "invalid_op", ctx)
 
 
 @pytest.mark.asyncio
@@ -538,17 +522,9 @@ async def test_variable_name_validation():
     """Test variable name validation."""
 
     # Mock context
-    class MockLifespanContext:
-        def __init__(self):
-            self.calculation_history = []
-
-    class MockRequestContext:
-        def __init__(self):
-            self.lifespan_context = MockLifespanContext()
-
     class MockContext:
         def __init__(self):
-            self.request_context = MockRequestContext()
+            self.lifespan_context = type("LC", (), {"calculation_history": []})()
 
         async def info(self, message: str):
             pass
@@ -556,12 +532,12 @@ async def test_variable_name_validation():
     ctx = MockContext()
 
     # Valid: alphanumeric with underscore and hyphen
-    result = await save_calculation.fn("valid_name-123", "2+2", 4.0, ctx)
+    result = await save_calculation.raw_function("valid_name-123", "2+2", 4.0, ctx)
     assert "content" in result
 
     # Valid: at limit
     valid_name = "a" * MAX_VARIABLE_NAME_LENGTH
-    result = await save_calculation.fn(valid_name, "2+2", 4.0, ctx)
+    result = await save_calculation.raw_function(valid_name, "2+2", 4.0, ctx)
     assert "content" in result
 
     # Invalid: exceeds length
@@ -569,15 +545,15 @@ async def test_variable_name_validation():
     with pytest.raises(
         ValueError, match=f"String should have at most {MAX_VARIABLE_NAME_LENGTH} characters"
     ):
-        await save_calculation.fn(invalid_name, "2+2", 4.0, ctx)
+        await save_calculation(invalid_name, "2+2", 4.0, ctx)
 
     # Invalid: empty
     with pytest.raises(ValueError, match="cannot be empty"):
-        await save_calculation.fn("", "2+2", 4.0, ctx)
+        await save_calculation("", "2+2", 4.0, ctx)
 
     # Invalid: special characters
     with pytest.raises(ValueError, match="only letters, numbers, underscores, and hyphens"):
-        await save_calculation.fn("invalid@name", "2+2", 4.0, ctx)
+        await save_calculation("invalid@name", "2+2", 4.0, ctx)
 
 
 @pytest.mark.asyncio
@@ -587,7 +563,7 @@ async def test_string_param_validation():
 
     # Valid: at limit
     valid_title = "a" * MAX_STRING_PARAM_LENGTH
-    result = await create_histogram.fn([1.0, 2.0, 3.0], 10, valid_title, None)
+    result = await create_histogram.raw_function([1.0, 2.0, 3.0], 10, valid_title, None)
     # Should return matplotlib not available or success
     assert "content" in result
 
@@ -596,7 +572,7 @@ async def test_string_param_validation():
     with pytest.raises(
         ValueError, match=f"String should have at most {MAX_STRING_PARAM_LENGTH} characters"
     ):
-        await create_histogram.fn([1.0, 2.0, 3.0], 10, invalid_title, None)
+        await create_histogram([1.0, 2.0, 3.0], 10, invalid_title, None)
 
 
 @pytest.mark.asyncio
@@ -606,23 +582,23 @@ async def test_nested_array_validation():
 
     # Valid: at group limit
     valid_groups = [[1.0, 2.0]] * MAX_GROUPS_COUNT
-    result = await plot_box_plot.fn(valid_groups, None, "Test", "Y", None, None)
+    result = await plot_box_plot.raw_function(valid_groups, None, "Test", "Y", None, None)
     assert "content" in result
 
     # Invalid: exceeds group count
     invalid_groups = [[1.0, 2.0]] * (MAX_GROUPS_COUNT + 1)
     with pytest.raises(ValueError, match=f"List should have at most {MAX_GROUPS_COUNT} items"):
-        await plot_box_plot.fn(invalid_groups, None, "Test", "Y", None, None)
+        await plot_box_plot(invalid_groups, None, "Test", "Y", None, None)
 
     # Valid: at group size limit
     valid_large_group = [[1.0] * MAX_GROUP_SIZE]
-    result = await plot_box_plot.fn(valid_large_group, None, "Test", "Y", None, None)
+    result = await plot_box_plot.raw_function(valid_large_group, None, "Test", "Y", None, None)
     assert "content" in result
 
     # Invalid: exceeds group size
     invalid_large_group = [[1.0] * (MAX_GROUP_SIZE + 1)]
     with pytest.raises(ValueError, match=f"exceeds maximum size of {MAX_GROUP_SIZE}"):
-        await plot_box_plot.fn(invalid_large_group, None, "Test", "Y", None, None)
+        await plot_box_plot(invalid_large_group, None, "Test", "Y", None, None)
 
 
 @pytest.mark.asyncio
@@ -631,18 +607,20 @@ async def test_days_validation():
     from math_mcp.tools.visualization import MAX_DAYS_FINANCIAL, plot_financial_line
 
     # Valid: at limit
-    result = await plot_financial_line.fn(MAX_DAYS_FINANCIAL, "bullish", 100.0, None, None)
+    result = await plot_financial_line.raw_function(
+        MAX_DAYS_FINANCIAL, "bullish", 100.0, None, None
+    )
     assert "content" in result
 
     # Invalid: exceeds limit
     with pytest.raises(
         ValueError, match=f"Input should be less than or equal to {MAX_DAYS_FINANCIAL}"
     ):
-        await plot_financial_line.fn(MAX_DAYS_FINANCIAL + 1, "bullish", 100.0, None, None)
+        await plot_financial_line(MAX_DAYS_FINANCIAL + 1, "bullish", 100.0, None, None)
 
     # Invalid: too small
     with pytest.raises(ValueError, match="Input should be greater than or equal to 2"):
-        await plot_financial_line.fn(1, "bullish", 100.0, None, None)
+        await plot_financial_line(1, "bullish", 100.0, None, None)
 
 
 @pytest.mark.asyncio
@@ -652,12 +630,12 @@ async def test_trend_whitelist_validation():
 
     # Valid trends
     for trend in ["bullish", "bearish", "volatile"]:
-        result = await plot_financial_line.fn(30, trend, 100.0, None, None)
+        result = await plot_financial_line.raw_function(30, trend, 100.0, None, None)
         assert "content" in result
 
     # Invalid trend
     with pytest.raises(ValueError, match="Invalid trend"):
-        await plot_financial_line.fn(30, "invalid_trend", 100.0, None, None)
+        await plot_financial_line(30, "invalid_trend", 100.0, None, None)
 
 
 @pytest.mark.asyncio
@@ -666,16 +644,16 @@ async def test_num_points_validation():
     from math_mcp.tools.visualization import MAX_ARRAY_SIZE, plot_function
 
     # Valid: at limit
-    result = await plot_function.fn("x**2", (-5, 5), MAX_ARRAY_SIZE, None)
+    result = await plot_function.raw_function("x**2", (-5, 5), MAX_ARRAY_SIZE, None)
     assert "content" in result
 
     # Invalid: exceeds limit
     with pytest.raises(ValueError, match=f"Input should be less than or equal to {MAX_ARRAY_SIZE}"):
-        await plot_function.fn("x**2", (-5, 5), MAX_ARRAY_SIZE + 1, None)
+        await plot_function("x**2", (-5, 5), MAX_ARRAY_SIZE + 1, None)
 
     # Invalid: too small
     with pytest.raises(ValueError, match="Input should be greater than or equal to 2"):
-        await plot_function.fn("x**2", (-5, 5), 1, None)
+        await plot_function("x**2", (-5, 5), 1, None)
 
 
 @pytest.mark.asyncio
@@ -684,16 +662,16 @@ async def test_bins_validation():
     from math_mcp.tools.visualization import create_histogram
 
     # Valid: positive bins
-    result = await create_histogram.fn([1.0, 2.0, 3.0], 10, "Test", None)
+    result = await create_histogram.raw_function([1.0, 2.0, 3.0], 10, "Test", None)
     assert "content" in result
 
     # Invalid: zero bins
     with pytest.raises(ValueError, match="must be at least 1"):
-        await create_histogram.fn([1.0, 2.0, 3.0], 0, "Test", None)
+        await create_histogram([1.0, 2.0, 3.0], 0, "Test", None)
 
     # Invalid: negative bins
     with pytest.raises(ValueError, match="must be at least 1"):
-        await create_histogram.fn([1.0, 2.0, 3.0], -1, "Test", None)
+        await create_histogram([1.0, 2.0, 3.0], -1, "Test", None)
 
 
 @pytest.mark.asyncio
@@ -709,7 +687,7 @@ async def test_empty_input_validation():
 
     # Empty array should fail at business logic level (not size validation)
     with pytest.raises(ValueError, match="Cannot calculate statistics on empty list"):
-        await stats_tool.fn([], "mean", ctx)
+        await stats_tool.raw_function([], "mean", ctx)
 
 
 @pytest.mark.asyncio
@@ -726,7 +704,7 @@ async def test_validation_error_messages():
     # Test error message includes max value (Pydantic format)
     invalid_expr = "1" * (MAX_EXPRESSION_LENGTH + 1)
     try:
-        await calculate.fn(invalid_expr, ctx)
+        await calculate(invalid_expr, ctx)
         raise AssertionError("Should have raised ValueError")
     except ValueError as e:
         error_msg = str(e)

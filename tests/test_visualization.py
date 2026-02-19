@@ -79,7 +79,7 @@ async def test_plot_function_basic_quadratic(mock_context):
 
     from math_mcp.tools.visualization import plot_function
 
-    result = await plot_function.fn("x**2", (-5.0, 5.0), 50, mock_context)
+    result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, mock_context)
 
     assert isinstance(result, dict)
     assert "content" in result
@@ -117,7 +117,7 @@ async def test_plot_function_trigonometric(mock_context):
 
     from math_mcp.tools.visualization import plot_function
 
-    result = await plot_function.fn("sin(x)", (-3.14159, 3.14159), 100, mock_context)
+    result = await plot_function.raw_function("sin(x)", (-3.14159, 3.14159), 100, mock_context)
 
     assert isinstance(result, dict)
     assert "content" in result
@@ -139,7 +139,7 @@ async def test_plot_function_invalid_range(mock_context):
     from math_mcp.tools.visualization import plot_function
 
     # x_min >= x_max
-    result = await plot_function.fn("x**2", (5.0, 5.0), 100, mock_context)
+    result = await plot_function.raw_function("x**2", (5.0, 5.0), 100, mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -161,7 +161,7 @@ async def test_plot_function_invalid_num_points(mock_context):
 
     # Now raises ValueError due to input validation
     with pytest.raises(ValueError, match="Input should be greater than or equal to 2"):
-        await plot_function.fn("x**2", (-5.0, 5.0), 1, mock_context)
+        await plot_function.raw_function("x**2", (-5.0, 5.0), 1, mock_context)
 
 
 @pytest.mark.asyncio
@@ -176,7 +176,7 @@ async def test_plot_function_with_domain_error(mock_context):
     from math_mcp.tools.visualization import plot_function
 
     # sqrt of negative numbers will cause domain errors for negative x
-    result = await plot_function.fn("sqrt(x)", (-5.0, 5.0), 50, mock_context)
+    result = await plot_function.raw_function("sqrt(x)", (-5.0, 5.0), 50, mock_context)
 
     # Should still succeed but with NaN values for negative x
     assert isinstance(result, dict)
@@ -196,7 +196,7 @@ async def test_plot_function_without_context():
 
     from math_mcp.tools.visualization import plot_function
 
-    result = await plot_function.fn("x**2", (-5.0, 5.0), 50, None)
+    result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, None)
 
     assert isinstance(result, dict)
     assert "content" in result
@@ -252,7 +252,7 @@ async def test_create_histogram_basic(mock_context):
     from math_mcp.tools.visualization import create_histogram
 
     data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
-    result = await create_histogram.fn(data, 5, "Test Distribution", mock_context)
+    result = await create_histogram.raw_function(data, 5, "Test Distribution", mock_context)
 
     assert isinstance(result, dict)
     assert "content" in result
@@ -293,7 +293,7 @@ async def test_create_histogram_empty_data(mock_context):
 
     from math_mcp.tools.visualization import create_histogram
 
-    result = await create_histogram.fn([], 10, "Test", mock_context)
+    result = await create_histogram.raw_function([], 10, "Test", mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -314,7 +314,7 @@ async def test_create_histogram_single_value(mock_context):
 
     from math_mcp.tools.visualization import create_histogram
 
-    result = await create_histogram.fn([42.0], 10, "Test", mock_context)
+    result = await create_histogram.raw_function([42.0], 10, "Test", mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -336,7 +336,7 @@ async def test_create_histogram_invalid_bins(mock_context):
 
     # Now raises ValueError due to input validation
     with pytest.raises(ValueError, match="must be at least 1"):
-        await create_histogram.fn([1.0, 2.0, 3.0], 0, "Test", mock_context)
+        await create_histogram.raw_function([1.0, 2.0, 3.0], 0, "Test", mock_context)
 
 
 @pytest.mark.asyncio
@@ -352,7 +352,7 @@ async def test_create_histogram_large_dataset(mock_context):
 
     # Generate normally distributed data
     data = [float(i) for i in range(100)]
-    result = await create_histogram.fn(data, 20, "Large Dataset", mock_context)
+    result = await create_histogram.raw_function(data, 20, "Large Dataset", mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -373,7 +373,7 @@ async def test_create_histogram_custom_title(mock_context):
     from math_mcp.tools.visualization import create_histogram
 
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
-    result = await create_histogram.fn(data, 5, "Custom Title", mock_context)
+    result = await create_histogram.raw_function(data, 5, "Custom Title", mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -393,7 +393,7 @@ async def test_create_histogram_without_context():
     from math_mcp.tools.visualization import create_histogram
 
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
-    result = await create_histogram.fn(data, 5, "Test", None)
+    result = await create_histogram.raw_function(data, 5, "Test", None)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -415,14 +415,14 @@ async def test_visualization_tools_return_proper_structure(mock_context):
     from math_mcp.tools.visualization import create_histogram, plot_function
 
     # Test plot_function
-    plot_result = await plot_function.fn("x**2", (-5.0, 5.0), 50, mock_context)
+    plot_result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, mock_context)
     assert "content" in plot_result
     assert isinstance(plot_result["content"], list)
     assert len(plot_result["content"]) == 1
     assert "annotations" in plot_result["content"][0]
 
     # Test create_histogram
-    histogram_result = await create_histogram.fn([1.0, 2.0, 3.0], 5, "Test", mock_context)
+    histogram_result = await create_histogram.raw_function([1.0, 2.0, 3.0], 5, "Test", mock_context)
     assert "content" in histogram_result
     assert isinstance(histogram_result["content"], list)
     assert len(histogram_result["content"]) == 1
@@ -441,7 +441,7 @@ async def test_visualization_educational_annotations():
     from math_mcp.tools.visualization import create_histogram, plot_function
 
     # Test plot_function annotations
-    plot_result = await plot_function.fn("sin(x)", (-3.14, 3.14), 100, None)
+    plot_result = await plot_function.raw_function("sin(x)", (-3.14, 3.14), 100, None)
     plot_annotations = plot_result["content"][0]["annotations"]
     assert "difficulty" in plot_annotations
     assert "topic" in plot_annotations
@@ -449,7 +449,9 @@ async def test_visualization_educational_annotations():
     assert "educational_note" in plot_annotations
 
     # Test create_histogram annotations
-    histogram_result = await create_histogram.fn([1.0, 2.0, 3.0, 4.0, 5.0], 5, "Test", None)
+    histogram_result = await create_histogram.raw_function(
+        [1.0, 2.0, 3.0, 4.0, 5.0], 5, "Test", None
+    )
     hist_annotations = histogram_result["content"][0]["annotations"]
     assert "difficulty" in hist_annotations
     assert hist_annotations["difficulty"] == "intermediate"
@@ -559,7 +561,7 @@ async def test_plot_line_chart_basic(mock_context):
 
     from math_mcp.tools.visualization import plot_line_chart
 
-    result = await plot_line_chart.fn(
+    result = await plot_line_chart.raw_function(
         [1.0, 2.0, 3.0, 4.0],
         [1.0, 4.0, 9.0, 16.0],
         "Test Line Chart",
@@ -587,7 +589,7 @@ async def test_plot_scatter_chart_basic(mock_context):
 
     from math_mcp.tools.visualization import plot_scatter_chart
 
-    result = await plot_scatter_chart.fn(
+    result = await plot_scatter_chart.raw_function(
         [1.0, 2.0, 3.0], [2.0, 4.0, 6.0], "Test Scatter", "X", "Y", "purple", 50, mock_context
     )
 
@@ -607,7 +609,7 @@ async def test_plot_box_plot_basic(mock_context):
 
     from math_mcp.tools.visualization import plot_box_plot
 
-    result = await plot_box_plot.fn(
+    result = await plot_box_plot.raw_function(
         [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         ["Group A", "Group B"],
         "Test Box Plot",
@@ -633,7 +635,7 @@ async def test_plot_financial_line_basic(mock_context):
 
     from math_mcp.tools.visualization import plot_financial_line
 
-    result = await plot_financial_line.fn(30, "bullish", 100.0, None, mock_context)
+    result = await plot_financial_line.raw_function(30, "bullish", 100.0, None, mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -654,7 +656,9 @@ async def test_plot_line_chart_error_mismatched_length(mock_context):
 
     from math_mcp.tools.visualization import plot_line_chart
 
-    result = await plot_line_chart.fn([1.0, 2.0], [1.0], "Test", "X", "Y", None, True, mock_context)
+    result = await plot_line_chart.raw_function(
+        [1.0, 2.0], [1.0], "Test", "X", "Y", None, True, mock_context
+    )
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -674,7 +678,7 @@ async def test_plot_financial_line_invalid_trend(mock_context):
 
     # Now raises ValueError due to input validation
     with pytest.raises(ValueError, match="Invalid trend"):
-        await plot_financial_line.fn(30, "invalid_trend", 100.0, None, mock_context)
+        await plot_financial_line.raw_function(30, "invalid_trend", 100.0, None, mock_context)
 
 
 def test_regex_substitution_preserves_function_names_with_x():
@@ -898,7 +902,7 @@ async def test_plot_function_progress_reporting(mock_context):
     num_points = 100
 
     # Act: Call plot_function with mock context
-    await plot_function.fn(expression, x_range, num_points, mock_context)
+    await plot_function.raw_function(expression, x_range, num_points, mock_context)
 
     # Assert: Progress reports start with (0, num_points, message)
     assert len(mock_context.progress_reports) > 0
@@ -939,7 +943,7 @@ async def test_create_histogram_progress_reporting(mock_context):
     title = "Test Distribution"
 
     # Act: Call create_histogram with mock context
-    await create_histogram.fn(data, bins, title, mock_context)
+    await create_histogram.raw_function(data, bins, title, mock_context)
 
     # Assert: Progress reports contain 4 stages with 3-tuples
     assert len(mock_context.progress_reports) == 4
