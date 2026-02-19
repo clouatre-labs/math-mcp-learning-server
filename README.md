@@ -8,7 +8,7 @@
 
 <!-- mcp-name: io.github.clouatre-labs/math-mcp-learning-server -->
 
-Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Built with [FastMCP 2.0](https://github.com/jlowin/fastmcp) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
+Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Built with [FastMCP 3.0](https://github.com/PrefectHQ/fastmcp) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
 
 **Available on:**
 - [Official MCP Registry](https://registry.modelcontextprotocol.io/) - `io.github.clouatre-labs/math-mcp-learning-server`
