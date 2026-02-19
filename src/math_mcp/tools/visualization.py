@@ -9,7 +9,7 @@ from functools import wraps
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
-from pydantic import Field, SkipValidation
+from pydantic import Field
 
 from math_mcp import visualization
 from math_mcp.eval import _classify_expression_difficulty, evaluate_with_timeout
@@ -104,7 +104,7 @@ async def plot_function(
     expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
     x_range: tuple[float, float],
     num_points: Annotated[int, Field(ge=2, le=MAX_ARRAY_SIZE)] = 100,
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Generate mathematical function plots (requires matplotlib).
 
@@ -230,7 +230,7 @@ async def create_histogram(
     data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
     bins: int = 20,
     title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Data Distribution",
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create statistical histograms (requires matplotlib).
 
@@ -351,7 +351,7 @@ async def plot_line_chart(
     y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Y",
     color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
     show_grid: bool = True,
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create a line chart from data points (requires matplotlib).
 
@@ -464,7 +464,7 @@ async def plot_scatter_chart(
     y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Y",
     color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
     point_size: int = 50,
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create a scatter plot from data points (requires matplotlib).
 
@@ -571,7 +571,7 @@ async def plot_box_plot(
     title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Box Plot",
     y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Values",
     color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create a box plot for comparing distributions (requires matplotlib).
 
@@ -680,7 +680,7 @@ async def plot_financial_line(
     trend: str = "bullish",
     start_price: float = 100.0,
     color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Generate and plot synthetic financial price data (requires matplotlib).
 

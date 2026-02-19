@@ -8,7 +8,7 @@ and educational annotations.
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
-from pydantic import Field, SkipValidation
+from pydantic import Field
 
 from math_mcp.settings import MAX_ARRAY_SIZE, validated_tool
 
@@ -107,7 +107,7 @@ matrix_mcp = FastMCP("matrix-operations")
 async def matrix_multiply(
     matrix_a: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     matrix_b: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Multiply two matrices (A × B).
 
@@ -195,7 +195,7 @@ async def matrix_multiply(
 @validated_tool
 async def matrix_transpose(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Transpose a matrix (swap rows and columns).
 
@@ -274,7 +274,7 @@ async def matrix_transpose(
 @validated_tool
 async def matrix_determinant(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Calculate the determinant of a square matrix.
 
@@ -360,7 +360,7 @@ async def matrix_determinant(
 @validated_tool
 async def matrix_inverse(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Calculate the inverse of a square matrix.
 
@@ -469,7 +469,7 @@ async def matrix_inverse(
 @validated_tool
 async def matrix_eigenvalues(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
-    ctx: SkipValidation[Context | None] = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Calculate the eigenvalues of a square matrix.
 

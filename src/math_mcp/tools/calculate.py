@@ -6,7 +6,7 @@ FastMCP sub-server for mathematical calculations, statistics, and unit conversio
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
-from pydantic import Field, SkipValidation
+from pydantic import Field
 
 from math_mcp.eval import (
     _classify_expression_difficulty,
@@ -30,7 +30,7 @@ calculate_mcp = FastMCP(name="Calculate Tools")
 @validated_tool
 async def calculate(
     expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
-    ctx: SkipValidation[Context],
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Safely evaluate mathematical expressions with support for basic operations and math functions.
 
@@ -44,20 +44,22 @@ async def calculate(
     """
     from datetime import datetime
 
-    await ctx.info(f"Calculating expression: {expression}")
+    if ctx:
+        await ctx.info(f"Calculating expression: {expression}")
 
     result = await evaluate_with_timeout(expression)
     timestamp = datetime.now().isoformat()
     difficulty = _classify_expression_difficulty(expression)
 
-    # Add to calculation history
+    # Add to calculation history when context is available
     history_entry = {
         "type": "calculation",
         "expression": expression,
         "result": result,
         "timestamp": timestamp,
     }
-    ctx.request_context.lifespan_context.calculation_history.append(history_entry)
+    if ctx:
+        ctx.request_context.lifespan_context.calculation_history.append(history_entry)
 
     return {
         "content": [
@@ -81,7 +83,7 @@ async def calculate(
 async def statistics(
     numbers: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
     operation: str,
-    ctx: SkipValidation[Context],
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Perform statistical calculations on a list of numbers.
 
@@ -92,7 +94,8 @@ async def statistics(
             f"Invalid operation: {operation}. Allowed: {', '.join(sorted(ALLOWED_OPERATIONS))}"
         )
 
-    await ctx.info(f"Performing {operation} on {len(numbers)} data points")
+    if ctx:
+        await ctx.info(f"Performing {operation} on {len(numbers)} data points")
 
     import statistics as stats
 

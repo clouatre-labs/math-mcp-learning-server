@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
-from pydantic import Field, SkipValidation
+from pydantic import Field
 
 from math_mcp.eval import (
     _classify_expression_difficulty,
@@ -36,7 +36,7 @@ async def save_calculation(
     name: Annotated[str, Field(max_length=MAX_VARIABLE_NAME_LENGTH)],
     expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
     result: float,
-    ctx: SkipValidation[Context],
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Save calculation to persistent workspace (survives restarts).
 
@@ -51,7 +51,8 @@ async def save_calculation(
     """
     validate_variable_name(name)
 
-    await ctx.info(f"Saving calculation '{name}' = {result}")
+    if ctx:
+        await ctx.info(f"Saving calculation '{name}' = {result}")
 
     difficulty = _classify_expression_difficulty(expression)
     topic = _classify_expression_topic(expression)
@@ -59,7 +60,7 @@ async def save_calculation(
     metadata = {
         "difficulty": difficulty,
         "topic": topic,
-        "session_id": id(ctx.request_context.lifespan_context),
+        "session_id": id(ctx.request_context.lifespan_context) if ctx else None,
     }
 
     from math_mcp.persistence.workspace import _workspace_manager
@@ -73,7 +74,8 @@ async def save_calculation(
         "result": result,
         "timestamp": datetime.now().isoformat(),
     }
-    ctx.request_context.lifespan_context.calculation_history.append(history_entry)
+    if ctx:
+        ctx.request_context.lifespan_context.calculation_history.append(history_entry)
 
     return {
         "content": [
@@ -93,7 +95,7 @@ async def save_calculation(
 
 
 @persistence_mcp.tool()
-async def load_variable(name: str, ctx: Context) -> dict[str, Any]:
+async def load_variable(name: str, ctx: Context | None = None) -> dict[str, Any]:
     """Load previously saved calculation result from workspace.
 
     Args:
@@ -103,7 +105,8 @@ async def load_variable(name: str, ctx: Context) -> dict[str, Any]:
         load_variable("portfolio_return")  # Returns saved calculation
         load_variable("circle_area")       # Access across sessions
     """
-    await ctx.info(f"Loading variable '{name}'")
+    if ctx:
+        await ctx.info(f"Loading variable '{name}'")
     from math_mcp.persistence.workspace import _workspace_manager
 
     result_data = _workspace_manager.load_variable(name)
@@ -135,7 +138,8 @@ async def load_variable(name: str, ctx: Context) -> dict[str, Any]:
         "result": result_data["result"],
         "timestamp": datetime.now().isoformat(),
     }
-    ctx.request_context.lifespan_context.calculation_history.append(history_entry)
+    if ctx:
+        ctx.request_context.lifespan_context.calculation_history.append(history_entry)
 
     return {
         "content": [

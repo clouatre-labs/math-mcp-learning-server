@@ -177,7 +177,7 @@ async def agent_card_endpoint(request) -> JSONResponse:
 def main() -> None:
     """Main entry point supporting multiple transports.
 
-    Supports stdio, sse, and streamable-http transports. The A2A agent
+    Supports stdio and streamable-http transports. The A2A agent
     card endpoint is automatically registered via @mcp.custom_route()
     and available on all HTTP-based transports.
     """
@@ -185,10 +185,10 @@ def main() -> None:
     from typing import Literal, cast
 
     # Parse command line arguments for transport type
-    transport: Literal["stdio", "sse", "streamable-http"] = "stdio"  # default
+    transport: Literal["stdio", "streamable-http"] = "stdio"  # default
     if len(sys.argv) > 1:
-        if sys.argv[1] in ["stdio", "sse", "streamable-http"]:
-            transport = cast(Literal["stdio", "sse", "streamable-http"], sys.argv[1])
+        if sys.argv[1] in ["stdio", "streamable-http"]:
+            transport = cast(Literal["stdio", "streamable-http"], sys.argv[1])
 
     # Run the MCP server with the specified transport
     mcp.run(transport=transport)
