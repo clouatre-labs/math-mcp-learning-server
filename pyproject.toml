@@ -56,9 +56,9 @@ dev = [
     "pytest>=8.4.2",
     "pytest-asyncio>=0.25.2",
     "pytest-cov>=4.0.0",
-    # Pin ruff <0.15.0: formatting regression in 0.15.0 and 0.15.1 strips parentheses
+    # Pin ruff >=0.15.1: formatting regression in 0.15.0 strips parentheses
     # from multi-exception except clauses when target-version = "py314" (invalid syntax).
-    # Revisit when a fix lands upstream. See follow-up issue.
+    # Fixed in 0.15.1. See follow-up issue.
     "ruff>=0.15.1,<0.16.0",
 ]
 plotting = [
