@@ -30,7 +30,7 @@ calculate_mcp = FastMCP(name="Calculate Tools")
 @validated_tool
 async def calculate(
     expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
-    ctx: SkipValidation[Context],
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Safely evaluate mathematical expressions with support for basic operations and math functions.
 
@@ -44,7 +44,8 @@ async def calculate(
     """
     from datetime import datetime
 
-    await ctx.info(f"Calculating expression: {expression}")
+    if ctx:
+        await ctx.info(f"Calculating expression: {expression}")
 
     result = await evaluate_with_timeout(expression)
     timestamp = datetime.now().isoformat()
@@ -57,7 +58,8 @@ async def calculate(
         "result": result,
         "timestamp": timestamp,
     }
-    ctx.request_context.lifespan_context.calculation_history.append(history_entry)
+    if ctx and ctx.request_context:
+        ctx.request_context.lifespan_context.calculation_history.append(history_entry)
 
     return {
         "content": [
@@ -81,7 +83,7 @@ async def calculate(
 async def statistics(
     numbers: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
     operation: str,
-    ctx: SkipValidation[Context],
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Perform statistical calculations on a list of numbers.
 
@@ -92,7 +94,8 @@ async def statistics(
             f"Invalid operation: {operation}. Allowed: {', '.join(sorted(ALLOWED_OPERATIONS))}"
         )
 
-    await ctx.info(f"Performing {operation} on {len(numbers)} data points")
+    if ctx:
+        await ctx.info(f"Performing {operation} on {len(numbers)} data points")
 
     import statistics as stats
 
