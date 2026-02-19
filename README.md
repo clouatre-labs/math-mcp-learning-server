@@ -60,16 +60,16 @@ Connect your MCP client to the hosted server:
 **Manual installation:**
 ```bash
 # Basic installation
-uv tool install math-mcp-learning-server
+uvx math-mcp-learning-server
 
 # With matrix operations support
-uv tool install math-mcp-learning-server[scientific]
+uvx --from 'math-mcp-learning-server[scientific]' math-mcp-learning-server
 
 # With visualization support
-uv tool install math-mcp-learning-server[plotting]
+uvx --from 'math-mcp-learning-server[plotting]' math-mcp-learning-server
 
 # All features
-uv tool install math-mcp-learning-server[scientific,plotting]
+uvx --from 'math-mcp-learning-server[scientific,plotting]' math-mcp-learning-server
 ```
 
 ## Tools
