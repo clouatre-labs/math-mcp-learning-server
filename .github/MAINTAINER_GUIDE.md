@@ -58,7 +58,7 @@ Monitor progress at: https://github.com/clouatre-labs/math-mcp-learning-server/a
 
 Verify installation:
 ```bash
-uv pip install math-mcp-learning-server==1.2.0
+uvx math-mcp-learning-server@1.2.0
 ```
 
 ### Dry-Run Release

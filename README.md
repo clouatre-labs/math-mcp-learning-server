@@ -1,12 +1,10 @@
+<!-- mcp-name: io.github.clouatre-labs/math-mcp-learning-server -->
 # Math MCP Learning Server
 
 [![PyPI version](https://badge.fury.io/py/math-mcp-learning-server.svg)](https://pypi.org/project/math-mcp-learning-server/)
 [![Python](https://img.shields.io/pypi/pyversions/math-mcp-learning-server)](https://pypi.org/project/math-mcp-learning-server/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/clouatre-labs/math-mcp-learning-server/actions/workflows/ci.yml/badge.svg)](https://github.com/clouatre-labs/math-mcp-learning-server/actions/workflows/ci.yml)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-
-<!-- mcp-name: io.github.clouatre-labs/math-mcp-learning-server -->
 
 Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Built with [FastMCP 3.0](https://github.com/PrefectHQ/fastmcp) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
 
@@ -62,16 +60,16 @@ Connect your MCP client to the hosted server:
 **Manual installation:**
 ```bash
 # Basic installation
-uv pip install math-mcp-learning-server
+uvx math-mcp-learning-server
 
 # With matrix operations support
-uv pip install math-mcp-learning-server[scientific]
+uvx --from 'math-mcp-learning-server[scientific]' math-mcp-learning-server
 
 # With visualization support
-uv pip install math-mcp-learning-server[plotting]
+uvx --from 'math-mcp-learning-server[plotting]' math-mcp-learning-server
 
 # All features
-uv pip install math-mcp-learning-server[scientific,plotting]
+uvx --from 'math-mcp-learning-server[scientific,plotting]' math-mcp-learning-server
 ```
 
 ## Tools
@@ -136,7 +134,7 @@ uv run pytest tests/ --cov=src --cov-report=html --cov-report=term
 uv run pytest tests/test_matrix_operations.py -v
 ```
 
-**Test Suite:** 154 tests across 6 categories (Agent Card, HTTP Integration, Math, Matrix, Persistence, Visualization)
+**Test Suite:** 122 tests across 6 categories (Agent Card, HTTP Integration, Math, Matrix, Persistence, Visualization); HTTP integration tests run only on release tags.
 
 ### Code Quality
 
@@ -146,6 +144,9 @@ uv run ruff check
 
 # Formatting
 uv run ruff format --check
+
+# Type checking
+uv run pyright src/
 
 # Security checks
 uv run ruff check --select S
