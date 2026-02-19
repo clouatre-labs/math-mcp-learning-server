@@ -52,5 +52,5 @@ def ensure_workspace_directory() -> bool:
         test_file.unlink()
 
         return True
-    except OSError, PermissionError:
+    except (OSError, PermissionError):
         return False
