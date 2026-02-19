@@ -50,17 +50,9 @@ def temp_workspace():
 def mock_context():
     """Create mock context for MCP tool testing."""
 
-    class MockLifespanContext:
-        def __init__(self):
-            self.calculation_history = []
-
-    class MockRequestContext:
-        def __init__(self):
-            self.lifespan_context = MockLifespanContext()
-
     class MockContext:
         def __init__(self):
-            self.request_context = MockRequestContext()
+            self.lifespan_context = type("LC", (), {"calculation_history": []})()
             self.info_logs = []
 
         async def info(self, message: str):
@@ -328,7 +320,9 @@ def test_permission_error_handling(temp_workspace):
 @pytest.mark.asyncio
 async def test_save_calculation_tool(temp_workspace, mock_context):
     """Test save_calculation MCP tool."""
-    result = await save_calculation.fn("portfolio_return", "10000 * 1.07^5", 14025.52, mock_context)
+    result = await save_calculation.raw_function(
+        "portfolio_return", "10000 * 1.07^5", 14025.52, mock_context
+    )
 
     assert isinstance(result, dict)
     assert "content" in result
@@ -347,8 +341,8 @@ async def test_save_calculation_tool(temp_workspace, mock_context):
     assert "topic" in annotations
 
     # Check session history was updated
-    assert len(mock_context.request_context.lifespan_context.calculation_history) == 1
-    history_entry = mock_context.request_context.lifespan_context.calculation_history[0]
+    assert len(mock_context.lifespan_context.calculation_history) == 1
+    history_entry = mock_context.lifespan_context.calculation_history[0]
     assert history_entry["type"] == "save_calculation"
     assert history_entry["name"] == "portfolio_return"
 
@@ -360,7 +354,7 @@ async def test_load_variable_tool(temp_workspace, mock_context):
     _workspace_manager.save_variable("circle_area", "pi * 5^2", 78.54, {"topic": "geometry"})
 
     # Then load it using the MCP tool
-    result = await load_variable.fn("circle_area", mock_context)
+    result = await load_variable("circle_area", mock_context)
 
     assert isinstance(result, dict)
     assert "content" in result
@@ -377,13 +371,13 @@ async def test_load_variable_tool(temp_workspace, mock_context):
     assert annotations["variable_name"] == "circle_area"
 
     # Check session history was updated
-    assert len(mock_context.request_context.lifespan_context.calculation_history) == 1
+    assert len(mock_context.lifespan_context.calculation_history) == 1
 
 
 @pytest.mark.asyncio
 async def test_load_variable_not_found(temp_workspace, mock_context):
     """Test load_variable tool with nonexistent variable."""
-    result = await load_variable.fn("nonexistent_var", mock_context)
+    result = await load_variable("nonexistent_var", mock_context)
 
     assert isinstance(result, dict)
     content = result["content"][0]
@@ -406,8 +400,7 @@ async def test_workspace_resource(temp_workspace, mock_context):
     mcp = FastMCP("test")
     ctx = Context(mcp)
     ctx.info = AsyncMock()  # Mock the info method to avoid needing request_context
-    with set_context(ctx):
-        result = await get_workspace.fn()
+    result = await get_workspace(ctx)
 
     assert isinstance(result, str)
     assert "2 variables" in result
@@ -423,8 +416,7 @@ async def test_workspace_resource_empty(temp_workspace, mock_context):
     mcp = FastMCP("test")
     ctx = Context(mcp)
     ctx.info = AsyncMock()  # Mock the info method to avoid needing request_context
-    with set_context(ctx):
-        result = await get_workspace.fn()
+    result = await get_workspace(ctx)
 
     assert isinstance(result, str)
     assert "Workspace is empty" in result
@@ -439,14 +431,14 @@ async def test_save_calculation_validation(temp_workspace, mock_context):
     """Test input validation for save_calculation tool."""
     # Empty name
     with pytest.raises(ValueError, match="Variable name cannot be empty"):
-        await save_calculation.fn("", "2 + 2", 4.0, mock_context)
+        await save_calculation("", "2 + 2", 4.0, mock_context)
 
     # Invalid characters in name
     with pytest.raises(ValueError, match="Variable name must contain only"):
-        await save_calculation.fn("invalid name!", "2 + 2", 4.0, mock_context)
+        await save_calculation("invalid name!", "2 + 2", 4.0, mock_context)
 
     # Valid names should work
-    result = await save_calculation.fn("valid_name-123", "2 + 2", 4.0, mock_context)
+    result = await save_calculation.raw_function("valid_name-123", "2 + 2", 4.0, mock_context)
     assert "Success" in result["content"][0]["text"]
 
 
@@ -457,13 +449,13 @@ async def test_save_calculation_validation(temp_workspace, mock_context):
 async def test_integration_with_calculation_history(temp_workspace, mock_context):
     """Test that persistence integrates properly with existing calculation history."""
     # Save a calculation
-    await save_calculation.fn("test_var", "5 * 5", 25.0, mock_context)
+    await save_calculation.raw_function("test_var", "5 * 5", 25.0, mock_context)
 
     # Load the calculation
-    await load_variable.fn("test_var", mock_context)
+    await load_variable("test_var", mock_context)
 
     # Check that both operations are in session history
-    history = mock_context.request_context.lifespan_context.calculation_history
+    history = mock_context.lifespan_context.calculation_history
     assert len(history) == 2
 
     save_entry = history[0]

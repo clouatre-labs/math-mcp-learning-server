@@ -3,7 +3,7 @@ Calculate Tools Sub-Server
 FastMCP sub-server for mathematical calculations, statistics, and unit conversions.
 """
 
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
@@ -58,8 +58,8 @@ async def calculate(
         "result": result,
         "timestamp": timestamp,
     }
-    if ctx and ctx.request_context:
-        ctx.request_context.lifespan_context.calculation_history.append(history_entry)
+    if ctx and ctx.lifespan_context:
+        cast(Any, ctx.lifespan_context).calculation_history.append(history_entry)
 
     return {
         "content": [
@@ -143,7 +143,7 @@ async def compound_interest(
     rate: float,
     time: float,
     compounds_per_year: int = 1,
-    ctx: Context = None,  # type: ignore[assignment]
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Calculate compound interest for investments.
 
@@ -193,7 +193,7 @@ async def convert_units(
     from_unit: str,
     to_unit: str,
     unit_type: str,
-    ctx: Context = None,  # type: ignore[assignment]
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Convert between different units of measurement.
 

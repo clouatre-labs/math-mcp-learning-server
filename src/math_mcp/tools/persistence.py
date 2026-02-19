@@ -4,7 +4,7 @@ FastMCP sub-server for saving and loading calculations from persistent workspace
 """
 
 from datetime import datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
@@ -60,9 +60,7 @@ async def save_calculation(
     metadata = {
         "difficulty": difficulty,
         "topic": topic,
-        "session_id": id(ctx.request_context.lifespan_context)
-        if ctx and ctx.request_context
-        else None,
+        "session_id": id(ctx.lifespan_context) if ctx and ctx.lifespan_context else None,
     }
 
     from math_mcp.persistence.workspace import _workspace_manager
@@ -76,8 +74,8 @@ async def save_calculation(
         "result": result,
         "timestamp": datetime.now().isoformat(),
     }
-    if ctx and ctx.request_context:
-        ctx.request_context.lifespan_context.calculation_history.append(history_entry)
+    if ctx and ctx.lifespan_context:
+        cast(Any, ctx.lifespan_context).calculation_history.append(history_entry)
 
     return {
         "content": [
@@ -140,8 +138,8 @@ async def load_variable(name: str, ctx: SkipValidation[Context | None] = None) -
         "result": result_data["result"],
         "timestamp": datetime.now().isoformat(),
     }
-    if ctx and ctx.request_context:
-        ctx.request_context.lifespan_context.calculation_history.append(history_entry)
+    if ctx and ctx.lifespan_context:
+        cast(Any, ctx.lifespan_context).calculation_history.append(history_entry)
 
     return {
         "content": [

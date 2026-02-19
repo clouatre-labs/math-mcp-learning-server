@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Math MCP Server - FastMCP 2.0 Implementation
+Math MCP Server - FastMCP 3.0 Implementation
 Educational MCP server demonstrating all three MCP pillars: Tools, Resources, and Prompts.
-Uses FastMCP 2.0 patterns with structured output and multi-transport support.
+Uses FastMCP 3.0 patterns with structured output and multi-transport support.
 """
 
 import logging
@@ -99,7 +99,7 @@ async def build_agent_card() -> AgentCard:
         AgentCard: Complete A2A v0.3 agent card with all required fields.
     """
     # Introspect tools from the MCP server
-    tools = (await mcp.get_tools()).values()
+    tools = await mcp.list_tools()
 
     # Build skills from tools
     skills: list[AgentSkill] = []
@@ -128,7 +128,7 @@ async def build_agent_card() -> AgentCard:
         {
             "protocolVersion": "1.0",
             "name": "Math Learning Server",
-            "description": "Educational MCP server demonstrating FastMCP 2.0 best practices for math operations, visualization, and persistent workspaces.",
+            "description": "Educational MCP server demonstrating FastMCP 3.0 best practices for math operations, visualization, and persistent workspaces.",
             "version": version,
             "capabilities": {
                 "streaming": False,
