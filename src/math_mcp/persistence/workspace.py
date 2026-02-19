@@ -38,7 +38,7 @@ class WorkspaceManager:
                 with open(self._workspace_file, encoding="utf-8") as f:
                     data = json.load(f)
                     return WorkspaceData(**data)
-        except (json.JSONDecodeError, FileNotFoundError, PermissionError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             logging.warning(f"Failed to load workspace: {e}. Creating new workspace.")
         except Exception as e:
             logging.error(f"Unexpected error loading workspace: {e}")
@@ -73,7 +73,7 @@ class WorkspaceManager:
             temp_file.replace(self._workspace_file)
             return True
 
-        except (PermissionError, OSError) as e:
+        except OSError as e:
             logging.error(f"Failed to save workspace: {e}")
             return False
 
