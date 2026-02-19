@@ -12,31 +12,23 @@ Build capabilities LLMs lack natively: **persistent state**, **visual output**, 
 - **Visualization** (v0.6.0--v0.7.0) -- Function plots, histograms, scatter/line/box/financial charts
 - **Production Hardening** (v0.9.0) -- Rate limiting, input validation, structured logging, CI matrix
 - **Matrix Operations** (v0.10.0) -- Multiply, transpose, determinant, inverse, eigenvalues via NumPy
+- **FastMCP 3.0 Upgrade** (v0.11.0) -- Upgraded from FastMCP 2.x to 3.0; migrated to [PrefectHQ/fastmcp](https://github.com/PrefectHQ/fastmcp); adopted streamable-http transport
 
 ## Upcoming
-
-### FastMCP 3.0 Upgrade
-
-**Status:** Waiting for stable release (beta 2 released Feb 8, 2026).
-
-FastMCP 3.0 is designed as a low-friction upgrade. Per the [official upgrade guide](https://gofastmcp.com/development/upgrade-guide), most servers need no code changes. Our codebase uses none of the affected breaking changes (WSTransport, auth provider env vars, component enable/disable API, listing-methods-as-dicts, PromptMessage, sync ctx.set_state/get_state).
-
-New capabilities available after upgrade:
-- Providers and Transforms (component-level composition and filtering)
-- Per-component authorization and versioning
-- Hot reload during development
-- OpenTelemetry instrumentation
-- Decorated functions remain directly callable (useful for testing)
-
-**Migration scope:** Likely minimal. Our middleware (`add_middleware()`) is unchanged in 3.0. Primary effort is testing, not rewriting.
-
-**Action:** Track [FastMCP releases](https://github.com/jlowin/fastmcp/releases). Upgrade when stable lands.
 
 ### Test Coverage Expansion
 
 - MCP resources and prompts testing (currently untested via protocol)
 - End-to-end workflow tests (calculate, save, load, visualize)
 - Property-based testing with Hypothesis
+
+### FastMCP 3.0 Features
+
+New capabilities available with the 3.0 upgrade:
+- ResponseLimitingMiddleware for output size control
+- `ctx.transport` for transport-aware tool behavior
+- Lifespan composition for modular startup/shutdown
+- OpenTelemetry instrumentation support
 
 ### Production Hardening
 
@@ -53,7 +45,7 @@ New capabilities available after upgrade:
 ## Architecture Principles
 
 - **Single server** -- one focused MCP, not multiple servers
-- **Transport agnostic** -- same functionality across stdio/HTTP/SSE
+- **Transport agnostic** -- same functionality across stdio/HTTP (streamable-http)
 - **Progressive enhancement** -- advanced features are optional extras
 - **Minimal core dependencies** -- keep base installation lightweight
 - **Graceful degradation** -- clear errors when optional features are unavailable
