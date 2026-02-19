@@ -143,7 +143,7 @@ async def compound_interest(
     rate: float,
     time: float,
     compounds_per_year: int = 1,
-    ctx: Context = None,  # type: ignore[assignment]
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Calculate compound interest for investments.
 
@@ -193,7 +193,7 @@ async def convert_units(
     from_unit: str,
     to_unit: str,
     unit_type: str,
-    ctx: Context = None,  # type: ignore[assignment]
+    ctx: SkipValidation[Context | None] = None,
 ) -> dict[str, Any]:
     """Convert between different units of measurement.
 
