@@ -158,6 +158,7 @@ The `calculate` tool uses restricted `eval()` with a whitelist of allowed charac
 
 ## Links
 
+- [Architecture](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/ARCHITECTURE.md)
 - [Cloud Deployment Guide](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/CLOUD_DEPLOYMENT.md)
 - [Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/EXAMPLES.md)
 - [Contributing Guidelines](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md)
