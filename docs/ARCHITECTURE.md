@@ -108,7 +108,11 @@ FastMCP's `@mcp.prompt()` decorator registers reusable prompt templates that Cla
 |-----|-------|--------|
 | [ADR-001](adr/001-eval-sandbox.md) | Restricted eval() Sandbox | Accepted |
 | [ADR-002](adr/002-monolith-decomposition.md) | Monolith-then-Modules Decomposition | Accepted |
-| [ADR-003](adr/003-fastmcp-3-upgrade.md) | FastMCP 3.0 Upgrade | Accepted |
+| [ADR-003](adr/003-fastmcp-3-upgrade.md) | FastMCP 3.0 Early Adoption | Accepted |
+| [ADR-004](adr/004-asyncio-to-thread.md) | asyncio.to_thread() over ProcessPoolExecutor | Accepted |
+| [ADR-005](adr/005-pydantic-validation.md) | Pydantic + @validated_tool for Input Validation | Accepted |
+| [ADR-006](adr/006-matplotlib-agg.md) | Matplotlib + Agg Backend for Visualization | Accepted |
+| [ADR-007](adr/007-json-workspace-persistence.md) | JSON Files for Workspace Persistence | Accepted |
 
 ## Development Workflow
 
