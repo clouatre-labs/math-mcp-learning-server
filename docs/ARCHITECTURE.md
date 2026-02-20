@@ -102,6 +102,14 @@ graph TD
 
 FastMCP's `@mcp.prompt()` decorator registers reusable prompt templates that Claude can invoke. Math MCP Server provides two prompts via the resources sub-server: `math_tutor` (structured tutoring prompts with configurable difficulty and examples) and `formula_explainer` (detailed formula breakdowns with variable definitions, context, and real-world applications). See [FastMCP Prompts Documentation](https://gofastmcp.com/servers/prompts) for details.
 
+## Architecture Decision Records
+
+| ADR | Title | Status |
+|-----|-------|--------|
+| [ADR-001](adr/001-eval-sandbox.md) | Restricted eval() Sandbox | Accepted |
+| [ADR-002](adr/002-monolith-decomposition.md) | Monolith-then-Modules Decomposition | Accepted |
+| [ADR-003](adr/003-fastmcp-3-upgrade.md) | FastMCP 3.0 Upgrade | Accepted |
+
 ## Development Workflow
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for feature branch process, commit standards, testing requirements, and PR review guidelines.
