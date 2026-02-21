@@ -98,10 +98,19 @@ async def test_calculate_tool():
         def __init__(self):
             self.lifespan_context = type("LC", (), {"calculation_history": []})()
             self.info_logs = []
+            self._state: dict = {}
 
         async def info(self, message: str):
             """Mock info logging."""
             self.info_logs.append(message)
+
+        async def set_state(self, key: str, value: object) -> None:
+            """Mock state storage (session-scoped)."""
+            self._state[key] = value
+
+        async def get_state(self, key: str) -> object:
+            """Mock state retrieval (session-scoped)."""
+            return self._state.get(key)
 
     ctx = MockContext()
     result = await calculate.raw_function("2 + 3", ctx)
@@ -549,9 +558,18 @@ async def test_variable_name_validation():
     class MockContext:
         def __init__(self):
             self.lifespan_context = type("LC", (), {"calculation_history": []})()
+            self._state: dict = {}
 
         async def info(self, message: str):
             pass
+
+        async def set_state(self, key: str, value: object) -> None:
+            """Mock state storage (session-scoped)."""
+            self._state[key] = value
+
+        async def get_state(self, key: str) -> object:
+            """Mock state retrieval (session-scoped)."""
+            return self._state.get(key)
 
     ctx = MockContext()
 

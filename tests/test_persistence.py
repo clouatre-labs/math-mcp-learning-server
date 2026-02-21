@@ -54,10 +54,19 @@ def mock_context():
         def __init__(self):
             self.lifespan_context = type("LC", (), {"calculation_history": []})()
             self.info_logs = []
+            self._state: dict = {}
 
         async def info(self, message: str):
             """Mock info logging."""
             self.info_logs.append(message)
+
+        async def set_state(self, key: str, value: object) -> None:
+            """Mock state storage (session-scoped)."""
+            self._state[key] = value
+
+        async def get_state(self, key: str) -> object:
+            """Mock state retrieval (session-scoped)."""
+            return self._state.get(key)
 
     return MockContext()
 
@@ -481,6 +490,58 @@ def test_persistent_across_manager_instances(temp_workspace):
     assert loaded["success"] is True
     assert loaded["expression"] == "100 / 4"
     assert loaded["result"] == 25.0
+
+
+# === SESSION ID TESTS ===
+
+
+@pytest.mark.asyncio
+async def test_session_id_is_valid_uuid(temp_workspace, mock_context):
+    """Test that session_id in saved metadata is a valid UUID string (happy path)."""
+    import uuid
+
+    result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, mock_context)
+
+    # Extract session_id from annotations
+    annotations = result["content"][0]["annotations"]
+    session_id = annotations.get("session_id")
+
+    # Verify it's a valid UUID string
+    assert session_id is not None
+    try:
+        uuid.UUID(session_id)
+    except ValueError:
+        pytest.fail(f"session_id '{session_id}' is not a valid UUID")
+
+
+@pytest.mark.asyncio
+async def test_session_id_none_when_ctx_is_none(temp_workspace):
+    """Test that ctx=None produces None session_id (edge case)."""
+    result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, None)
+
+    # Extract session_id from annotations
+    annotations = result["content"][0]["annotations"]
+    session_id = annotations.get("session_id")
+
+    # Verify it's None when no context
+    assert session_id is None
+
+
+@pytest.mark.asyncio
+async def test_session_id_stability_same_context(temp_workspace, mock_context):
+    """Test that two save_calculation calls on the same MockContext produce the same session_id."""
+    # First save
+    result1 = await save_calculation.raw_function("var1", "2 + 2", 4.0, mock_context)
+    session_id_1 = result1["content"][0]["annotations"].get("session_id")
+
+    # Second save on same context
+    result2 = await save_calculation.raw_function("var2", "3 + 3", 6.0, mock_context)
+    session_id_2 = result2["content"][0]["annotations"].get("session_id")
+
+    # Both should be the same UUID (stable across calls on same context)
+    assert session_id_1 is not None
+    assert session_id_2 is not None
+    assert session_id_1 == session_id_2
 
 
 if __name__ == "__main__":
