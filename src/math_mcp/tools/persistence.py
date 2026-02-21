@@ -19,6 +19,7 @@ from math_mcp.settings import (
     MAX_VARIABLE_NAME_LENGTH,
     validated_tool,
 )
+from math_mcp.tools._session import _get_or_create_session_id
 
 # Create sub-server for persistence tools
 persistence_mcp = FastMCP(name="Persistence Tools")
@@ -60,7 +61,7 @@ async def save_calculation(
     metadata = {
         "difficulty": difficulty,
         "topic": topic,
-        "session_id": id(ctx.lifespan_context) if ctx and ctx.lifespan_context else None,
+        "session_id": await _get_or_create_session_id(ctx),
     }
 
     from math_mcp.persistence.workspace import _workspace_manager
