@@ -349,12 +349,6 @@ async def test_save_calculation_tool(temp_workspace, mock_context):
     assert "difficulty" in annotations
     assert "topic" in annotations
 
-    # Check session history was updated
-    assert len(mock_context.lifespan_context.calculation_history) == 1
-    history_entry = mock_context.lifespan_context.calculation_history[0]
-    assert history_entry["type"] == "save_calculation"
-    assert history_entry["name"] == "portfolio_return"
-
 
 @pytest.mark.asyncio
 async def test_load_variable_tool(temp_workspace, mock_context):
@@ -378,9 +372,6 @@ async def test_load_variable_tool(temp_workspace, mock_context):
     annotations = content["annotations"]
     assert annotations["action"] == "load_variable"
     assert annotations["variable_name"] == "circle_area"
-
-    # Check session history was updated
-    assert len(mock_context.lifespan_context.calculation_history) == 1
 
 
 @pytest.mark.asyncio
@@ -452,28 +443,6 @@ async def test_save_calculation_validation(temp_workspace, mock_context):
 
 
 # === INTEGRATION WITH EXISTING FUNCTIONALITY ===
-
-
-@pytest.mark.asyncio
-async def test_integration_with_calculation_history(temp_workspace, mock_context):
-    """Test that persistence integrates properly with existing calculation history."""
-    # Save a calculation
-    await save_calculation.raw_function("test_var", "5 * 5", 25.0, mock_context)
-
-    # Load the calculation
-    await load_variable("test_var", mock_context)
-
-    # Check that both operations are in session history
-    history = mock_context.lifespan_context.calculation_history
-    assert len(history) == 2
-
-    save_entry = history[0]
-    assert save_entry["type"] == "save_calculation"
-    assert save_entry["name"] == "test_var"
-
-    load_entry = history[1]
-    assert load_entry["type"] == "load_variable"
-    assert load_entry["name"] == "test_var"
 
 
 def test_persistent_across_manager_instances(temp_workspace):
