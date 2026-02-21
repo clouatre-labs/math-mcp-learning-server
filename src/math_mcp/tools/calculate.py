@@ -3,7 +3,7 @@ Calculate Tools Sub-Server
 FastMCP sub-server for mathematical calculations, statistics, and unit conversions.
 """
 
-from typing import Annotated, Any, cast
+from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
@@ -50,16 +50,6 @@ async def calculate(
     result = await evaluate_with_timeout(expression)
     timestamp = datetime.now().isoformat()
     difficulty = _classify_expression_difficulty(expression)
-
-    # Add to calculation history
-    history_entry = {
-        "type": "calculation",
-        "expression": expression,
-        "result": result,
-        "timestamp": timestamp,
-    }
-    if ctx and ctx.lifespan_context:
-        cast(Any, ctx.lifespan_context).calculation_history.append(history_entry)
 
     return {
         "content": [

@@ -3,8 +3,7 @@ Persistence Tools Sub-Server
 FastMCP sub-server for saving and loading calculations from persistent workspace.
 """
 
-from datetime import datetime
-from typing import Annotated, Any, cast
+from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
@@ -68,16 +67,6 @@ async def save_calculation(
 
     result_data = _workspace_manager.save_variable(name, expression, result, metadata)
 
-    history_entry = {
-        "type": "save_calculation",
-        "name": name,
-        "expression": expression,
-        "result": result,
-        "timestamp": datetime.now().isoformat(),
-    }
-    if ctx and ctx.lifespan_context:
-        cast(Any, ctx.lifespan_context).calculation_history.append(history_entry)
-
     return {
         "content": [
             {
@@ -131,16 +120,6 @@ async def load_variable(name: str, ctx: SkipValidation[Context | None] = None) -
                 }
             ]
         }
-
-    history_entry = {
-        "type": "load_variable",
-        "name": name,
-        "expression": result_data["expression"],
-        "result": result_data["result"],
-        "timestamp": datetime.now().isoformat(),
-    }
-    if ctx and ctx.lifespan_context:
-        cast(Any, ctx.lifespan_context).calculation_history.append(history_entry)
 
     return {
         "content": [
