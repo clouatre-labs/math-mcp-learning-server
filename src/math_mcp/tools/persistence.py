@@ -3,7 +3,7 @@ Persistence Tools Sub-Server
 FastMCP sub-server for saving and loading calculations from persistent workspace.
 """
 
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
@@ -13,6 +13,7 @@ from math_mcp.eval import (
     _classify_expression_topic,
     validate_variable_name,
 )
+from math_mcp.models import WorkspaceResult
 from math_mcp.settings import (
     MAX_EXPRESSION_LENGTH,
     MAX_VARIABLE_NAME_LENGTH,
@@ -37,7 +38,7 @@ async def save_calculation(
     expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
     result: float,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> WorkspaceResult:
     """Save calculation to persistent workspace (survives restarts).
 
     Args:
@@ -67,8 +68,8 @@ async def save_calculation(
 
     result_data = _workspace_manager.save_variable(name, expression, result, metadata)
 
-    return {
-        "content": [
+    return WorkspaceResult(
+        content=[
             {
                 "type": "text",
                 "text": f"**Saved Variable:** {name} = {result}\n**Expression:** {expression}\n**Status:** {'Success' if result_data['success'] else 'Failed'}",
@@ -81,11 +82,11 @@ async def save_calculation(
                 },
             }
         ]
-    }
+    )
 
 
 @persistence_mcp.tool()
-async def load_variable(name: str, ctx: SkipValidation[Context | None] = None) -> dict[str, Any]:
+async def load_variable(name: str, ctx: SkipValidation[Context | None] = None) -> WorkspaceResult:
     """Load previously saved calculation result from workspace.
 
     Args:
@@ -107,8 +108,8 @@ async def load_variable(name: str, ctx: SkipValidation[Context | None] = None) -
         if available:
             error_msg += f"\nAvailable variables: {', '.join(available)}"
 
-        return {
-            "content": [
+        return WorkspaceResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Error:** {error_msg}",
@@ -119,10 +120,10 @@ async def load_variable(name: str, ctx: SkipValidation[Context | None] = None) -
                     },
                 }
             ]
-        }
+        )
 
-    return {
-        "content": [
+    return WorkspaceResult(
+        content=[
             {
                 "type": "text",
                 "text": f"**Loaded Variable:** {name} = {result_data['result']}\n**Expression:** {result_data['expression']}\n**Saved:** {result_data['timestamp']}",
@@ -134,4 +135,4 @@ async def load_variable(name: str, ctx: SkipValidation[Context | None] = None) -
                 },
             }
         ]
-    }
+    )

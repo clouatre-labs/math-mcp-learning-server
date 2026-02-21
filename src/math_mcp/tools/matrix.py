@@ -10,6 +10,7 @@ from typing import Annotated, Any
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
 
+from math_mcp.models import MatrixResult
 from math_mcp.settings import MAX_ARRAY_SIZE, validated_tool
 
 # Try importing numpy for matrix operations
@@ -108,7 +109,7 @@ async def matrix_multiply(
     matrix_a: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     matrix_b: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixResult:
     """Multiply two matrices (A × B).
 
     Args:
@@ -138,8 +139,8 @@ async def matrix_multiply(
 
         result = np.matmul(mat_a, mat_b)  # type: ignore
 
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Multiplication Result:**\n{_format_matrix(result)}",
@@ -151,11 +152,11 @@ async def matrix_multiply(
                     },
                 }
             ]
-        }
+        )
 
     except ValueError as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Multiplication Error:** {str(e)}",
@@ -167,10 +168,10 @@ async def matrix_multiply(
                     },
                 }
             ]
-        }
+        )
     except Exception as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Unexpected Error:** {str(e)}",
@@ -182,7 +183,7 @@ async def matrix_multiply(
                     },
                 }
             ]
-        }
+        )
 
 
 @matrix_mcp.tool(
@@ -196,7 +197,7 @@ async def matrix_multiply(
 async def matrix_transpose(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixResult:
     """Transpose a matrix (swap rows and columns).
 
     Args:
@@ -216,8 +217,8 @@ async def matrix_transpose(
         mat = _validate_matrix(matrix)
         result = mat.T  # type: ignore
 
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Transpose Result:**\n{_format_matrix(result)}",
@@ -230,11 +231,11 @@ async def matrix_transpose(
                     },
                 }
             ]
-        }
+        )
 
     except ValueError as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Transpose Error:** {str(e)}",
@@ -246,10 +247,10 @@ async def matrix_transpose(
                     },
                 }
             ]
-        }
+        )
     except Exception as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Unexpected Error:** {str(e)}",
@@ -261,7 +262,7 @@ async def matrix_transpose(
                     },
                 }
             ]
-        }
+        )
 
 
 @matrix_mcp.tool(
@@ -275,7 +276,7 @@ async def matrix_transpose(
 async def matrix_determinant(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixResult:
     """Calculate the determinant of a square matrix.
 
     Args:
@@ -302,8 +303,8 @@ async def matrix_determinant(
 
         det = la.det(mat)  # type: ignore
 
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Determinant:** {det:.6g}",
@@ -316,11 +317,11 @@ async def matrix_determinant(
                     },
                 }
             ]
-        }
+        )
 
     except ValueError as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Determinant Error:** {str(e)}",
@@ -332,10 +333,10 @@ async def matrix_determinant(
                     },
                 }
             ]
-        }
+        )
     except Exception as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Unexpected Error:** {str(e)}",
@@ -347,7 +348,7 @@ async def matrix_determinant(
                     },
                 }
             ]
-        }
+        )
 
 
 @matrix_mcp.tool(
@@ -361,7 +362,7 @@ async def matrix_determinant(
 async def matrix_inverse(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixResult:
     """Calculate the inverse of a square matrix.
 
     Args:
@@ -411,8 +412,8 @@ async def matrix_inverse(
 
         result = la.inv(mat)  # type: ignore
 
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Inverse Result:**\n{_format_matrix(result)}",
@@ -425,11 +426,11 @@ async def matrix_inverse(
                     },
                 }
             ]
-        }
+        )
 
     except ValueError as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Inverse Error:** {str(e)}",
@@ -441,10 +442,10 @@ async def matrix_inverse(
                     },
                 }
             ]
-        }
+        )
     except Exception as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Unexpected Error:** {str(e)}",
@@ -456,7 +457,7 @@ async def matrix_inverse(
                     },
                 }
             ]
-        }
+        )
 
 
 @matrix_mcp.tool(
@@ -470,7 +471,7 @@ async def matrix_inverse(
 async def matrix_eigenvalues(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixResult:
     """Calculate the eigenvalues of a square matrix.
 
     Args:
@@ -521,8 +522,8 @@ async def matrix_eigenvalues(
 
         eigenval_str = ", ".join([_format_complex_eigenvalue(val) for val in eigenvalues])
 
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Eigenvalues:** [{eigenval_str}]",
@@ -535,11 +536,11 @@ async def matrix_eigenvalues(
                     },
                 }
             ]
-        }
+        )
 
     except ValueError as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Matrix Eigenvalues Error:** {str(e)}",
@@ -551,10 +552,10 @@ async def matrix_eigenvalues(
                     },
                 }
             ]
-        }
+        )
     except Exception as e:
-        return {
-            "content": [
+        return MatrixResult(
+            content=[
                 {
                     "type": "text",
                     "text": f"**Unexpected Error:** {str(e)}",
@@ -566,7 +567,7 @@ async def matrix_eigenvalues(
                     },
                 }
             ]
-        }
+        )
 
 
 __all__ = [

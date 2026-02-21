@@ -98,6 +98,20 @@ graph TD
 - **Lifespan Context**: `@asynccontextmanager` in server.py manages AppContext (in-memory state) across the server lifetime. Lost on restart; use workspace persistence for recovery.
 - **Optional Context**: All tools accept `ctx: SkipValidation[Context | None] = None` (never required). Guarded with `if ctx:` before use; enables tools to work with or without MCP runtime context.
 
+## Module Map
+
+| Module | Purpose |
+|--------|---------|
+| `server.py` | Composition root, middleware stack, lifespan context |
+| `models.py` | Pydantic BaseModel response types (CalculationResult, MatrixResult, WorkspaceResult, VisualizationResult) |
+| `tools/calculate.py` | Math operations (calculate, statistics, compound_interest, convert_units) |
+| `tools/matrix.py` | Matrix operations (multiply, transpose, determinant, inverse, eigenvalues) |
+| `tools/persistence.py` | Workspace persistence (save_calculation, load_variable) |
+| `tools/visualization.py` | Plotting tools (plot_function, create_histogram, plot_line_chart, plot_scatter_chart, plot_box_plot, plot_financial_line) |
+| `resources.py` | MCP resources (math_constants, workspace) and prompts (math_tutor, formula_explainer) |
+| `eval.py` | Restricted eval() sandbox with character/function whitelist |
+| `settings.py` | Configuration (rate limits, workspace paths, feature flags) |
+
 ## Prompts
 
 FastMCP's `@mcp.prompt()` decorator registers reusable prompt templates that Claude can invoke. Math MCP Server provides two prompts via the resources sub-server: `math_tutor` (structured tutoring prompts with configurable difficulty and examples) and `formula_explainer` (detailed formula breakdowns with variable definitions, context, and real-world applications). See [FastMCP Prompts Documentation](https://gofastmcp.com/servers/prompts) for details.

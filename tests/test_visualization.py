@@ -9,6 +9,8 @@ suppress unused import warnings as these imports are used for dependency checkin
 
 import pytest
 
+from math_mcp.models import VisualizationResult
+
 # === HELPER FIXTURES ===
 
 
@@ -81,9 +83,8 @@ async def test_plot_function_basic_quadratic(mock_context):
 
     result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, mock_context)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     assert "data" in content
     assert content["mimeType"] == "image/png"
@@ -119,9 +120,8 @@ async def test_plot_function_trigonometric(mock_context):
 
     result = await plot_function.raw_function("sin(x)", (-3.14159, 3.14159), 100, mock_context)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     assert content["annotations"]["expression"] == "sin(x)"
     assert content["annotations"]["difficulty"] == "advanced"
@@ -141,8 +141,8 @@ async def test_plot_function_invalid_range(mock_context):
     # x_min >= x_max
     result = await plot_function.raw_function("x**2", (5.0, 5.0), 100, mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "text"
     assert "Plot Error" in content["text"]
     assert "minimum must be less than maximum" in content["text"]
@@ -162,8 +162,8 @@ async def test_plot_function_invalid_num_points(mock_context):
     # raw_function bypasses validate_call; the manual guard returns an error dict
     result = await plot_function.raw_function("x**2", (-5.0, 5.0), 1, mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "text"
     assert "Plot Error" in content["text"]
     assert "num_points must be at least 2" in content["text"]
@@ -184,8 +184,8 @@ async def test_plot_function_with_domain_error(mock_context):
     result = await plot_function.raw_function("sqrt(x)", (-5.0, 5.0), 50, mock_context)
 
     # Should still succeed but with NaN values for negative x
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     assert content["annotations"]["expression"] == "sqrt(x)"
 
@@ -203,9 +203,8 @@ async def test_plot_function_without_context():
 
     result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, None)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
 
 
@@ -259,9 +258,8 @@ async def test_create_histogram_basic(mock_context):
     data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
     result = await create_histogram.raw_function(data, 5, "Test Distribution", mock_context)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     assert "data" in content
     assert content["mimeType"] == "image/png"
@@ -300,8 +298,8 @@ async def test_create_histogram_empty_data(mock_context):
 
     result = await create_histogram.raw_function([], 10, "Test", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "text"
     assert "Histogram Error" in content["text"]
     assert "empty data" in content["text"]
@@ -321,8 +319,8 @@ async def test_create_histogram_single_value(mock_context):
 
     result = await create_histogram.raw_function([42.0], 10, "Test", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "text"
     assert "Histogram Error" in content["text"]
     assert "at least 2 data points" in content["text"]
@@ -359,8 +357,8 @@ async def test_create_histogram_large_dataset(mock_context):
     data = [float(i) for i in range(100)]
     result = await create_histogram.raw_function(data, 20, "Large Dataset", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     assert content["annotations"]["data_points"] == 100
     assert content["annotations"]["bins"] == 20
@@ -380,8 +378,8 @@ async def test_create_histogram_custom_title(mock_context):
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
     result = await create_histogram.raw_function(data, 5, "Custom Title", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     # Title is embedded in the image, can't directly verify but ensure it doesn't error
 
@@ -400,8 +398,8 @@ async def test_create_histogram_without_context():
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
     result = await create_histogram.raw_function(data, 5, "Test", None)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
 
 
@@ -421,17 +419,15 @@ async def test_visualization_tools_return_proper_structure(mock_context):
 
     # Test plot_function
     plot_result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, mock_context)
-    assert "content" in plot_result
-    assert isinstance(plot_result["content"], list)
-    assert len(plot_result["content"]) == 1
-    assert "annotations" in plot_result["content"][0]
+    assert isinstance(plot_result.content, list)
+    assert len(plot_result.content) == 1
+    assert "annotations" in plot_result.content[0]
 
     # Test create_histogram
     histogram_result = await create_histogram.raw_function([1.0, 2.0, 3.0], 5, "Test", mock_context)
-    assert "content" in histogram_result
-    assert isinstance(histogram_result["content"], list)
-    assert len(histogram_result["content"]) == 1
-    assert "annotations" in histogram_result["content"][0]
+    assert isinstance(histogram_result.content, list)
+    assert len(histogram_result.content) == 1
+    assert "annotations" in histogram_result.content[0]
 
 
 @pytest.mark.asyncio
@@ -447,7 +443,7 @@ async def test_visualization_educational_annotations():
 
     # Test plot_function annotations
     plot_result = await plot_function.raw_function("sin(x)", (-3.14, 3.14), 100, None)
-    plot_annotations = plot_result["content"][0]["annotations"]
+    plot_annotations = plot_result.content[0]["annotations"]
     assert "difficulty" in plot_annotations
     assert "topic" in plot_annotations
     assert plot_annotations["topic"] == "visualization"
@@ -457,7 +453,7 @@ async def test_visualization_educational_annotations():
     histogram_result = await create_histogram.raw_function(
         [1.0, 2.0, 3.0, 4.0, 5.0], 5, "Test", None
     )
-    hist_annotations = histogram_result["content"][0]["annotations"]
+    hist_annotations = histogram_result.content[0]["annotations"]
     assert "difficulty" in hist_annotations
     assert hist_annotations["difficulty"] == "intermediate"
     assert "topic" in hist_annotations
@@ -577,8 +573,8 @@ async def test_plot_line_chart_basic(mock_context):
         mock_context,
     )
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     assert content["annotations"]["chart_type"] == "line"
     assert content["annotations"]["data_points"] == 4
@@ -598,8 +594,8 @@ async def test_plot_scatter_chart_basic(mock_context):
         [1.0, 2.0, 3.0], [2.0, 4.0, 6.0], "Test Scatter", "X", "Y", "purple", 50, mock_context
     )
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     assert content["annotations"]["chart_type"] == "scatter"
 
@@ -623,8 +619,8 @@ async def test_plot_box_plot_basic(mock_context):
         mock_context,
     )
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     assert content["annotations"]["chart_type"] == "box_plot"
     assert content["annotations"]["groups"] == 2
@@ -642,8 +638,8 @@ async def test_plot_financial_line_basic(mock_context):
 
     result = await plot_financial_line.raw_function(30, "bullish", 100.0, None, mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "image"
     assert content["annotations"]["chart_type"] == "financial_line"
     assert content["annotations"]["days"] == 30
@@ -665,8 +661,8 @@ async def test_plot_line_chart_error_mismatched_length(mock_context):
         [1.0, 2.0], [1.0], "Test", "X", "Y", None, True, mock_context
     )
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, VisualizationResult)
+    content = result.content[0]
     assert content["type"] == "text"
     assert "same length" in content["text"]
 
@@ -768,11 +764,10 @@ async def test_requires_matplotlib_import_error(mock_context):
         result = await test_decorated_function(5, mock_context)
 
     # Assert: Returns standardized error dict
-    assert isinstance(result, dict)
-    assert "content" in result
-    assert len(result["content"]) == 1
+    assert isinstance(result, VisualizationResult)
+    assert len(result.content) == 1
 
-    content = result["content"][0]
+    content = result.content[0]
     assert content["type"] == "text"
     assert "Matplotlib not available" in content["text"]
     assert "pip install math-mcp-learning-server[plotting]" in content["text"]
@@ -793,6 +788,7 @@ def test_create_function_plot_basic():
     Act: Call create_function_plot with valid inputs
     Assert: Returns base64-encoded PNG bytes
     """
+    pytest.importorskip("matplotlib")
     from math_mcp.visualization import create_function_plot
 
     # Arrange: Simple linear function data
@@ -815,6 +811,7 @@ def test_create_function_plot_with_nan():
     Act: Call create_function_plot with NaN in y_values
     Assert: Returns valid PNG despite NaN (matplotlib handles gracefully)
     """
+    pytest.importorskip("matplotlib")
     import math
 
     from math_mcp.visualization import create_function_plot
@@ -839,6 +836,7 @@ def test_create_histogram_chart_basic():
     Act: Call create_histogram_chart with valid inputs
     Assert: Returns base64-encoded PNG bytes
     """
+    pytest.importorskip("matplotlib")
     from math_mcp.visualization import create_histogram_chart
 
     # Arrange: Sample data with pre-computed statistics
@@ -864,6 +862,7 @@ def test_create_histogram_chart_bins_exceeds_data():
     Act: Call create_histogram_chart with bins > len(data)
     Assert: Returns valid PNG (matplotlib handles gracefully)
     """
+    pytest.importorskip("matplotlib")
     from math_mcp.visualization import create_histogram_chart
 
     # Arrange: Only 3 data points but 10 bins requested

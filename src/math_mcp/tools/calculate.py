@@ -3,7 +3,7 @@ Calculate Tools Sub-Server
 FastMCP sub-server for mathematical calculations, statistics, and unit conversions.
 """
 
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastmcp import Context, FastMCP
 from pydantic import Field, SkipValidation
@@ -13,6 +13,7 @@ from math_mcp.eval import (
     convert_temperature,
     evaluate_with_timeout,
 )
+from math_mcp.models import CalculationResult
 from math_mcp.settings import (
     ALLOWED_OPERATIONS,
     MAX_ARRAY_SIZE,
@@ -31,7 +32,7 @@ calculate_mcp = FastMCP(name="Calculate Tools")
 async def calculate(
     expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> CalculationResult:
     """Safely evaluate mathematical expressions with support for basic operations and math functions.
 
     Supported operations: +, -, *, /, **, ()
@@ -51,8 +52,8 @@ async def calculate(
     timestamp = datetime.now().isoformat()
     difficulty = _classify_expression_difficulty(expression)
 
-    return {
-        "content": [
+    return CalculationResult(
+        content=[
             {
                 "type": "text",
                 "text": f"**Calculation:** {expression} = {result}",
@@ -63,7 +64,7 @@ async def calculate(
                 },
             }
         ]
-    }
+    )
 
 
 @calculate_mcp.tool(
@@ -74,7 +75,7 @@ async def statistics(
     numbers: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
     operation: str,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> CalculationResult:
     """Perform statistical calculations on a list of numbers.
 
     Available operations: mean, median, mode, std_dev, variance
@@ -120,8 +121,8 @@ async def statistics(
         else "basic"
     )
 
-    return {
-        "content": [
+    return CalculationResult(
+        content=[
             {
                 "type": "text",
                 "text": f"**{operation.title()}** of {len(numbers)} numbers: {result_float}",
@@ -133,7 +134,7 @@ async def statistics(
                 },
             }
         ]
-    }
+    )
 
 
 @calculate_mcp.tool()
@@ -143,7 +144,7 @@ async def compound_interest(
     time: float,
     compounds_per_year: int = 1,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> CalculationResult:
     """Calculate compound interest for investments.
 
     Formula: A = P(1 + r/n)^(nt)
@@ -170,8 +171,8 @@ async def compound_interest(
     final_amount = principal * (1 + rate / compounds_per_year) ** (compounds_per_year * time)
     total_interest = final_amount - principal
 
-    return {
-        "content": [
+    return CalculationResult(
+        content=[
             {
                 "type": "text",
                 "text": f"**Compound Interest Calculation:**\nPrincipal: ${principal:,.2f}\nFinal Amount: ${final_amount:,.2f}\nTotal Interest Earned: ${total_interest:,.2f}",
@@ -183,7 +184,7 @@ async def compound_interest(
                 },
             }
         ]
-    }
+    )
 
 
 @calculate_mcp.tool()
@@ -193,7 +194,7 @@ async def convert_units(
     to_unit: str,
     unit_type: str,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> CalculationResult:
     """Convert between different units of measurement.
 
     Supported unit types:
@@ -243,8 +244,8 @@ async def convert_units(
         base_value = value * from_factor
         result = base_value / to_factor
 
-    return {
-        "content": [
+    return CalculationResult(
+        content=[
             {
                 "type": "text",
                 "text": f"**Unit Conversion:** {value} {from_unit} = {result:.4g} {to_unit}",
@@ -257,4 +258,4 @@ async def convert_units(
                 },
             }
         ]
-    }
+    )

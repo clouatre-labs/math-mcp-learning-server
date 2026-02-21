@@ -15,6 +15,7 @@ import pytest
 from fastmcp import FastMCP
 from fastmcp.server.context import Context, set_context
 
+from math_mcp.models import WorkspaceResult
 from math_mcp.persistence.models import WorkspaceData, WorkspaceVariable
 from math_mcp.persistence.storage import (
     ensure_workspace_directory,
@@ -333,9 +334,9 @@ async def test_save_calculation_tool(temp_workspace, mock_context):
         "portfolio_return", "10000 * 1.07^5", 14025.52, mock_context
     )
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
+    assert isinstance(result, WorkspaceResult)
+    assert len(result.content) == 1
+    content = result.content[0]
     assert content["type"] == "text"
     assert "Saved Variable" in content["text"]
     assert "portfolio_return" in content["text"]
@@ -359,9 +360,8 @@ async def test_load_variable_tool(temp_workspace, mock_context):
     # Then load it using the MCP tool
     result = await load_variable("circle_area", mock_context)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
+    assert isinstance(result, WorkspaceResult)
+    content = result.content[0]
     assert content["type"] == "text"
     assert "Loaded Variable" in content["text"]
     assert "circle_area" in content["text"]
@@ -379,8 +379,8 @@ async def test_load_variable_not_found(temp_workspace, mock_context):
     """Test load_variable tool with nonexistent variable."""
     result = await load_variable("nonexistent_var", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
+    assert isinstance(result, WorkspaceResult)
+    content = result.content[0]
     assert "Error" in content["text"]
     assert "not found" in content["text"]
 
@@ -439,7 +439,7 @@ async def test_save_calculation_validation(temp_workspace, mock_context):
 
     # Valid names should work
     result = await save_calculation.raw_function("valid_name-123", "2 + 2", 4.0, mock_context)
-    assert "Success" in result["content"][0]["text"]
+    assert "Success" in result.content[0]["text"]
 
 
 # === INTEGRATION WITH EXISTING FUNCTIONALITY ===
@@ -472,7 +472,7 @@ async def test_session_id_is_valid_uuid(temp_workspace, mock_context):
     result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, mock_context)
 
     # Extract session_id from annotations
-    annotations = result["content"][0]["annotations"]
+    annotations = result.content[0]["annotations"]
     session_id = annotations.get("session_id")
 
     # Verify it's a valid UUID string
@@ -489,7 +489,7 @@ async def test_session_id_none_when_ctx_is_none(temp_workspace):
     result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, None)
 
     # Extract session_id from annotations
-    annotations = result["content"][0]["annotations"]
+    annotations = result.content[0]["annotations"]
     session_id = annotations.get("session_id")
 
     # Verify it's None when no context
@@ -501,11 +501,11 @@ async def test_session_id_stability_same_context(temp_workspace, mock_context):
     """Test that two save_calculation calls on the same MockContext produce the same session_id."""
     # First save
     result1 = await save_calculation.raw_function("var1", "2 + 2", 4.0, mock_context)
-    session_id_1 = result1["content"][0]["annotations"].get("session_id")
+    session_id_1 = result1.content[0]["annotations"].get("session_id")
 
     # Second save on same context
     result2 = await save_calculation.raw_function("var2", "3 + 3", 6.0, mock_context)
-    session_id_2 = result2["content"][0]["annotations"].get("session_id")
+    session_id_2 = result2.content[0]["annotations"].get("session_id")
 
     # Both should be the same UUID (stable across calls on same context)
     assert session_id_1 is not None
