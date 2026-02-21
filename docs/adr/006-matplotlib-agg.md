@@ -15,7 +15,7 @@ Alternatives considered:
 - **Seaborn**: a Matplotlib wrapper. Adds a dependency without adding capability relevant here.
 - **Matplotlib + Agg**: Agg (Anti-Grain Geometry) is a pure-software raster renderer. No display
   server required. Renders to an in-memory PNG buffer; output is base64-encoded and returned as
-  a string -- a self-contained artifact any MCP client can handle.
+  a string, a self-contained artifact any MCP client can handle.
 
 ## Decision
 Use Matplotlib with the Agg backend, explicitly set before any other import:

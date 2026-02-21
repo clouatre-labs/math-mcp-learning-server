@@ -4,8 +4,8 @@
 Accepted
 
 ## Context
-The persistence tools (`tools/persistence.py`) store named workspaces -- sets of user-defined
-variables -- across server restarts. Options considered:
+The persistence tools (`tools/persistence.py`) store named workspaces (sets of user-defined
+variables) across server restarts. Options considered:
 
 - **SQLite**: relational queries, transactions, atomic writes. Overhead is unjustified: workspaces
   are small key-value stores with simple read/write access patterns. Adds a dependency and a

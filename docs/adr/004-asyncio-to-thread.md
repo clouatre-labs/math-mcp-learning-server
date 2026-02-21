@@ -4,8 +4,8 @@
 Accepted
 
 ## Context
-`evaluate_with_timeout()` in `eval.py` runs `safe_eval_expression()` -- a synchronous, CPU-bound
-`eval()` call -- inside an async server. Two execution strategies were considered and one was
+`evaluate_with_timeout()` in `eval.py` runs `safe_eval_expression()`, a synchronous, CPU-bound
+`eval()` call, inside an async server. Two execution strategies were considered and one was
 attempted in production:
 
 **Attempt: ProcessPoolExecutor** (PR #141, reverted in PR #201)
@@ -24,7 +24,7 @@ return await asyncio.wait_for(
 ```
 
 `asyncio.to_thread()` offloads the synchronous call to the default `ThreadPoolExecutor`.
-`asyncio.wait_for()` cancels the awaitable on timeout -- the caller unblocks -- but the
+`asyncio.wait_for()` cancels the awaitable on timeout; the caller unblocks, but the
 underlying thread continues until the `eval()` call returns naturally.
 
 ## Decision
