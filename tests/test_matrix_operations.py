@@ -12,6 +12,7 @@ Tools tested:
 """
 
 import pytest
+from fastmcp.exceptions import ToolError
 
 pytest.importorskip("numpy")
 
@@ -79,16 +80,17 @@ class TestMatrixMultiply:
     @pytest.mark.asyncio
     async def test_multiply_incompatible_dimensions(self, http_client):
         """Test error handling for incompatible matrix dimensions."""
-        response = await http_client.call_tool(
-            "matrix_multiply",
-            arguments={
-                "matrix_a": [[1, 2], [3, 4]],  # 2x2
-                "matrix_b": [[1, 2, 3]],  # 1x3 (incompatible)
-            },
-        )
-        assert response.is_error is False
-        assert "error" in response.content[0].text.lower()
-        assert "incompatible" in response.content[0].text.lower()
+        from fastmcp.exceptions import ToolError
+
+        with pytest.raises(ToolError) as exc_info:
+            await http_client.call_tool(
+                "matrix_multiply",
+                arguments={
+                    "matrix_a": [[1, 2], [3, 4]],  # 2x2
+                    "matrix_b": [[1, 2, 3]],  # 1x3 (incompatible)
+                },
+            )
+        assert "incompatible" in str(exc_info.value).lower()
 
     @pytest.mark.asyncio
     async def test_multiply_identity_matrix(self, http_client, test_matrix_2x2, identity_2x2):
@@ -164,12 +166,14 @@ class TestMatrixDeterminant:
     @pytest.mark.parametrize(
         "matrix,expected",
         [
-            ([[4, 6], [3, 8]], "14"),
-            ([[1, 2, 3], [0, 1, 4], [5, 6, 0]], "1"),
+            ([[4, 6], [3, 8]], 14.0),
+            ([[1, 2, 3], [0, 1, 4], [5, 6, 0]], 1.0),
         ],
     )
     async def test_determinant(self, http_client, matrix, expected):
         """Test determinant calculation for various matrices."""
+        import json
+
         response = await http_client.call_tool(
             "matrix_determinant",
             arguments={"matrix": matrix},
@@ -177,7 +181,8 @@ class TestMatrixDeterminant:
 
         assert response.is_error is False
         result = response.content[0].text
-        assert expected in result
+        data = json.loads(result)
+        assert abs(data["determinant"] - expected) < 1e-6
 
     @pytest.mark.asyncio
     async def test_determinant_singular_matrix(self, http_client, singular_matrix):
@@ -314,18 +319,32 @@ class TestMatrixEigenvalues:
     [
         "matrix_determinant",
         "matrix_inverse",
-        "matrix_eigenvalues",
     ],
 )
 async def test_non_square_error(http_client, tool_name):
     """Test non-square matrix error."""
+    with pytest.raises(ToolError) as exc_info:
+        await http_client.call_tool(
+            tool_name,
+            arguments={"matrix": [[1, 2, 3], [4, 5, 6]]},
+        )
+    assert "square" in str(exc_info.value).lower()
+
+
+@pytest.mark.asyncio
+async def test_non_square_error_eigenvalues(http_client):
+    """Test non-square matrix error for eigenvalues (returns graceful error)."""
+    import json
+
     response = await http_client.call_tool(
-        tool_name,
+        "matrix_eigenvalues",
         arguments={"matrix": [[1, 2, 3], [4, 5, 6]]},
     )
     assert response.is_error is False
-    assert "error" in response.content[0].text.lower()
-    assert "square" in response.content[0].text.lower()
+    result = json.loads(response.content[0].text)
+    assert result.get("success") is False
+    assert result.get("error") is not None
+    assert "square" in result.get("error", "").lower()
 
 
 class TestMatrixEdgeCases:
@@ -388,16 +407,19 @@ class TestMatrixEdgeCases:
     async def test_determinant_minimal_and_zero(self, http_client):
         """Test determinant with 1x1 matrix and zero matrix (edge cases: minimal and singular).
 
-        Happy path: 1x1 matrix [[7]] has determinant 7
-        Edge case: zero matrix [[0,0],[0,0]] has determinant 0
+        Happy path: 1x1 matrix [[7]] has determinant ~7
+        Edge case: zero matrix [[0,0],[0,0]] has determinant ~0
         """
+        import json
+
         # Happy path: minimal 1x1 matrix
         response = await http_client.call_tool(
             "matrix_determinant",
             arguments={"matrix": [[7]]},
         )
         assert response.is_error is False
-        assert "7" in response.content[0].text
+        result = json.loads(response.content[0].text)
+        assert abs(result["determinant"] - 7.0) < 0.1
 
         # Edge case: zero matrix
         response = await http_client.call_tool(
@@ -405,23 +427,28 @@ class TestMatrixEdgeCases:
             arguments={"matrix": [[0, 0], [0, 0]]},
         )
         assert response.is_error is False
-        assert "0" in response.content[0].text
+        result = json.loads(response.content[0].text)
+        assert abs(result["determinant"]) < 0.1
 
     @pytest.mark.asyncio
     async def test_determinant_large_and_negative(self, http_client):
         """Test determinant with large matrix and negative result (edge cases: boundary and sign).
 
-        Happy path: 100x100 identity matrix has determinant 1
+        Happy path: 100x100 identity matrix has determinant ~1 (floating point)
         Edge case: [[0,1],[1,0]] has determinant -1
         """
-        # Happy path: large identity matrix
+        import json
+
+        # Happy path: large identity matrix (allow floating point tolerance)
         large_matrix = [[1.0 if i == j else 0.0 for j in range(100)] for i in range(100)]
         response = await http_client.call_tool(
             "matrix_determinant",
             arguments={"matrix": large_matrix},
         )
         assert response.is_error is False
-        assert "1" in response.content[0].text
+        result = json.loads(response.content[0].text)
+        # Should be close to 1, allowing for floating point errors
+        assert abs(result["determinant"] - 1.0) < 0.1
 
         # Edge case: negative determinant
         response = await http_client.call_tool(
@@ -429,7 +456,8 @@ class TestMatrixEdgeCases:
             arguments={"matrix": [[0, 1], [1, 0]]},
         )
         assert response.is_error is False
-        assert "-1" in response.content[0].text
+        result = json.loads(response.content[0].text)
+        assert abs(result["determinant"] - (-1.0)) < 0.1
 
     @pytest.mark.asyncio
     async def test_inverse_minimal_and_permutation(self, http_client):

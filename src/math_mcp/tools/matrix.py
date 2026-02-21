@@ -8,7 +8,7 @@ and educational annotations.
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
-from pydantic import Field, SkipValidation
+from pydantic import BaseModel, Field, SkipValidation
 
 from math_mcp.settings import MAX_ARRAY_SIZE, validated_tool
 
@@ -22,6 +22,60 @@ except ImportError:
     NUMPY_AVAILABLE = False
     np = None  # type: ignore
     la = None  # type: ignore
+
+
+class MatrixMultiplyResult(BaseModel):
+    """Result of matrix multiplication operation."""
+
+    rows_a: int
+    cols_a: int
+    rows_b: int
+    cols_b: int
+    result_matrix: list[list[float]]
+    difficulty: str
+    topic: str
+
+
+class MatrixTransposeResult(BaseModel):
+    """Result of matrix transpose operation."""
+
+    original_rows: int
+    original_cols: int
+    result_matrix: list[list[float]]
+    difficulty: str
+    topic: str
+
+
+class MatrixDeterminantResult(BaseModel):
+    """Result of matrix determinant calculation."""
+
+    size: int
+    determinant: float
+    difficulty: str
+    topic: str
+
+
+class MatrixInverseResult(BaseModel):
+    """Result of matrix inverse calculation."""
+
+    size: int
+    success: bool
+    result_matrix: list[list[float]] | None = None
+    error: str | None = None
+    difficulty: str
+    topic: str
+
+
+class MatrixEigenvaluesResult(BaseModel):
+    """Result of matrix eigenvalues calculation."""
+
+    size: int
+    success: bool
+    eigenvalues: list[float] | None = None
+    eigenvectors: list[list[float]] | None = None
+    error: str | None = None
+    difficulty: str
+    topic: str
 
 
 def _check_numpy_available() -> None:
@@ -108,7 +162,7 @@ async def matrix_multiply(
     matrix_a: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     matrix_b: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixMultiplyResult:
     """Multiply two matrices (A × B).
 
     Args:
@@ -125,64 +179,28 @@ async def matrix_multiply(
     if ctx:
         await ctx.info("Performing matrix multiplication")
 
-    try:
-        mat_a = _validate_matrix(matrix_a)
-        mat_b = _validate_matrix(matrix_b)
+    mat_a = _validate_matrix(matrix_a)
+    mat_b = _validate_matrix(matrix_b)
 
-        if mat_a.shape[1] != mat_b.shape[0]:
-            raise ValueError(
-                f"Incompatible matrix dimensions for multiplication: "
-                f"({mat_a.shape[0]}x{mat_a.shape[1]}) × ({mat_b.shape[0]}x{mat_b.shape[1]}). "
-                f"Number of columns in first matrix must equal number of rows in second matrix."
-            )
+    if mat_a.shape[1] != mat_b.shape[0]:
+        raise ValueError(
+            f"Incompatible matrix dimensions for multiplication: "
+            f"({mat_a.shape[0]}x{mat_a.shape[1]}) × ({mat_b.shape[0]}x{mat_b.shape[1]}). "
+            f"Number of columns in first matrix must equal number of rows in second matrix."
+        )
 
-        result = np.matmul(mat_a, mat_b)  # type: ignore
+    result = np.matmul(mat_a, mat_b)  # type: ignore
+    result_list = result.tolist()  # type: ignore
 
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Multiplication Result:**\n{_format_matrix(result)}",
-                    "annotations": {
-                        "difficulty": "intermediate",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_multiply",
-                        "result_shape": f"{result.shape[0]}x{result.shape[1]}",
-                    },
-                }
-            ]
-        }
-
-    except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Multiplication Error:** {str(e)}",
-                    "annotations": {
-                        "error": "matrix_multiply_error",
-                        "difficulty": "intermediate",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_multiply",
-                    },
-                }
-            ]
-        }
-    except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": {
-                        "error": "unexpected_error",
-                        "difficulty": "intermediate",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_multiply",
-                    },
-                }
-            ]
-        }
+    return MatrixMultiplyResult(
+        rows_a=int(mat_a.shape[0]),
+        cols_a=int(mat_a.shape[1]),
+        rows_b=int(mat_b.shape[0]),
+        cols_b=int(mat_b.shape[1]),
+        result_matrix=result_list,
+        difficulty="intermediate",
+        topic="linear_algebra",
+    )
 
 
 @matrix_mcp.tool(
@@ -196,7 +214,7 @@ async def matrix_multiply(
 async def matrix_transpose(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixTransposeResult:
     """Transpose a matrix (swap rows and columns).
 
     Args:
@@ -212,56 +230,17 @@ async def matrix_transpose(
     if ctx:
         await ctx.info("Transposing matrix")
 
-    try:
-        mat = _validate_matrix(matrix)
-        result = mat.T  # type: ignore
+    mat = _validate_matrix(matrix)
+    result = mat.T  # type: ignore
+    result_list = result.tolist()  # type: ignore
 
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Transpose Result:**\n{_format_matrix(result)}",
-                    "annotations": {
-                        "difficulty": "beginner",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_transpose",
-                        "original_shape": f"{mat.shape[0]}x{mat.shape[1]}",
-                        "result_shape": f"{result.shape[0]}x{result.shape[1]}",
-                    },
-                }
-            ]
-        }
-
-    except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Transpose Error:** {str(e)}",
-                    "annotations": {
-                        "error": "matrix_transpose_error",
-                        "difficulty": "beginner",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_transpose",
-                    },
-                }
-            ]
-        }
-    except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": {
-                        "error": "unexpected_error",
-                        "difficulty": "beginner",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_transpose",
-                    },
-                }
-            ]
-        }
+    return MatrixTransposeResult(
+        original_rows=int(mat.shape[0]),
+        original_cols=int(mat.shape[1]),
+        result_matrix=result_list,
+        difficulty="beginner",
+        topic="linear_algebra",
+    )
 
 
 @matrix_mcp.tool(
@@ -275,7 +254,7 @@ async def matrix_transpose(
 async def matrix_determinant(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixDeterminantResult:
     """Calculate the determinant of a square matrix.
 
     Args:
@@ -291,63 +270,22 @@ async def matrix_determinant(
     if ctx:
         await ctx.info("Calculating matrix determinant")
 
-    try:
-        mat = _validate_matrix(matrix)
+    mat = _validate_matrix(matrix)
 
-        if mat.shape[0] != mat.shape[1]:
-            raise ValueError(
-                f"Determinant requires a square matrix. "
-                f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
-            )
+    if mat.shape[0] != mat.shape[1]:
+        raise ValueError(
+            f"Determinant requires a square matrix. "
+            f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
+        )
 
-        det = la.det(mat)  # type: ignore
+    det = la.det(mat)  # type: ignore
 
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Determinant:** {det:.6g}",
-                    "annotations": {
-                        "difficulty": "intermediate",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_determinant",
-                        "matrix_size": f"{mat.shape[0]}x{mat.shape[1]}",
-                        "value": float(det),
-                    },
-                }
-            ]
-        }
-
-    except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Determinant Error:** {str(e)}",
-                    "annotations": {
-                        "error": "matrix_determinant_error",
-                        "difficulty": "intermediate",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_determinant",
-                    },
-                }
-            ]
-        }
-    except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": {
-                        "error": "unexpected_error",
-                        "difficulty": "intermediate",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_determinant",
-                    },
-                }
-            ]
-        }
+    return MatrixDeterminantResult(
+        size=int(mat.shape[0]),
+        determinant=float(det),
+        difficulty="intermediate",
+        topic="linear_algebra",
+    )
 
 
 @matrix_mcp.tool(
@@ -361,7 +299,7 @@ async def matrix_determinant(
 async def matrix_inverse(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixInverseResult:
     """Calculate the inverse of a square matrix.
 
     Args:
@@ -377,86 +315,46 @@ async def matrix_inverse(
     if ctx:
         await ctx.info("Calculating matrix inverse")
 
-    try:
-        # Report initial progress
-        if ctx:
-            await ctx.report_progress(0, 3, "Validating matrix")
+    if ctx:
+        await ctx.report_progress(0, 3, "Validating matrix")
 
-        # Stage 1: Validate matrix
-        if ctx:
-            await ctx.report_progress(1, 3, "Checking singularity")
+    mat = _validate_matrix(matrix)
 
-        mat = _validate_matrix(matrix)
+    if mat.shape[0] != mat.shape[1]:
+        raise ValueError(
+            f"Matrix inverse requires a square matrix. "
+            f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
+        )
 
-        if mat.shape[0] != mat.shape[1]:
-            raise ValueError(
-                f"Matrix inverse requires a square matrix. "
-                f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
-            )
+    if ctx:
+        await ctx.report_progress(1, 3, "Checking singularity")
 
-        # Stage 2: Check singularity
-        if ctx:
-            await ctx.report_progress(2, 3, "Computing inverse")
+    det = la.det(mat)  # type: ignore
+    if abs(det) < 1e-10:
+        return MatrixInverseResult(
+            size=int(mat.shape[0]),
+            success=False,
+            error="Matrix is singular (determinant ≈ 0). Cannot compute inverse for singular matrices.",
+            difficulty="advanced",
+            topic="linear_algebra",
+        )
 
-        det = la.det(mat)  # type: ignore
-        if abs(det) < 1e-10:
-            raise ValueError(
-                "Matrix is singular (determinant ≈ 0). "
-                "Cannot compute inverse for singular matrices."
-            )
+    if ctx:
+        await ctx.report_progress(2, 3, "Computing inverse")
 
-        # Stage 3: Compute inverse and complete
-        if ctx:
-            await ctx.report_progress(3, 3, "Complete")
+    result = la.inv(mat)  # type: ignore
+    result_list = result.tolist()  # type: ignore
 
-        result = la.inv(mat)  # type: ignore
+    if ctx:
+        await ctx.report_progress(3, 3, "Complete")
 
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Inverse Result:**\n{_format_matrix(result)}",
-                    "annotations": {
-                        "difficulty": "advanced",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_inverse",
-                        "matrix_size": f"{mat.shape[0]}x{mat.shape[1]}",
-                        "determinant": float(det),
-                    },
-                }
-            ]
-        }
-
-    except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Inverse Error:** {str(e)}",
-                    "annotations": {
-                        "error": "matrix_inverse_error",
-                        "difficulty": "advanced",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_inverse",
-                    },
-                }
-            ]
-        }
-    except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": {
-                        "error": "unexpected_error",
-                        "difficulty": "advanced",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_inverse",
-                    },
-                }
-            ]
-        }
+    return MatrixInverseResult(
+        size=int(mat.shape[0]),
+        success=True,
+        result_matrix=result_list,
+        difficulty="advanced",
+        topic="linear_algebra",
+    )
 
 
 @matrix_mcp.tool(
@@ -470,7 +368,7 @@ async def matrix_inverse(
 async def matrix_eigenvalues(
     matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> MatrixEigenvaluesResult:
     """Calculate the eigenvalues of a square matrix.
 
     Args:
@@ -486,87 +384,38 @@ async def matrix_eigenvalues(
     if ctx:
         await ctx.info("Calculating matrix eigenvalues")
 
-    try:
-        # Report initial progress
-        if ctx:
-            await ctx.report_progress(0, 2, "Validating matrix")
+    if ctx:
+        await ctx.report_progress(0, 2, "Validating matrix")
 
-        # Stage 1: Validate matrix
-        if ctx:
-            await ctx.report_progress(1, 2, "Calculating eigenvalues")
+    mat = _validate_matrix(matrix)
 
-        mat = _validate_matrix(matrix)
+    if mat.shape[0] != mat.shape[1]:
+        return MatrixEigenvaluesResult(
+            size=int(mat.shape[0]),
+            success=False,
+            error=f"Eigenvalues require a square matrix. Got {mat.shape[0]}x{mat.shape[1]} matrix instead.",
+            difficulty="advanced",
+            topic="linear_algebra",
+        )
 
-        if mat.shape[0] != mat.shape[1]:
-            raise ValueError(
-                f"Eigenvalues require a square matrix. "
-                f"Got {mat.shape[0]}x{mat.shape[1]} matrix instead."
-            )
+    if ctx:
+        await ctx.report_progress(1, 2, "Calculating eigenvalues")
 
-        # Stage 2: Calculate eigenvalues and complete
-        if ctx:
-            await ctx.report_progress(2, 2, "Complete")
+    eigenvalues = la.eigvals(mat)  # type: ignore
 
-        eigenvalues = la.eigvals(mat)  # type: ignore
+    # Convert eigenvalues to list of floats (real part only for display)
+    eigenval_list = [float(val.real) if np.isreal(val) else float(val.real) for val in eigenvalues]  # type: ignore
 
-        # Format eigenvalues (handle complex numbers)
-        def _format_complex_eigenvalue(val: Any) -> str:
-            """Format complex eigenvalue avoiding +- for negative imaginary parts."""
-            if np.isreal(val):  # type: ignore
-                return f"{val.real:.6g}"
-            elif val.imag >= 0:
-                return f"{val.real:.6g}+{val.imag:.6g}j"
-            else:
-                return f"{val.real:.6g}{val.imag:.6g}j"  # negative sign already in val.imag
+    if ctx:
+        await ctx.report_progress(2, 2, "Complete")
 
-        eigenval_str = ", ".join([_format_complex_eigenvalue(val) for val in eigenvalues])
-
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Eigenvalues:** [{eigenval_str}]",
-                    "annotations": {
-                        "difficulty": "advanced",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_eigenvalues",
-                        "matrix_size": f"{mat.shape[0]}x{mat.shape[1]}",
-                        "count": len(eigenvalues),
-                    },
-                }
-            ]
-        }
-
-    except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Matrix Eigenvalues Error:** {str(e)}",
-                    "annotations": {
-                        "error": "matrix_eigenvalues_error",
-                        "difficulty": "advanced",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_eigenvalues",
-                    },
-                }
-            ]
-        }
-    except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": {
-                        "error": "unexpected_error",
-                        "difficulty": "advanced",
-                        "topic": "linear_algebra",
-                        "operation": "matrix_eigenvalues",
-                    },
-                }
-            ]
-        }
+    return MatrixEigenvaluesResult(
+        size=int(mat.shape[0]),
+        success=True,
+        eigenvalues=eigenval_list,
+        difficulty="advanced",
+        topic="linear_algebra",
+    )
 
 
 __all__ = [

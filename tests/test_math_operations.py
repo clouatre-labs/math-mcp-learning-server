@@ -115,15 +115,10 @@ async def test_calculate_tool():
     ctx = MockContext()
     result = await calculate.raw_function("2 + 3", ctx)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    assert len(result["content"]) == 1
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "2 + 3 = 5.0" in content["text"]
-    assert "annotations" in content
-    assert content["annotations"]["difficulty"] == "basic"
-    assert content["annotations"]["topic"] == "arithmetic"
+    assert result.expression == "2 + 3"
+    assert result.result == 5.0
+    assert result.difficulty == "basic"
+    assert result.topic == "arithmetic"
 
 
 @pytest.mark.asyncio
@@ -148,19 +143,17 @@ async def test_statistics_tool():
 
     # Test mean
     result = await stats_tool.raw_function([1, 2, 3, 4, 5], "mean", ctx)
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
-    assert "Mean" in content["text"]
-    assert "3.0" in content["text"]
-    assert content["annotations"]["topic"] == "statistics"
-    assert content["annotations"]["operation"] == "mean"
-    assert content["annotations"]["sample_size"] == 5
+    assert result.operation == "mean"
+    assert result.result == 3.0
+    assert result.sample_size == 5
+    assert result.topic == "statistics"
+    assert result.difficulty == "basic"
 
     # Test median
     result = await stats_tool.raw_function([1, 2, 3, 4, 5], "median", ctx)
-    assert "Median" in result["content"][0]["text"]
-    assert "3.0" in result["content"][0]["text"]
+    assert result.operation == "median"
+    assert result.result == 3.0
+    assert result.sample_size == 5
 
     # Test empty list
     with pytest.raises(ValueError, match="Cannot calculate statistics on empty list"):
@@ -187,14 +180,14 @@ async def test_compound_interest_tool():
     ctx = MockContext()
     result = await compound_interest(1000.0, 0.05, 5.0, 12, ctx)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
-    assert "Compound Interest Calculation" in content["text"]
-    assert "$1,000.00" in content["text"]
-    assert content["annotations"]["topic"] == "finance"
-    assert content["annotations"]["difficulty"] == "intermediate"
-    assert content["annotations"]["time_years"] == 5.0
+    assert result.principal == 1000.0
+    assert result.rate == 0.05
+    assert result.time == 5.0
+    assert result.compounds_per_year == 12
+    assert result.difficulty == "intermediate"
+    assert result.topic == "finance"
+    assert result.final_amount > result.principal
+    assert result.total_interest == result.final_amount - result.principal
 
     # Test validation errors
     with pytest.raises(ValueError, match="Principal must be greater than 0"):
@@ -222,18 +215,18 @@ async def test_convert_units_tool():
     # Test length conversion
     result = await convert_units(100, "cm", "m", "length", ctx)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
-    assert "100 cm = 1 m" in content["text"]
-    assert content["annotations"]["topic"] == "unit_conversion"
-    assert content["annotations"]["conversion_type"] == "length"
-    assert content["annotations"]["from_unit"] == "cm"
-    assert content["annotations"]["to_unit"] == "m"
+    assert result.value == 100.0
+    assert result.from_unit == "cm"
+    assert result.to_unit == "m"
+    assert result.converted_value == 1.0
+    assert result.unit_type == "length"
+    assert result.topic == "unit_conversion"
+    assert result.difficulty == "basic"
 
     # Test temperature conversion
     result = await convert_units(0, "c", "f", "temperature", ctx)
-    assert "32" in result["content"][0]["text"]
+    assert result.converted_value == 32.0
+    assert result.unit_type == "temperature"
 
     # Test invalid unit type
     with pytest.raises(ValueError, match="Unknown unit type"):
@@ -312,15 +305,18 @@ async def test_statistical_edge_cases():
 
     # Single value
     result = await stats_tool.raw_function([42.0], "mean", ctx)
-    assert "42.0" in result["content"][0]["text"]
+    assert result.result == 42.0
+    assert result.operation == "mean"
 
     # Standard deviation with single value
     result = await stats_tool.raw_function([42.0], "std_dev", ctx)
-    assert "0" in result["content"][0]["text"]  # Should not raise error
+    assert result.result == 0.0
+    assert result.operation == "std_dev"
 
     # Variance with single value
     result = await stats_tool.raw_function([42.0], "variance", ctx)
-    assert "0" in result["content"][0]["text"]  # Should not raise error
+    assert result.result == 0.0
+    assert result.operation == "variance"
 
 
 @pytest.mark.asyncio
@@ -340,11 +336,15 @@ async def test_unit_conversion_edge_cases():
 
     # Convert to same unit
     result = await convert_units(100, "m", "m", "length", ctx)
-    assert "100 m = 100 m" in result["content"][0]["text"]
+    assert result.converted_value == 100
+    assert result.from_unit == "m"
+    assert result.to_unit == "m"
 
     # Test case insensitivity
     result = await convert_units(1, "M", "KM", "length", ctx)
-    assert "0.001" in result["content"][0]["text"]
+    assert result.converted_value == 0.001
+    assert result.from_unit.upper() == "M"
+    assert result.to_unit.upper() == "KM"
 
 
 # === TIMEOUT TESTS ===
@@ -476,13 +476,14 @@ async def test_expression_length_validation():
     # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH - 1 chars
     below_limit_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH) // 2))[: MAX_EXPRESSION_LENGTH - 1]
     result = await calculate.raw_function(below_limit_expr, ctx)
-    assert "content" in result
+    assert hasattr(result, "result")
+    assert isinstance(result.result, (int, float))
 
     # Valid: at limit (use a valid expression that's exactly at the limit)
     # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH chars
     valid_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH + 1) // 2))[:MAX_EXPRESSION_LENGTH]
     result = await calculate.raw_function(valid_expr, ctx)
-    assert "content" in result
+    assert hasattr(result, "result")
 
     # Invalid: exceeds limit
     # Create expression like "1+1+1+1..." that exceeds MAX_EXPRESSION_LENGTH
@@ -514,7 +515,7 @@ async def test_array_size_validation():
     # Valid: at limit
     valid_array = [1.0] * MAX_ARRAY_SIZE
     result = await stats_tool.raw_function(valid_array, "mean", ctx)
-    assert "content" in result
+    assert hasattr(result, "result")
 
     # Invalid: exceeds limit
     invalid_array = [1.0] * (MAX_ARRAY_SIZE + 1)
@@ -543,7 +544,8 @@ async def test_operation_whitelist_validation():
     # Valid operations
     for op in ["mean", "median", "mode", "std_dev", "variance"]:
         result = await stats_tool.raw_function([1.0, 2.0, 3.0], op, ctx)
-        assert "content" in result
+        assert hasattr(result, "operation")
+        assert result.operation == op
 
     # Invalid operation
     with pytest.raises(ValueError, match="Invalid operation"):
@@ -575,12 +577,12 @@ async def test_variable_name_validation():
 
     # Valid: alphanumeric with underscore and hyphen
     result = await save_calculation.raw_function("valid_name-123", "2+2", 4.0, ctx)
-    assert "content" in result
+    assert result.success is True
 
     # Valid: at limit
     valid_name = "a" * MAX_VARIABLE_NAME_LENGTH
     result = await save_calculation.raw_function(valid_name, "2+2", 4.0, ctx)
-    assert "content" in result
+    assert result.success is True
 
     # Invalid: exceeds length
     invalid_name = "a" * (MAX_VARIABLE_NAME_LENGTH + 1)

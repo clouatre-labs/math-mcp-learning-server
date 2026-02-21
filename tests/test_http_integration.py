@@ -5,6 +5,8 @@ mimicking real-world deployment scenarios like fastmcp.cloud.
 Run conditionally on release tags only.
 """
 
+import json
+
 import pytest
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
@@ -20,14 +22,19 @@ async def test_http_calculate_basic(http_client: Client) -> None:
     """Test basic calculation over HTTP."""
     result = await http_client.call_tool("calculate", {"expression": "2 + 2"})
     assert len(result.content) > 0
-    assert "2 + 2 = 4.0" in result.content[0].text
+    text = result.content[0].text
+    data = json.loads(text)
+    assert data["expression"] == "2 + 2"
+    assert data["result"] == 4.0
 
 
 async def test_http_calculate_complex(http_client: Client) -> None:
     """Test complex calculation over HTTP."""
     result = await http_client.call_tool("calculate", {"expression": "sqrt(16) * 3"})
     assert len(result.content) > 0
-    assert "12.0" in result.content[0].text
+    text = result.content[0].text
+    data = json.loads(text)
+    assert data["result"] == 12.0
 
 
 async def test_http_calculate_invalid_expression(http_client: Client) -> None:
@@ -42,7 +49,10 @@ async def test_http_statistics_mean(http_client: Client) -> None:
         "statistics", {"operation": "mean", "numbers": [1, 2, 3, 4, 5]}
     )
     assert len(result.content) > 0
-    assert "3.0" in result.content[0].text
+    text = result.content[0].text
+    data = json.loads(text)
+    assert data["result"] == 3.0
+    assert data["operation"] == "mean"
 
 
 async def test_http_statistics_median(http_client: Client) -> None:
@@ -51,7 +61,10 @@ async def test_http_statistics_median(http_client: Client) -> None:
         "statistics", {"operation": "median", "numbers": [1, 2, 3, 4, 5]}
     )
     assert len(result.content) > 0
-    assert "3.0" in result.content[0].text
+    text = result.content[0].text
+    data = json.loads(text)
+    assert data["result"] == 3.0
+    assert data["operation"] == "median"
 
 
 async def test_http_compound_interest(http_client: Client) -> None:
@@ -62,7 +75,9 @@ async def test_http_compound_interest(http_client: Client) -> None:
     )
     assert len(result.content) > 0
     text = result.content[0].text
-    assert "Final Amount" in text or "final" in text.lower()
+    data = json.loads(text)
+    assert "final_amount" in data
+    assert data["principal"] == 1000
 
 
 async def test_http_convert_units_length(http_client: Client) -> None:
@@ -71,7 +86,9 @@ async def test_http_convert_units_length(http_client: Client) -> None:
         "convert_units", {"value": 1, "from_unit": "m", "to_unit": "cm", "unit_type": "length"}
     )
     assert len(result.content) > 0
-    assert "100" in result.content[0].text
+    text = result.content[0].text
+    data = json.loads(text)
+    assert data["converted_value"] == 100.0
 
 
 async def test_http_convert_units_invalid(http_client: Client) -> None:
