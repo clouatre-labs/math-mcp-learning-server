@@ -9,6 +9,7 @@ import unittest.mock
 from unittest.mock import patch
 
 import pytest
+from fastmcp.utilities.types import Image
 
 from math_mcp.eval import (
     convert_temperature,
@@ -30,6 +31,7 @@ from math_mcp.tools.calculate import (
     statistics as stats_tool,
 )
 from math_mcp.tools.persistence import load_variable, save_calculation
+from math_mcp.tools.visualization import VisualizationError
 
 # === SECURITY TESTS ===
 
@@ -603,13 +605,14 @@ async def test_variable_name_validation():
 @pytest.mark.asyncio
 async def test_string_param_validation():
     """Test string parameter validation."""
+
     from math_mcp.tools.visualization import MAX_STRING_PARAM_LENGTH, create_histogram
 
     # Valid: at limit
     valid_title = "a" * MAX_STRING_PARAM_LENGTH
     result = await create_histogram.raw_function([1.0, 2.0, 3.0], 10, valid_title, None)
-    # Should return matplotlib not available or success
-    assert "content" in result
+    # Should return Image or VisualizationError
+    assert isinstance(result, (Image, VisualizationError))
 
     # Invalid: exceeds limit
     invalid_title = "a" * (MAX_STRING_PARAM_LENGTH + 1)
@@ -622,12 +625,13 @@ async def test_string_param_validation():
 @pytest.mark.asyncio
 async def test_nested_array_validation():
     """Test nested array validation for plot_box_plot."""
+
     from math_mcp.tools.visualization import MAX_GROUP_SIZE, MAX_GROUPS_COUNT, plot_box_plot
 
     # Valid: at group limit
     valid_groups = [[1.0, 2.0]] * MAX_GROUPS_COUNT
     result = await plot_box_plot.raw_function(valid_groups, None, "Test", "Y", None, None)
-    assert "content" in result
+    assert isinstance(result, (Image, VisualizationError))
 
     # Invalid: exceeds group count
     invalid_groups = [[1.0, 2.0]] * (MAX_GROUPS_COUNT + 1)
@@ -637,7 +641,7 @@ async def test_nested_array_validation():
     # Valid: at group size limit
     valid_large_group = [[1.0] * MAX_GROUP_SIZE]
     result = await plot_box_plot.raw_function(valid_large_group, None, "Test", "Y", None, None)
-    assert "content" in result
+    assert isinstance(result, (Image, VisualizationError))
 
     # Invalid: exceeds group size
     invalid_large_group = [[1.0] * (MAX_GROUP_SIZE + 1)]
@@ -648,13 +652,14 @@ async def test_nested_array_validation():
 @pytest.mark.asyncio
 async def test_days_validation():
     """Test days validation for plot_financial_line."""
+
     from math_mcp.tools.visualization import MAX_DAYS_FINANCIAL, plot_financial_line
 
     # Valid: at limit
     result = await plot_financial_line.raw_function(
         MAX_DAYS_FINANCIAL, "bullish", 100.0, None, None
     )
-    assert "content" in result
+    assert isinstance(result, (Image, VisualizationError))
 
     # Invalid: exceeds limit
     with pytest.raises(
@@ -670,12 +675,13 @@ async def test_days_validation():
 @pytest.mark.asyncio
 async def test_trend_whitelist_validation():
     """Test trend whitelist validation."""
+
     from math_mcp.tools.visualization import plot_financial_line
 
     # Valid trends
     for trend in ["bullish", "bearish", "volatile"]:
         result = await plot_financial_line.raw_function(30, trend, 100.0, None, None)
-        assert "content" in result
+        assert isinstance(result, (Image, VisualizationError))
 
     # Invalid trend
     with pytest.raises(ValueError, match="Invalid trend"):
@@ -685,11 +691,13 @@ async def test_trend_whitelist_validation():
 @pytest.mark.asyncio
 async def test_num_points_validation():
     """Test num_points validation for plot_function."""
+
     from math_mcp.tools.visualization import MAX_ARRAY_SIZE, plot_function
 
     # Valid: at limit
     result = await plot_function.raw_function("x**2", (-5, 5), MAX_ARRAY_SIZE, None)
-    assert "content" in result
+    assert isinstance(result, Image)
+    assert result.data is not None
 
     # Invalid: exceeds limit
     with pytest.raises(ValueError, match=f"Input should be less than or equal to {MAX_ARRAY_SIZE}"):
@@ -703,11 +711,13 @@ async def test_num_points_validation():
 @pytest.mark.asyncio
 async def test_bins_validation():
     """Test bins validation for create_histogram."""
+
     from math_mcp.tools.visualization import create_histogram
 
     # Valid: positive bins
     result = await create_histogram.raw_function([1.0, 2.0, 3.0], 10, "Test", None)
-    assert "content" in result
+    assert isinstance(result, Image)
+    assert result.data is not None
 
     # Invalid: zero bins
     with pytest.raises(ValueError, match="must be at least 1"):

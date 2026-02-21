@@ -8,6 +8,9 @@ suppress unused import warnings as these imports are used for dependency checkin
 """
 
 import pytest
+from fastmcp.utilities.types import Image
+
+from math_mcp.tools.visualization import VisualizationError
 
 # === HELPER FIXTURES ===
 
@@ -39,33 +42,19 @@ def mock_context():
 async def test_plot_function_graceful_degradation_structure(mock_context):
     """Test plot_function has graceful degradation for missing matplotlib.
 
-    Note: This test verifies the error message structure that would be returned
-    if matplotlib were not available. The actual ImportError path is tested
-    by manual testing without matplotlib installed.
+    Note: The requires_matplotlib decorator returns VisualizationError when
+    matplotlib is not available. Manual testing confirms this path works.
     """
-    # This test documents the expected behavior when matplotlib is missing
-    # The actual graceful degradation logic is in the tool implementation
-
-    expected_error_structure = {
-        "content": [
-            {
-                "type": "text",
-                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                "annotations": {
-                    "error": "missing_dependency",
-                    "install_command": "pip install math-mcp-learning-server[plotting]",
-                    "difficulty": "intermediate",
-                    "topic": "visualization",
-                },
-            }
-        ]
-    }
+    # This test documents the expected error structure
+    expected_error = VisualizationError(
+        message="**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+        error_type="missing_dependency",
+    )
 
     # Verify the expected structure is correct
-    assert "content" in expected_error_structure
-    assert expected_error_structure["content"][0]["type"] == "text"
-    assert "Matplotlib not available" in expected_error_structure["content"][0]["text"]
-    assert expected_error_structure["content"][0]["annotations"]["error"] == "missing_dependency"
+    assert isinstance(expected_error, VisualizationError)
+    assert "Matplotlib not available" in expected_error.message
+    assert expected_error.error_type == "missing_dependency"
 
 
 @pytest.mark.asyncio
@@ -81,25 +70,9 @@ async def test_plot_function_basic_quadratic(mock_context):
 
     result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, mock_context)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
-    assert content["type"] == "image"
-    assert "data" in content
-    assert content["mimeType"] == "image/png"
-
-    # Verify base64 encoding
-    image_data = content["data"]
-    assert isinstance(image_data, str)
-    assert len(image_data) > 0
-
-    # Verify annotations
-    annotations = content["annotations"]
-    assert annotations["topic"] == "visualization"
-    assert annotations["expression"] == "x**2"
-    assert annotations["x_range"] == "[-5.0, 5.0]"
-    assert annotations["num_points"] == 50
-    assert "educational_note" in annotations
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
     # Verify context logging
     assert len(mock_context.info_logs) > 0
@@ -108,7 +81,7 @@ async def test_plot_function_basic_quadratic(mock_context):
 
 @pytest.mark.asyncio
 async def test_plot_function_trigonometric(mock_context):
-    """Test plotting trigonometric functions."""
+    """Test plotting trigonometric functions (happy path)."""
     try:
         import matplotlib
         import numpy as np
@@ -119,17 +92,14 @@ async def test_plot_function_trigonometric(mock_context):
 
     result = await plot_function.raw_function("sin(x)", (-3.14159, 3.14159), 100, mock_context)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
-    assert content["type"] == "image"
-    assert content["annotations"]["expression"] == "sin(x)"
-    assert content["annotations"]["difficulty"] == "advanced"
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 @pytest.mark.asyncio
 async def test_plot_function_invalid_range(mock_context):
-    """Test plot_function with invalid x_range."""
+    """Test plot_function with invalid x_range (edge case)."""
     try:
         import matplotlib
         import numpy as np
@@ -141,16 +111,13 @@ async def test_plot_function_invalid_range(mock_context):
     # x_min >= x_max
     result = await plot_function.raw_function("x**2", (5.0, 5.0), 100, mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Plot Error" in content["text"]
-    assert "minimum must be less than maximum" in content["text"]
+    assert isinstance(result, VisualizationError)
+    assert "minimum must be less than maximum" in result.message
 
 
 @pytest.mark.asyncio
 async def test_plot_function_invalid_num_points(mock_context):
-    """Test plot_function with invalid num_points."""
+    """Test plot_function with invalid num_points (edge case)."""
     try:
         import matplotlib
         import numpy as np
@@ -159,19 +126,16 @@ async def test_plot_function_invalid_num_points(mock_context):
 
     from math_mcp.tools.visualization import plot_function
 
-    # raw_function bypasses validate_call; the manual guard returns an error dict
+    # raw_function bypasses validate_call; the manual guard returns VisualizationError
     result = await plot_function.raw_function("x**2", (-5.0, 5.0), 1, mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Plot Error" in content["text"]
-    assert "num_points must be at least 2" in content["text"]
+    assert isinstance(result, VisualizationError)
+    assert "num_points must be at least 2" in result.message
 
 
 @pytest.mark.asyncio
 async def test_plot_function_with_domain_error(mock_context):
-    """Test plot_function with expression that has domain errors."""
+    """Test plot_function with expression that has domain errors (happy path)."""
     try:
         import matplotlib
         import numpy as np
@@ -184,15 +148,14 @@ async def test_plot_function_with_domain_error(mock_context):
     result = await plot_function.raw_function("sqrt(x)", (-5.0, 5.0), 50, mock_context)
 
     # Should still succeed but with NaN values for negative x
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "image"
-    assert content["annotations"]["expression"] == "sqrt(x)"
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 @pytest.mark.asyncio
 async def test_plot_function_without_context():
-    """Test plot_function works without context parameter."""
+    """Test plot_function works without context parameter (happy path)."""
     try:
         import matplotlib
         import numpy as np
@@ -203,10 +166,9 @@ async def test_plot_function_without_context():
 
     result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, None)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
-    assert content["type"] == "image"
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 # === CREATE HISTOGRAM TESTS ===
@@ -223,26 +185,15 @@ async def test_create_histogram_graceful_degradation_structure(mock_context):
     # This test documents the expected behavior when matplotlib is missing
     # The actual graceful degradation logic is in the tool implementation
 
-    expected_error_structure = {
-        "content": [
-            {
-                "type": "text",
-                "text": "**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-                "annotations": {
-                    "error": "missing_dependency",
-                    "install_command": "pip install math-mcp-learning-server[plotting]",
-                    "difficulty": "intermediate",
-                    "topic": "visualization",
-                },
-            }
-        ]
-    }
+    expected_error_structure = VisualizationError(
+        message="**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
+        error_type="missing_dependency",
+    )
 
     # Verify the expected structure is correct
-    assert "content" in expected_error_structure
-    assert expected_error_structure["content"][0]["type"] == "text"
-    assert "Matplotlib not available" in expected_error_structure["content"][0]["text"]
-    assert expected_error_structure["content"][0]["annotations"]["error"] == "missing_dependency"
+    assert isinstance(expected_error_structure, VisualizationError)
+    assert "Matplotlib not available" in expected_error_structure.message
+    assert expected_error_structure.error_type == "missing_dependency"
 
 
 @pytest.mark.asyncio
@@ -259,27 +210,9 @@ async def test_create_histogram_basic(mock_context):
     data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
     result = await create_histogram.raw_function(data, 5, "Test Distribution", mock_context)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
-    assert content["type"] == "image"
-    assert "data" in content
-    assert content["mimeType"] == "image/png"
-
-    # Verify annotations
-    annotations = content["annotations"]
-    assert annotations["topic"] == "statistics"
-    assert annotations["difficulty"] == "intermediate"
-    assert annotations["data_points"] == 9
-    assert annotations["bins"] == 5
-    assert "mean" in annotations
-    assert "median" in annotations
-    assert "std_dev" in annotations
-    assert "educational_note" in annotations
-
-    # Verify statistics calculations
-    assert annotations["mean"] == 3.0
-    assert annotations["median"] == 3.0
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
     # Verify context logging
     assert len(mock_context.info_logs) > 0
@@ -300,12 +233,10 @@ async def test_create_histogram_empty_data(mock_context):
 
     result = await create_histogram.raw_function([], 10, "Test", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Histogram Error" in content["text"]
-    assert "empty data" in content["text"]
-    assert content["annotations"]["error"] == "histogram_error"
+    assert isinstance(result, VisualizationError)
+    assert "Histogram Error" in result.message
+    assert "empty data" in result.message
+    assert result.error_type == "histogram_error"
 
 
 @pytest.mark.asyncio
@@ -321,11 +252,9 @@ async def test_create_histogram_single_value(mock_context):
 
     result = await create_histogram.raw_function([42.0], 10, "Test", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Histogram Error" in content["text"]
-    assert "at least 2 data points" in content["text"]
+    assert isinstance(result, VisualizationError)
+    assert "Histogram Error" in result.message
+    assert "at least 2 data points" in result.message
 
 
 @pytest.mark.asyncio
@@ -359,11 +288,9 @@ async def test_create_histogram_large_dataset(mock_context):
     data = [float(i) for i in range(100)]
     result = await create_histogram.raw_function(data, 20, "Large Dataset", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "image"
-    assert content["annotations"]["data_points"] == 100
-    assert content["annotations"]["bins"] == 20
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 @pytest.mark.asyncio
@@ -380,10 +307,9 @@ async def test_create_histogram_custom_title(mock_context):
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
     result = await create_histogram.raw_function(data, 5, "Custom Title", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "image"
-    # Title is embedded in the image, can't directly verify but ensure it doesn't error
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 @pytest.mark.asyncio
@@ -400,9 +326,9 @@ async def test_create_histogram_without_context():
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
     result = await create_histogram.raw_function(data, 5, "Test", None)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "image"
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 # === INTEGRATION TESTS ===
@@ -421,22 +347,20 @@ async def test_visualization_tools_return_proper_structure(mock_context):
 
     # Test plot_function
     plot_result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, mock_context)
-    assert "content" in plot_result
-    assert isinstance(plot_result["content"], list)
-    assert len(plot_result["content"]) == 1
-    assert "annotations" in plot_result["content"][0]
+    assert isinstance(plot_result, Image)
+    assert plot_result.data is not None
+    assert len(plot_result.data) > 0
 
     # Test create_histogram
     histogram_result = await create_histogram.raw_function([1.0, 2.0, 3.0], 5, "Test", mock_context)
-    assert "content" in histogram_result
-    assert isinstance(histogram_result["content"], list)
-    assert len(histogram_result["content"]) == 1
-    assert "annotations" in histogram_result["content"][0]
+    assert isinstance(histogram_result, Image)
+    assert histogram_result.data is not None
+    assert len(histogram_result.data) > 0
 
 
 @pytest.mark.asyncio
 async def test_visualization_educational_annotations():
-    """Test that visualization tools include educational annotations."""
+    """Test that visualization tools return Image objects."""
     try:
         import matplotlib
         import numpy as np
@@ -445,24 +369,19 @@ async def test_visualization_educational_annotations():
 
     from math_mcp.tools.visualization import create_histogram, plot_function
 
-    # Test plot_function annotations
+    # Test plot_function returns Image
     plot_result = await plot_function.raw_function("sin(x)", (-3.14, 3.14), 100, None)
-    plot_annotations = plot_result["content"][0]["annotations"]
-    assert "difficulty" in plot_annotations
-    assert "topic" in plot_annotations
-    assert plot_annotations["topic"] == "visualization"
-    assert "educational_note" in plot_annotations
+    assert isinstance(plot_result, Image)
+    assert plot_result.data is not None
+    assert len(plot_result.data) > 0
 
-    # Test create_histogram annotations
+    # Test create_histogram returns Image
     histogram_result = await create_histogram.raw_function(
         [1.0, 2.0, 3.0, 4.0, 5.0], 5, "Test", None
     )
-    hist_annotations = histogram_result["content"][0]["annotations"]
-    assert "difficulty" in hist_annotations
-    assert hist_annotations["difficulty"] == "intermediate"
-    assert "topic" in hist_annotations
-    assert hist_annotations["topic"] == "statistics"
-    assert "educational_note" in hist_annotations
+    assert isinstance(histogram_result, Image)
+    assert histogram_result.data is not None
+    assert len(histogram_result.data) > 0
 
 
 # === VISUALIZATION MODULE UNIT TESTS ===
@@ -577,11 +496,9 @@ async def test_plot_line_chart_basic(mock_context):
         mock_context,
     )
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "image"
-    assert content["annotations"]["chart_type"] == "line"
-    assert content["annotations"]["data_points"] == 4
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 @pytest.mark.asyncio
@@ -598,10 +515,9 @@ async def test_plot_scatter_chart_basic(mock_context):
         [1.0, 2.0, 3.0], [2.0, 4.0, 6.0], "Test Scatter", "X", "Y", "purple", 50, mock_context
     )
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "image"
-    assert content["annotations"]["chart_type"] == "scatter"
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 @pytest.mark.asyncio
@@ -623,11 +539,9 @@ async def test_plot_box_plot_basic(mock_context):
         mock_context,
     )
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "image"
-    assert content["annotations"]["chart_type"] == "box_plot"
-    assert content["annotations"]["groups"] == 2
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 @pytest.mark.asyncio
@@ -642,13 +556,9 @@ async def test_plot_financial_line_basic(mock_context):
 
     result = await plot_financial_line.raw_function(30, "bullish", 100.0, None, mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "image"
-    assert content["annotations"]["chart_type"] == "financial_line"
-    assert content["annotations"]["days"] == 30
-    assert content["annotations"]["trend"] == "bullish"
-    assert "volatility" in content["annotations"]
+    assert isinstance(result, Image)
+    assert result.data is not None
+    assert len(result.data) > 0
 
 
 @pytest.mark.asyncio
@@ -665,10 +575,8 @@ async def test_plot_line_chart_error_mismatched_length(mock_context):
         [1.0, 2.0], [1.0], "Test", "X", "Y", None, True, mock_context
     )
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "same length" in content["text"]
+    assert isinstance(result, VisualizationError)
+    assert "same length" in result.message
 
 
 @pytest.mark.asyncio
@@ -746,11 +654,11 @@ async def test_requires_matplotlib_happy_path(mock_context):
 
 @pytest.mark.asyncio
 async def test_requires_matplotlib_import_error(mock_context):
-    """Test requires_matplotlib decorator returns error dict when matplotlib is missing.
+    """Test requires_matplotlib decorator returns VisualizationError when matplotlib is missing.
 
     Arrange: Create a decorated function and mock _setup_matplotlib to raise ImportError
     Act: Call the decorated function
-    Assert: Returns standardized error dict with correct structure and annotations
+    Assert: Returns VisualizationError with correct structure
     """
     from unittest.mock import patch
 
@@ -758,7 +666,7 @@ async def test_requires_matplotlib_import_error(mock_context):
 
     # Arrange: Create a test function decorated with requires_matplotlib
     @requires_matplotlib
-    async def test_decorated_function(value: int, context) -> dict:
+    async def test_decorated_function(value: int, context):
         """Simple test function that should not be called."""
         return {"result": value * 2}
 
@@ -767,23 +675,14 @@ async def test_requires_matplotlib_import_error(mock_context):
         mock_setup.side_effect = ImportError("No module named 'matplotlib'")
         result = await test_decorated_function(5, mock_context)
 
-    # Assert: Returns standardized error dict
-    assert isinstance(result, dict)
-    assert "content" in result
-    assert len(result["content"]) == 1
-
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Matplotlib not available" in content["text"]
-    assert "pip install math-mcp-learning-server[plotting]" in content["text"]
-    assert "uv sync --extra plotting" in content["text"]
-
-    # Verify annotations structure
-    annotations = content["annotations"]
-    assert annotations["error"] == "missing_dependency"
-    assert annotations["install_command"] == "pip install math-mcp-learning-server[plotting]"
-    assert annotations["difficulty"] == "intermediate"
-    assert annotations["topic"] == "visualization"
+    # Assert: Returns VisualizationError
+    assert isinstance(result, VisualizationError)
+    assert "Matplotlib not available" in result.message
+    assert "pip install math-mcp-learning-server[plotting]" in result.message
+    assert "uv sync --extra plotting" in result.message
+    assert result.error_type == "missing_dependency"
+    assert result.difficulty == "intermediate"
+    assert result.topic == "visualization"
 
 
 def test_create_function_plot_basic():
