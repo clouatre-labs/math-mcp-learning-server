@@ -3,10 +3,10 @@ Persistence Tools Sub-Server
 FastMCP sub-server for saving and loading calculations from persistent workspace.
 """
 
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastmcp import Context, FastMCP
-from pydantic import Field, SkipValidation
+from pydantic import BaseModel, Field, SkipValidation
 
 from math_mcp.eval import (
     _classify_expression_difficulty,
@@ -19,6 +19,38 @@ from math_mcp.settings import (
     validated_tool,
 )
 from math_mcp.tools._session import _get_or_create_session_id
+
+
+class SaveCalculationResult(BaseModel):
+    """Result of saving a calculation to the workspace."""
+
+    name: str
+    expression: str
+    result: float
+    success: bool
+    is_new: bool
+    total_variables: int
+    difficulty: str
+    topic: str
+    session_id: str | None = None
+    action: str = "save_calculation"
+
+
+class LoadVariableResult(BaseModel):
+    """Result of loading a variable from the workspace."""
+
+    success: bool
+    name: str
+    action: str
+    result: float | None = None
+    expression: str | None = None
+    timestamp: str | None = None
+    error: str | None = None
+    available_variables: list[str] | None = None
+    difficulty: str | None = None
+    topic: str | None = None
+    session_id: str | None = None
+
 
 # Create sub-server for persistence tools
 persistence_mcp = FastMCP(name="Persistence Tools")
@@ -37,7 +69,7 @@ async def save_calculation(
     expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
     result: float,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> SaveCalculationResult:
     """Save calculation to persistent workspace (survives restarts).
 
     Args:
@@ -56,36 +88,38 @@ async def save_calculation(
 
     difficulty = _classify_expression_difficulty(expression)
     topic = _classify_expression_topic(expression)
-
-    metadata = {
-        "difficulty": difficulty,
-        "topic": topic,
-        "session_id": await _get_or_create_session_id(ctx),
-    }
+    session_id = await _get_or_create_session_id(ctx)
 
     from math_mcp.persistence.workspace import _workspace_manager
 
-    result_data = _workspace_manager.save_variable(name, expression, result, metadata)
+    result_data = _workspace_manager.save_variable(
+        name,
+        expression,
+        result,
+        {
+            "difficulty": difficulty,
+            "topic": topic,
+            "session_id": session_id,
+        },
+    )
 
-    return {
-        "content": [
-            {
-                "type": "text",
-                "text": f"**Saved Variable:** {name} = {result}\n**Expression:** {expression}\n**Status:** {'Success' if result_data['success'] else 'Failed'}",
-                "annotations": {
-                    "action": "save_calculation",
-                    "variable_name": name,
-                    "is_new": result_data.get("is_new", True),
-                    "total_variables": result_data.get("total_variables", 0),
-                    **metadata,
-                },
-            }
-        ]
-    }
+    return SaveCalculationResult(
+        name=name,
+        expression=expression,
+        result=result,
+        success=result_data["success"],
+        is_new=result_data.get("is_new", True),
+        total_variables=result_data.get("total_variables", 0),
+        difficulty=difficulty,
+        topic=topic,
+        session_id=session_id,
+    )
 
 
 @persistence_mcp.tool()
-async def load_variable(name: str, ctx: SkipValidation[Context | None] = None) -> dict[str, Any]:
+async def load_variable(
+    name: str, ctx: SkipValidation[Context | None] = None
+) -> LoadVariableResult:
     """Load previously saved calculation result from workspace.
 
     Args:
@@ -102,36 +136,23 @@ async def load_variable(name: str, ctx: SkipValidation[Context | None] = None) -
     result_data = _workspace_manager.load_variable(name)
 
     if not result_data["success"]:
-        available = result_data.get("available_variables", [])
-        error_msg = result_data["error"]
-        if available:
-            error_msg += f"\nAvailable variables: {', '.join(available)}"
+        return LoadVariableResult(
+            success=False,
+            name=name,
+            action="load_variable",
+            error=result_data.get("error"),
+            available_variables=result_data.get("available_variables"),
+        )
 
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Error:** {error_msg}",
-                    "annotations": {
-                        "action": "load_variable_error",
-                        "requested_name": name,
-                        "available_count": len(available),
-                    },
-                }
-            ]
-        }
-
-    return {
-        "content": [
-            {
-                "type": "text",
-                "text": f"**Loaded Variable:** {name} = {result_data['result']}\n**Expression:** {result_data['expression']}\n**Saved:** {result_data['timestamp']}",
-                "annotations": {
-                    "action": "load_variable",
-                    "variable_name": name,
-                    "original_timestamp": result_data["timestamp"],
-                    **result_data.get("metadata", {}),
-                },
-            }
-        ]
-    }
+    metadata = result_data.get("metadata", {})
+    return LoadVariableResult(
+        success=True,
+        name=name,
+        action="load_variable",
+        result=result_data.get("result"),
+        expression=result_data.get("expression"),
+        timestamp=result_data.get("timestamp"),
+        difficulty=metadata.get("difficulty"),
+        topic=metadata.get("topic"),
+        session_id=metadata.get("session_id"),
+    )

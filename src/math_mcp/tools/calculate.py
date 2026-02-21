@@ -3,10 +3,10 @@ Calculate Tools Sub-Server
 FastMCP sub-server for mathematical calculations, statistics, and unit conversions.
 """
 
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastmcp import Context, FastMCP
-from pydantic import Field, SkipValidation
+from pydantic import BaseModel, Field, SkipValidation
 
 from math_mcp.eval import (
     _classify_expression_difficulty,
@@ -20,6 +20,52 @@ from math_mcp.settings import (
     validated_tool,
 )
 
+
+class CalculationResult(BaseModel):
+    """Result of a mathematical expression evaluation."""
+
+    expression: str
+    result: float
+    difficulty: str
+    topic: str
+
+
+class StatisticsResult(BaseModel):
+    """Result of statistical calculation."""
+
+    operation: str
+    result: float
+    sample_size: int
+    difficulty: str
+    topic: str
+
+
+class CompoundInterestResult(BaseModel):
+    """Result of compound interest calculation."""
+
+    principal: float
+    final_amount: float
+    total_interest: float
+    rate: float
+    time: float
+    compounds_per_year: int
+    difficulty: str
+    topic: str
+    formula: str
+
+
+class UnitConversionResult(BaseModel):
+    """Result of unit conversion."""
+
+    value: float
+    from_unit: str
+    to_unit: str
+    converted_value: float
+    unit_type: str
+    difficulty: str
+    topic: str
+
+
 # Create sub-server for calculation tools
 calculate_mcp = FastMCP(name="Calculate Tools")
 
@@ -31,7 +77,7 @@ calculate_mcp = FastMCP(name="Calculate Tools")
 async def calculate(
     expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> CalculationResult:
     """Safely evaluate mathematical expressions with support for basic operations and math functions.
 
     Supported operations: +, -, *, /, **, ()
@@ -42,28 +88,18 @@ async def calculate(
     - "sqrt(16)" → 4.0
     - "sin(3.14159/2)" → 1.0
     """
-    from datetime import datetime
-
     if ctx:
         await ctx.info(f"Calculating expression: {expression}")
 
     result = await evaluate_with_timeout(expression)
-    timestamp = datetime.now().isoformat()
     difficulty = _classify_expression_difficulty(expression)
 
-    return {
-        "content": [
-            {
-                "type": "text",
-                "text": f"**Calculation:** {expression} = {result}",
-                "annotations": {
-                    "difficulty": difficulty,
-                    "topic": "arithmetic",
-                    "timestamp": timestamp,
-                },
-            }
-        ]
-    }
+    return CalculationResult(
+        expression=expression,
+        result=result,
+        difficulty=difficulty,
+        topic="arithmetic",
+    )
 
 
 @calculate_mcp.tool(
@@ -74,7 +110,7 @@ async def statistics(
     numbers: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
     operation: str,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> StatisticsResult:
     """Perform statistical calculations on a list of numbers.
 
     Available operations: mean, median, mode, std_dev, variance
@@ -120,20 +156,13 @@ async def statistics(
         else "basic"
     )
 
-    return {
-        "content": [
-            {
-                "type": "text",
-                "text": f"**{operation.title()}** of {len(numbers)} numbers: {result_float}",
-                "annotations": {
-                    "difficulty": difficulty,
-                    "topic": "statistics",
-                    "operation": operation,
-                    "sample_size": len(numbers),
-                },
-            }
-        ]
-    }
+    return StatisticsResult(
+        operation=operation,
+        result=result_float,
+        sample_size=len(numbers),
+        difficulty=difficulty,
+        topic="statistics",
+    )
 
 
 @calculate_mcp.tool()
@@ -143,7 +172,7 @@ async def compound_interest(
     time: float,
     compounds_per_year: int = 1,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> CompoundInterestResult:
     """Calculate compound interest for investments.
 
     Formula: A = P(1 + r/n)^(nt)
@@ -170,20 +199,17 @@ async def compound_interest(
     final_amount = principal * (1 + rate / compounds_per_year) ** (compounds_per_year * time)
     total_interest = final_amount - principal
 
-    return {
-        "content": [
-            {
-                "type": "text",
-                "text": f"**Compound Interest Calculation:**\nPrincipal: ${principal:,.2f}\nFinal Amount: ${final_amount:,.2f}\nTotal Interest Earned: ${total_interest:,.2f}",
-                "annotations": {
-                    "difficulty": "intermediate",
-                    "topic": "finance",
-                    "formula": "A = P(1 + r/n)^(nt)",
-                    "time_years": time,
-                },
-            }
-        ]
-    }
+    return CompoundInterestResult(
+        principal=principal,
+        final_amount=final_amount,
+        total_interest=total_interest,
+        rate=rate,
+        time=time,
+        compounds_per_year=compounds_per_year,
+        difficulty="intermediate",
+        topic="finance",
+        formula="A = P(1 + r/n)^(nt)",
+    )
 
 
 @calculate_mcp.tool()
@@ -193,7 +219,7 @@ async def convert_units(
     to_unit: str,
     unit_type: str,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> UnitConversionResult:
     """Convert between different units of measurement.
 
     Supported unit types:
@@ -243,18 +269,12 @@ async def convert_units(
         base_value = value * from_factor
         result = base_value / to_factor
 
-    return {
-        "content": [
-            {
-                "type": "text",
-                "text": f"**Unit Conversion:** {value} {from_unit} = {result:.4g} {to_unit}",
-                "annotations": {
-                    "difficulty": "basic",
-                    "topic": "unit_conversion",
-                    "conversion_type": unit_type,
-                    "from_unit": from_unit,
-                    "to_unit": to_unit,
-                },
-            }
-        ]
-    }
+    return UnitConversionResult(
+        value=value,
+        from_unit=from_unit,
+        to_unit=to_unit,
+        converted_value=result,
+        unit_type=unit_type,
+        difficulty="basic",
+        topic="unit_conversion",
+    )

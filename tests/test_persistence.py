@@ -329,64 +329,56 @@ def test_permission_error_handling(temp_workspace):
 @pytest.mark.asyncio
 async def test_save_calculation_tool(temp_workspace, mock_context):
     """Test save_calculation MCP tool."""
+    from math_mcp.tools.persistence import SaveCalculationResult
+
     result = await save_calculation.raw_function(
         "portfolio_return", "10000 * 1.07^5", 14025.52, mock_context
     )
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Saved Variable" in content["text"]
-    assert "portfolio_return" in content["text"]
-    assert "14025.52" in content["text"]
-
-    # Check annotations
-    annotations = content["annotations"]
-    assert annotations["action"] == "save_calculation"
-    assert annotations["variable_name"] == "portfolio_return"
-    assert annotations["is_new"] is True
-    assert "difficulty" in annotations
-    assert "topic" in annotations
+    assert isinstance(result, SaveCalculationResult)
+    assert result.name == "portfolio_return"
+    assert result.expression == "10000 * 1.07^5"
+    assert result.result == 14025.52
+    assert result.success is True
+    assert result.is_new is True
+    assert result.action == "save_calculation"
+    assert "difficulty" in SaveCalculationResult.model_fields
+    assert "topic" in SaveCalculationResult.model_fields
 
 
 @pytest.mark.asyncio
 async def test_load_variable_tool(temp_workspace, mock_context):
     """Test load_variable MCP tool."""
+    from math_mcp.tools.persistence import LoadVariableResult
+
     # First save a variable using the workspace manager directly
     _workspace_manager.save_variable("circle_area", "pi * 5^2", 78.54, {"topic": "geometry"})
 
     # Then load it using the MCP tool
     result = await load_variable("circle_area", mock_context)
 
-    assert isinstance(result, dict)
-    assert "content" in result
-    content = result["content"][0]
-    assert content["type"] == "text"
-    assert "Loaded Variable" in content["text"]
-    assert "circle_area" in content["text"]
-    assert "78.54" in content["text"]
-    assert "pi * 5^2" in content["text"]
-
-    # Check annotations
-    annotations = content["annotations"]
-    assert annotations["action"] == "load_variable"
-    assert annotations["variable_name"] == "circle_area"
+    assert isinstance(result, LoadVariableResult)
+    assert result.success is True
+    assert result.name == "circle_area"
+    assert result.result == 78.54
+    assert result.expression == "pi * 5^2"
+    assert result.action == "load_variable"
+    assert result.topic == "geometry"
 
 
 @pytest.mark.asyncio
 async def test_load_variable_not_found(temp_workspace, mock_context):
     """Test load_variable tool with nonexistent variable."""
+    from math_mcp.tools.persistence import LoadVariableResult
+
     result = await load_variable("nonexistent_var", mock_context)
 
-    assert isinstance(result, dict)
-    content = result["content"][0]
-    assert "Error" in content["text"]
-    assert "not found" in content["text"]
-
-    annotations = content["annotations"]
-    assert annotations["action"] == "load_variable_error"
-    assert annotations["requested_name"] == "nonexistent_var"
+    assert isinstance(result, LoadVariableResult)
+    assert result.success is False
+    assert result.name == "nonexistent_var"
+    assert result.action == "load_variable"
+    assert result.error is not None
+    assert "not found" in result.error.lower()
 
 
 @pytest.mark.asyncio
@@ -439,7 +431,7 @@ async def test_save_calculation_validation(temp_workspace, mock_context):
 
     # Valid names should work
     result = await save_calculation.raw_function("valid_name-123", "2 + 2", 4.0, mock_context)
-    assert "Success" in result["content"][0]["text"]
+    assert result.success is True
 
 
 # === INTEGRATION WITH EXISTING FUNCTIONALITY ===
@@ -471,9 +463,8 @@ async def test_session_id_is_valid_uuid(temp_workspace, mock_context):
 
     result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, mock_context)
 
-    # Extract session_id from annotations
-    annotations = result["content"][0]["annotations"]
-    session_id = annotations.get("session_id")
+    # Extract session_id directly from the result model
+    session_id = result.session_id
 
     # Verify it's a valid UUID string
     assert session_id is not None
@@ -488,9 +479,8 @@ async def test_session_id_none_when_ctx_is_none(temp_workspace):
     """Test that ctx=None produces None session_id (edge case)."""
     result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, None)
 
-    # Extract session_id from annotations
-    annotations = result["content"][0]["annotations"]
-    session_id = annotations.get("session_id")
+    # Extract session_id directly from the result model
+    session_id = result.session_id
 
     # Verify it's None when no context
     assert session_id is None
@@ -501,11 +491,11 @@ async def test_session_id_stability_same_context(temp_workspace, mock_context):
     """Test that two save_calculation calls on the same MockContext produce the same session_id."""
     # First save
     result1 = await save_calculation.raw_function("var1", "2 + 2", 4.0, mock_context)
-    session_id_1 = result1["content"][0]["annotations"].get("session_id")
+    session_id_1 = result1.session_id
 
     # Second save on same context
     result2 = await save_calculation.raw_function("var2", "3 + 3", 6.0, mock_context)
-    session_id_2 = result2["content"][0]["annotations"].get("session_id")
+    session_id_2 = result2.session_id
 
     # Both should be the same UUID (stable across calls on same context)
     assert session_id_1 is not None
