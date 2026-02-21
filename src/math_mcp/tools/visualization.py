@@ -1,7 +1,7 @@
 """Visualization MCP tools for mathematical plotting and charting.
 
 Extracted from server.py as part of the monolith decomposition (#140c).
-Each tool generates base64-encoded PNG images using matplotlib.
+Each tool generates PNG images using matplotlib and returns Image objects.
 """
 
 import re
@@ -9,10 +9,11 @@ from functools import wraps
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
-from pydantic import Field, SkipValidation
+from fastmcp.utilities.types import Image
+from pydantic import BaseModel, Field, SkipValidation
 
 from math_mcp import visualization
-from math_mcp.eval import _classify_expression_difficulty, evaluate_with_timeout
+from math_mcp.eval import evaluate_with_timeout
 from math_mcp.settings import (
     ALLOWED_TRENDS,
     MAX_ARRAY_SIZE,
@@ -26,6 +27,22 @@ from math_mcp.settings import (
 
 # --- Sub-server instance ---
 visualization_mcp = FastMCP("visualization-tools")
+
+
+# --- Result Models ---
+
+
+class VisualizationError(BaseModel):
+    """Structured error result for visualization tools.
+
+    Used when visualization operations fail, providing typed error information
+    for MCP clients instead of unstructured text responses.
+    """
+
+    message: str
+    error_type: str
+    difficulty: str = "intermediate"
+    topic: str = "visualization"
 
 
 # --- Helpers ---
@@ -50,28 +67,18 @@ def requires_matplotlib(func: Any) -> Any:
     """
 
     @wraps(func)
-    async def wrapper(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    async def wrapper(*args: Any, **kwargs: Any) -> Image | VisualizationError:
         try:
             visualization._setup_matplotlib()
         except ImportError:
-            return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": (
-                            "**Matplotlib not available**\n\n"
-                            "Install with: `pip install math-mcp-learning-server[plotting]`\n\n"
-                            "Or for development: `uv sync --extra plotting`"
-                        ),
-                        "annotations": make_annotations(
-                            "intermediate",
-                            "visualization",
-                            error="missing_dependency",
-                            install_command="pip install math-mcp-learning-server[plotting]",
-                        ),
-                    }
-                ]
-            }
+            return VisualizationError(
+                message=(
+                    "**Matplotlib not available**\n\n"
+                    "Install with: `pip install math-mcp-learning-server[plotting]`\n\n"
+                    "Or for development: `uv sync --extra plotting`"
+                ),
+                error_type="missing_dependency",
+            )
         return await func(*args, **kwargs)
 
     return wrapper
@@ -105,7 +112,7 @@ async def plot_function(
     x_range: tuple[float, float],
     num_points: Annotated[int, Field(ge=2, le=MAX_ARRAY_SIZE)] = 100,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> Image | VisualizationError:
     """Generate mathematical function plots (requires matplotlib).
 
     Args:
@@ -115,7 +122,7 @@ async def plot_function(
         ctx: FastMCP context for logging
 
     Returns:
-        Dict with base64-encoded PNG image or error message
+        Image object with PNG data or VisualizationError on failure
 
     Examples:
         plot_function("x**2", (-5, 5))
@@ -162,59 +169,20 @@ async def plot_function(
             await ctx.report_progress(num_points, num_points, "Rendering plot")
 
         # Delegate rendering to visualization helper
-        image_base64 = visualization.create_function_plot(
-            x_values.tolist(), y_values, expression
-        ).decode("utf-8")
+        image_bytes = visualization.create_function_plot(x_values.tolist(), y_values, expression)
 
-        # Classify difficulty
-        difficulty = _classify_expression_difficulty(expression)
-
-        return {
-            "content": [
-                {
-                    "type": "image",
-                    "data": image_base64,
-                    "mimeType": "image/png",
-                    "annotations": make_annotations(
-                        difficulty,
-                        "visualization",
-                        expression=expression,
-                        x_range=f"[{x_min}, {x_max}]",
-                        num_points=num_points,
-                        educational_note="Function plotting visualizes mathematical relationships",
-                    ),
-                }
-            ]
-        }
+        return Image(data=image_bytes, format="png")
 
     except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Plot Error:** {str(e)}\n\nPlease check your expression and x_range values.",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="plot_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Plot Error:** {str(e)}\n\nPlease check your expression and x_range values.",
+            error_type="plot_error",
+        )
     except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="unexpected_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Unexpected Error:** {str(e)}",
+            error_type="unexpected_error",
+        )
 
 
 @visualization_mcp.tool(
@@ -231,7 +199,7 @@ async def create_histogram(
     bins: int = 20,
     title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Data Distribution",
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> Image | VisualizationError:
     """Create statistical histograms (requires matplotlib).
 
     Args:
@@ -280,62 +248,26 @@ async def create_histogram(
         if ctx:
             await ctx.report_progress(2, 3, "Rendering histogram")
 
-        image_base64 = visualization.create_histogram_chart(
+        image_bytes = visualization.create_histogram_chart(
             data, bins, title, mean_val, median_val, std_dev
-        ).decode("utf-8")
+        )
 
         # Stage 3: Complete
         if ctx:
             await ctx.report_progress(3, 3, "Complete")
 
-        return {
-            "content": [
-                {
-                    "type": "image",
-                    "data": image_base64,
-                    "mimeType": "image/png",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "statistics",
-                        data_points=len(data),
-                        bins=bins,
-                        mean=round(mean_val, 4),
-                        median=round(median_val, 4),
-                        std_dev=round(std_dev, 4),
-                        educational_note="Histograms show the distribution and frequency of data values",
-                    ),
-                }
-            ]
-        }
+        return Image(data=image_bytes, format="png")
 
     except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Histogram Error:** {str(e)}\n\nPlease check your data and parameters.",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="histogram_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Histogram Error:** {str(e)}\n\nPlease check your data and parameters.",
+            error_type="histogram_error",
+        )
     except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="unexpected_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Unexpected Error:** {str(e)}",
+            error_type="unexpected_error",
+        )
 
 
 @visualization_mcp.tool(
@@ -352,7 +284,7 @@ async def plot_line_chart(
     color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
     show_grid: bool = True,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> Image | VisualizationError:
     """Create a line chart from data points (requires matplotlib).
 
     Args:
@@ -390,7 +322,7 @@ async def plot_line_chart(
         if ctx:
             await ctx.report_progress(2, 2, "Complete")
 
-        image_base64 = visualization.create_line_chart(
+        image_bytes = visualization.create_line_chart(
             x_data=x_data,
             y_data=y_data,
             title=title,
@@ -398,53 +330,20 @@ async def plot_line_chart(
             y_label=y_label,
             color=color,
             show_grid=show_grid,
-        ).decode("utf-8")
+        )
 
-        return {
-            "content": [
-                {
-                    "type": "image",
-                    "data": image_base64,
-                    "mimeType": "image/png",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        chart_type="line",
-                        data_points=len(x_data),
-                        educational_note="Line charts show trends and changes over continuous data",
-                    ),
-                }
-            ]
-        }
+        return Image(data=image_bytes, format="png")
 
     except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Line Chart Error:** {str(e)}\n\nPlease check that x_data and y_data have the same length.",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="line_chart_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Line Chart Error:** {str(e)}\n\nPlease check that x_data and y_data have the same length.",
+            error_type="line_chart_error",
+        )
     except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="unexpected_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Unexpected Error:** {str(e)}",
+            error_type="unexpected_error",
+        )
 
 
 @visualization_mcp.tool(
@@ -465,7 +364,7 @@ async def plot_scatter_chart(
     color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
     point_size: int = 50,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> Image | VisualizationError:
     """Create a scatter plot from data points (requires matplotlib).
 
     Args:
@@ -503,7 +402,7 @@ async def plot_scatter_chart(
         if ctx:
             await ctx.report_progress(2, 2, "Complete")
 
-        image_base64 = visualization.create_scatter_plot(
+        image_bytes = visualization.create_scatter_plot(
             x_data=x_data,
             y_data=y_data,
             title=title,
@@ -511,53 +410,20 @@ async def plot_scatter_chart(
             y_label=y_label,
             color=color,
             point_size=point_size,
-        ).decode("utf-8")
+        )
 
-        return {
-            "content": [
-                {
-                    "type": "image",
-                    "data": image_base64,
-                    "mimeType": "image/png",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        chart_type="scatter",
-                        data_points=len(x_data),
-                        educational_note="Scatter plots reveal correlations and patterns in paired data",
-                    ),
-                }
-            ]
-        }
+        return Image(data=image_bytes, format="png")
 
     except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Scatter Plot Error:** {str(e)}\n\nPlease check that x_data and y_data have the same length.",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="scatter_plot_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Scatter Plot Error:** {str(e)}\n\nPlease check that x_data and y_data have the same length.",
+            error_type="scatter_chart_error",
+        )
     except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="unexpected_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Unexpected Error:** {str(e)}",
+            error_type="unexpected_error",
+        )
 
 
 @visualization_mcp.tool(
@@ -572,7 +438,7 @@ async def plot_box_plot(
     y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Values",
     color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> Image | VisualizationError:
     """Create a box plot for comparing distributions (requires matplotlib).
 
     Args:
@@ -611,59 +477,26 @@ async def plot_box_plot(
         if ctx:
             await ctx.report_progress(2, 2, "Complete")
 
-        image_base64 = visualization.create_box_plot(
+        image_bytes = visualization.create_box_plot(
             data_groups=data_groups,
             group_labels=group_labels,
             title=title,
             y_label=y_label,
             color=color,
-        ).decode("utf-8")
+        )
 
-        return {
-            "content": [
-                {
-                    "type": "image",
-                    "data": image_base64,
-                    "mimeType": "image/png",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        chart_type="box_plot",
-                        groups=len(data_groups),
-                        educational_note="Box plots display distribution quartiles, median, and outliers for comparison",
-                    ),
-                }
-            ]
-        }
+        return Image(data=image_bytes, format="png")
 
     except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Box Plot Error:** {str(e)}\n\nPlease check your data groups and labels.",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="box_plot_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Box Plot Error:** {str(e)}\n\nPlease check your data groups and labels.",
+            error_type="box_plot_error",
+        )
     except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": make_annotations(
-                        "intermediate",
-                        "visualization",
-                        error="unexpected_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Unexpected Error:** {str(e)}",
+            error_type="unexpected_error",
+        )
 
 
 @visualization_mcp.tool(
@@ -681,7 +514,7 @@ async def plot_financial_line(
     start_price: float = 100.0,
     color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
     ctx: SkipValidation[Context | None] = None,
-) -> dict[str, Any]:
+) -> Image | VisualizationError:
     """Generate and plot synthetic financial price data (requires matplotlib).
 
     Creates realistic price movement patterns for educational purposes.
@@ -734,71 +567,27 @@ async def plot_financial_line(
             await ctx.report_progress(2, 3, "Creating financial chart")
 
         # Create financial chart
-        image_base64 = visualization.create_financial_line_chart(
+        image_bytes = visualization.create_financial_line_chart(
             dates=dates,
             prices=prices,
             title=f"Synthetic {trend.capitalize()} Price Movement ({days} days)",
             y_label="Price ($)",
             color=color,
-        ).decode("utf-8")
+        )
 
         # Stage 3: Complete
         if ctx:
             await ctx.report_progress(3, 3, "Complete")
 
-        # Calculate statistics
-        import statistics as stats
-
-        price_change = ((prices[-1] - prices[0]) / prices[0]) * 100
-        volatility = stats.stdev(prices) if len(prices) > 1 else 0
-
-        return {
-            "content": [
-                {
-                    "type": "image",
-                    "data": image_base64,
-                    "mimeType": "image/png",
-                    "annotations": make_annotations(
-                        "advanced",
-                        "financial_analysis",
-                        chart_type="financial_line",
-                        days=days,
-                        trend=trend,
-                        start_price=round(start_price, 2),
-                        end_price=round(prices[-1], 2),
-                        price_change_percent=round(price_change, 2),
-                        volatility=round(volatility, 2),
-                        educational_note="Synthetic data generated for educational purposes only - not real market data",
-                    ),
-                }
-            ]
-        }
+        return Image(data=image_bytes, format="png")
 
     except ValueError as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Financial Chart Error:** {str(e)}\n\nPlease check your parameters (days >= 2, valid trend, positive start_price).",
-                    "annotations": make_annotations(
-                        "advanced",
-                        "financial_analysis",
-                        error="financial_chart_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Financial Chart Error:** {str(e)}\n\nPlease check your parameters (days >= 2, valid trend, positive start_price).",
+            error_type="financial_chart_error",
+        )
     except Exception as e:
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"**Unexpected Error:** {str(e)}",
-                    "annotations": make_annotations(
-                        "advanced",
-                        "financial_analysis",
-                        error="unexpected_error",
-                    ),
-                }
-            ]
-        }
+        return VisualizationError(
+            message=f"**Unexpected Error:** {str(e)}",
+            error_type="unexpected_error",
+        )
