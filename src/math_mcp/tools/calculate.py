@@ -95,12 +95,18 @@ async def statistics(
         )
 
     if ctx:
+        await ctx.report_progress(0, 2, "Validating input")
+
+    if ctx:
         await ctx.info(f"Performing {operation} on {len(numbers)} data points")
 
     import statistics as stats
 
     if not numbers:
         raise ValueError("Cannot calculate statistics on empty list")
+
+    if ctx:
+        await ctx.report_progress(1, 2, "Computing statistics")
 
     operations = {
         "mean": stats.mean,
@@ -112,6 +118,9 @@ async def statistics(
 
     result = operations[operation](numbers)
     result_float = float(result)
+
+    if ctx:
+        await ctx.report_progress(2, 2, "Complete")
 
     difficulty = (
         "advanced"

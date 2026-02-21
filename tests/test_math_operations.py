@@ -125,10 +125,15 @@ async def test_statistics_tool():
     class MockContext:
         def __init__(self):
             self.info_logs = []
+            self.progress_reports = []
 
         async def info(self, message: str):
             """Mock info logging."""
             self.info_logs.append(message)
+
+        async def report_progress(self, current: int, total: int, message: str = "") -> None:
+            """Mock progress reporting."""
+            self.progress_reports.append((current, total, message))
 
     ctx = MockContext()
 
@@ -284,10 +289,15 @@ async def test_statistical_edge_cases():
     class MockContext:
         def __init__(self):
             self.info_logs = []
+            self.progress_reports = []
 
         async def info(self, message: str):
             """Mock info logging."""
             self.info_logs.append(message)
+
+        async def report_progress(self, current: int, total: int, message: str = "") -> None:
+            """Mock progress reporting."""
+            self.progress_reports.append((current, total, message))
 
     ctx = MockContext()
 
@@ -480,8 +490,15 @@ async def test_array_size_validation():
 
     # Mock context
     class MockContext:
+        def __init__(self):
+            self.progress_reports = []
+
         async def info(self, message: str):
             pass
+
+        async def report_progress(self, current: int, total: int, message: str = "") -> None:
+            """Mock progress reporting."""
+            self.progress_reports.append((current, total, message))
 
     ctx = MockContext()
 
@@ -502,8 +519,15 @@ async def test_operation_whitelist_validation():
 
     # Mock context
     class MockContext:
+        def __init__(self):
+            self.progress_reports = []
+
         async def info(self, message: str):
             pass
+
+        async def report_progress(self, current: int, total: int, message: str = "") -> None:
+            """Mock progress reporting."""
+            self.progress_reports.append((current, total, message))
 
     ctx = MockContext()
 
@@ -680,8 +704,15 @@ async def test_empty_input_validation():
 
     # Mock context
     class MockContext:
+        def __init__(self):
+            self.progress_reports = []
+
         async def info(self, message: str):
             pass
+
+        async def report_progress(self, current: int, total: int, message: str = "") -> None:
+            """Mock progress reporting."""
+            self.progress_reports.append((current, total, message))
 
     ctx = MockContext()
 
