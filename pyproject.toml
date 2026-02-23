@@ -1,7 +1,7 @@
 [project]
 name = "math-mcp-learning-server"
 version = "0.11.2"
-description = "Production-ready educational MCP server with enhanced visualizations and persistent workspace - Complete learning guide demonstrating FastMCP 3.0 best practices for Model Context Protocol development"
+description = "Production-ready educational MCP server with enhanced visualizations and persistent workspace - Complete learning guide demonstrating FastMCP best practices for Model Context Protocol development"
 readme = "README.md"
 requires-python = ">=3.14"
 license = "MIT"

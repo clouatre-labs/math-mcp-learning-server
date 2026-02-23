@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Built with [FastMCP 3.0](https://github.com/PrefectHQ/fastmcp) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
+Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Built with [FastMCP](https://gofastmcp.com) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
 
 **Available on:**
 - [Official MCP Registry](https://registry.modelcontextprotocol.io/) - `io.github.clouatre-labs/math-mcp-learning-server`
@@ -111,46 +111,7 @@ See [Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/b
 
 ## Development
 
-```bash
-# Clone and setup
-git clone https://github.com/clouatre-labs/math-mcp-learning-server.git
-cd math-mcp-learning-server
-uv sync --extra dev --extra plotting
-
-# Test server locally
-uv run fastmcp dev src/math_mcp/server.py
-```
-
-### Testing
-
-```bash
-# Run all tests
-uv run pytest tests/ -v
-
-# Run with coverage
-uv run pytest tests/ --cov=src --cov-report=html --cov-report=term
-
-# Run specific test category
-uv run pytest tests/test_matrix_operations.py -v
-```
-
-**Test Suite:** 122 tests across 6 categories (Agent Card, HTTP Integration, Math, Matrix, Persistence, Visualization); HTTP integration tests run only on release tags.
-
-### Code Quality
-
-```bash
-# Linting
-uv run ruff check
-
-# Formatting
-uv run ruff format --check
-
-# Type checking
-uv run pyright src/
-
-# Security checks
-uv run ruff check --select S
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contribution guidelines.
 
 ## Security
 

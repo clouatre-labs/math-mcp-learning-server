@@ -129,7 +129,7 @@ async def plot_function(
         plot_function("sin(x)", (-3.14, 3.14))
     """
 
-    # FastMCP 2.0 Context logging
+    # FastMCP Context logging
     if ctx:
         await ctx.info(f"Plotting function: {expression} over range {x_range}")
 

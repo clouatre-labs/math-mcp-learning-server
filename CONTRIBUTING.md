@@ -1,7 +1,5 @@
 # Contributing to Math MCP Server
 
-Thank you for your interest in contributing to the Math MCP Server! This guide will help you get started.
-
 ## Quick Start
 
 ### Prerequisites
@@ -16,7 +14,7 @@ git clone https://github.com/clouatre-labs/math-mcp-learning-server.git
 cd math-mcp-learning-server
 
 # Install dependencies and activate virtual environment
-uv sync
+uv sync --extra dev --extra plotting
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Verify installation
@@ -130,11 +128,26 @@ See [CI/CD Workflow](https://github.com/clouatre-labs/math-mcp-learning-server/b
 
 ## Code Organization
 
-Single-file architecture for core functionality:
+Modular architecture with composition root and specialized modules:
 ```
-src/math_mcp/server.py    # Core MCP server
-tests/                    # Comprehensive test suite
-ROADMAP.md                # Ideas for later consideration
+src/math_mcp/
+  server.py              # Composition root, middleware, lifespan
+  tools/                 # Tool implementations
+    calculate.py         # Basic math operations
+    matrix.py            # Matrix operations
+    persistence.py       # Workspace persistence
+    visualization.py     # Chart and plot generation
+  persistence/           # State management
+    models.py            # Data models
+    storage.py           # File-based storage
+    workspace.py         # Workspace management
+  resources.py           # MCP resources
+  settings.py            # Configuration
+  eval.py                # Restricted evaluation
+  visualization.py       # Visualization helpers
+  agent_card.py          # A2A agent card
+tests/                   # Comprehensive test suite
+ROADMAP.md               # Ideas for later consideration
 ```
 
 ### Adding New Features
@@ -152,63 +165,27 @@ ROADMAP.md                # Ideas for later consideration
 3. Add appropriate difficulty classification
 4. Test educational metadata
 
-## Contribution Process
+## Contribution Checklist
 
-### Before You Start
 1. Check existing issues and PRs for similar work
 2. Review ROADMAP.md for planned features
 3. Discuss major changes in an issue first
-
-### Making Changes
-1. Fork the repository (for external contributors)
-2. Create feature branch from main
-3. Implement changes following code standards
-4. Add/update tests for your changes
-5. Update documentation as needed
-6. Run quality checks locally
-7. Commit with conventional messages
-
-### Submitting Changes
-1. Push your branch
-2. Create Pull Request with:
-   - Clear title and description
-   - Reference any related issues
-   - Summary of testing performed
-   - Note any breaking changes
-
-### Branch Cleanup
-When closing a PR without merging, please delete your remote branch to keep the repository clean:
-```bash
-git push origin --delete your-branch-name
-```
-Merged PRs automatically delete their branches due to the repository's `delete_branch_on_merge` setting, so no manual cleanup is needed for merged changes.
-
-### PR Review
-- Automated checks must pass
-- Code review by maintainers
-- Discussion of any concerns
-- Approval and merge
+4. Create feature branch from main
+5. Implement changes following code standards
+6. Add/update tests for your changes
+7. Update documentation as needed
+8. Run quality checks locally: `uv run pytest -v && uv run pyright src/ && uv run ruff check src/ tests/`
+9. Commit with conventional messages (GPG-signed, DCO sign-off)
+10. Push your branch and create PR with clear title, description, and testing summary
+11. Delete remote branch if PR is closed without merging (merged PRs auto-delete)
 
 ## What We're Looking For
 
-### High Priority Contributions
-- Additional mathematical domains (linear algebra, calculus)
-- Educational enhancements (better error explanations)
-- Performance improvements
-- Security hardening
-- Test coverage improvements
+**[High Priority]** Additional mathematical domains (linear algebra, calculus); Educational enhancements (better error explanations); Performance improvements; Security hardening; Test coverage improvements
 
-### Medium Priority
-- Documentation improvements
-- Example applications
-- Integration guides
-- Educational use cases
+**[Medium Priority]** Documentation improvements; Example applications; Integration guides; Educational use cases
 
-### Please Avoid
-- Feature bloat that doesn't serve education
-- Complex architectural changes without discussion
-- Breaking changes without clear benefits
-- Dependencies that compromise the minimal philosophy
+**[Avoid]** Feature bloat that doesn't serve education; Complex architectural changes without discussion; Breaking changes without clear benefits; Dependencies that compromise the minimal philosophy
 
 ## Getting Help
 
@@ -219,23 +196,9 @@ Merged PRs automatically delete their branches due to the repository's `delete_b
 
 ## Resources
 
-### MCP Documentation
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)
-- [FastMCP Documentation](https://github.com/modelcontextprotocol/python-sdk)
-
-### Development Tools
-- [uv Package Manager](https://docs.astral.sh/uv/)
-- [Ruff Linter](https://docs.astral.sh/ruff/)
-- [Pyright Type Checker](https://github.com/microsoft/pyright)
-
-### Mathematical References
-- [Python Math Module](https://docs.python.org/3/library/math.html)
-- [Python Statistics Module](https://docs.python.org/3/library/statistics.html)
+- [FastMCP Documentation](https://gofastmcp.com)
 
 ## Code of Conduct
 
 This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to hugues+mcp-coc@linux.com.
-
----
-
-For questions about this guide, please open an issue or start a discussion.
