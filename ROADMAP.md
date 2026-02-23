@@ -12,7 +12,7 @@ Build capabilities LLMs lack natively: **persistent state**, **visual output**, 
 - **Visualization** (v0.6.0--v0.7.0) -- Function plots, histograms, scatter/line/box/financial charts
 - **Production Hardening** (v0.9.0) -- Rate limiting, input validation, structured logging, CI matrix
 - **Matrix Operations** (v0.10.0) -- Multiply, transpose, determinant, inverse, eigenvalues via NumPy
-- **FastMCP 3.0 Upgrade** (v0.11.0) -- Upgraded from FastMCP 2.x to 3.0; migrated to [PrefectHQ/fastmcp](https://github.com/PrefectHQ/fastmcp); adopted streamable-http transport
+- **FastMCP Upgrade** (v0.11.0) -- Upgraded to FastMCP 3.0; migrated to [PrefectHQ/fastmcp](https://github.com/PrefectHQ/fastmcp); adopted streamable-http transport
 
 ## Upcoming
 
@@ -22,7 +22,7 @@ Build capabilities LLMs lack natively: **persistent state**, **visual output**, 
 - End-to-end workflow tests (calculate, save, load, visualize)
 - Property-based testing with Hypothesis
 
-### FastMCP 3.0 Features
+### FastMCP Features
 
 New capabilities available with the 3.0 upgrade:
 - ResponseLimitingMiddleware for output size control
