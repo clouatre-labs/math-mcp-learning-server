@@ -889,8 +889,7 @@ async def test_compound_interest_valid_decimal_rate():
 async def test_math_tutor_prompt(http_client):
     """Test math_tutor prompt protocol access."""
     result = await http_client.get_prompt(
-        "math_tutor",
-        {"topic": "derivatives", "level": "intermediate", "include_examples": True}
+        "math_tutor", {"topic": "derivatives", "level": "intermediate", "include_examples": True}
     )
     assert result.messages is not None
     assert len(result.messages) > 0
@@ -902,8 +901,7 @@ async def test_math_tutor_prompt(http_client):
 async def test_formula_explainer_prompt(http_client):
     """Test formula_explainer prompt protocol access."""
     result = await http_client.get_prompt(
-        "formula_explainer",
-        {"formula": "A = πr²", "context": "geometry"}
+        "formula_explainer", {"formula": "A = πr²", "context": "geometry"}
     )
     assert result.messages is not None
     assert len(result.messages) > 0
