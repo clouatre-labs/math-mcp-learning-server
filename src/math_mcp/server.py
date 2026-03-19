@@ -16,6 +16,7 @@ from fastmcp.server.middleware.rate_limiting import (
     RateLimitError,
     SlidingWindowRateLimitingMiddleware,
 )
+from mcp.types import Completion, ResourceTemplateReference
 from starlette.responses import JSONResponse
 
 from math_mcp.agent_card import AgentCard, AgentSkill
@@ -27,7 +28,20 @@ from math_mcp.tools import calculate_mcp, matrix_mcp, persistence_mcp, visualiza
 
 mcp = FastMCP(
     name="Math Learning Server",
-    instructions="A comprehensive math server demonstrating MCP fundamentals with tools, resources, and prompts for educational purposes.",
+    instructions=(
+        "Math Learning Server - use these tools for mathematical computation:\n\n"
+        "CALCULATE: Use `calculate` for arithmetic/algebra, `statistics` for lists, "
+        "`compound_interest` for finance (rate as decimal: 0.05 = 5%), "
+        "`convert_units` for unit conversion (length/weight/temperature).\n\n"
+        "MATRIX: Use `matrix_multiply`, `matrix_determinant`, `matrix_inverse`, "
+        "`matrix_transpose`, `matrix_eigenvalues` for linear algebra.\n\n"
+        "VISUALIZE: Use `plot_function`, `plot_histogram`, `plot_scatter`, "
+        "`plot_bar_chart`, `plot_heatmap`, `create_animated_plot` for charts.\n\n"
+        "WORKSPACE: Use `save_calculation` to persist results, `load_variable` to retrieve. "
+        "Results survive server restarts. View all via math://workspace resource.\n\n"
+        "RESOURCES: math://functions (syntax reference), math://constants/{name} "
+        "(pi/e/golden_ratio/euler_gamma/sqrt2/sqrt3), math://catalog/tools (tool index)."
+    ),
 )
 
 # Mount sub-server tools using FastMCP composition pattern
@@ -56,6 +70,28 @@ if RATE_LIMIT_PER_MINUTE > 0:
         SlidingWindowRateLimitingMiddleware(max_requests=RATE_LIMIT_PER_MINUTE, window_minutes=1)
     )
     logging.info(f"Rate limiting enabled: {RATE_LIMIT_PER_MINUTE} requests/minute")
+
+
+# === ARGUMENT COMPLETIONS ===
+
+# Constants list must match resources.py get_math_constant keys
+_CONSTANTS = ["pi", "e", "golden_ratio", "euler_gamma", "sqrt2", "sqrt3"]
+
+
+@mcp._mcp_server.completion()
+async def handle_completion(
+    ref: object,
+    argument: object,
+    context: object = None,
+) -> Completion | None:
+    """Provide tab-completions for math://constants/{constant} resource template."""
+    if not isinstance(ref, ResourceTemplateReference):
+        return None
+    if ref.uri != "math://constants/{constant}":
+        return None
+    prefix = getattr(argument, "value", "") or ""
+    matches = [c for c in _CONSTANTS if c.startswith(prefix)]
+    return Completion(values=matches)
 
 
 # === AGENT CARD ENDPOINT ===
