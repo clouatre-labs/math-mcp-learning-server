@@ -71,7 +71,7 @@ async def test_http_compound_interest(http_client: Client) -> None:
     """Test compound interest calculation over HTTP."""
     result = await http_client.call_tool(
         "compound_interest",
-        {"principal": 1000, "rate": 5, "time": 10, "compounds_per_year": 12},
+        {"principal": 1000, "rate": 0.05, "time": 10, "compounds_per_year": 12},
     )
     assert len(result.content) > 0
     text = result.content[0].text

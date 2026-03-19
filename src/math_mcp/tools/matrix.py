@@ -74,6 +74,8 @@ class MatrixEigenvaluesResult(BaseModel):
     eigenvalues: list[float] | None = None
     eigenvectors: list[list[float]] | None = None
     error: str | None = None
+    complex_eigenvalues_warning: str | None = None
+    complex_values: list[str] | None = None
     difficulty: str
     topic: str
 
@@ -331,6 +333,8 @@ async def matrix_inverse(
 
     det = la.det(mat)  # type: ignore
     if abs(det) < 1e-10:
+        if ctx:
+            await ctx.warning("Matrix is singular (determinant near 0); inverse does not exist")
         return MatrixInverseResult(
             size=int(mat.shape[0]),
             success=False,
@@ -390,6 +394,10 @@ async def matrix_eigenvalues(
     mat = _validate_matrix(matrix)
 
     if mat.shape[0] != mat.shape[1]:
+        if ctx:
+            await ctx.warning(
+                f"Eigenvalues require square matrix; got {mat.shape[0]}x{mat.shape[1]}"
+            )
         return MatrixEigenvaluesResult(
             size=int(mat.shape[0]),
             success=False,
@@ -403,8 +411,28 @@ async def matrix_eigenvalues(
 
     eigenvalues = la.eigvals(mat)  # type: ignore
 
-    # Convert eigenvalues to list of floats (real part only for display)
-    eigenval_list = [float(val.real) if np.isreal(val) else float(val.real) for val in eigenvalues]  # type: ignore
+    # Detect complex eigenvalues (imaginary part exceeds floating-point noise threshold)
+    has_complex = any(abs(val.imag) > 1e-10 for val in eigenvalues)
+    if has_complex:
+        if ctx:
+            await ctx.warning(
+                "Matrix has complex eigenvalues; imaginary parts truncated to real in eigenvalues field"
+            )
+
+    # Convert eigenvalues to list of floats (real parts only, for backward compat)
+    eigenval_list = [float(val.real) for val in eigenvalues]  # type: ignore
+
+    # Build complex_values strings when imaginary parts are significant
+    complex_values = (
+        [f"{val.real:.6g}+{val.imag:.6g}i" for val in eigenvalues]  # type: ignore
+        if has_complex
+        else None
+    )
+    complex_warning = (
+        "Imaginary parts truncated; see complex_values for full representation"
+        if has_complex
+        else None
+    )
 
     if ctx:
         await ctx.report_progress(2, 2, "Complete")
@@ -413,6 +441,8 @@ async def matrix_eigenvalues(
         size=int(mat.shape[0]),
         success=True,
         eigenvalues=eigenval_list,
+        complex_eigenvalues_warning=complex_warning,
+        complex_values=complex_values,
         difficulty="advanced",
         topic="linear_algebra",
     )

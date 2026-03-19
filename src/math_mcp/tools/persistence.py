@@ -61,6 +61,7 @@ persistence_mcp = FastMCP(name="Persistence Tools")
         "title": "Save Calculation to Workspace",
         "readOnlyHint": False,
         "openWorldHint": False,
+        "idempotentHint": False,
     }
 )
 @validated_tool
@@ -116,7 +117,14 @@ async def save_calculation(
     )
 
 
-@persistence_mcp.tool()
+@persistence_mcp.tool(
+    annotations={
+        "title": "Load Variable",
+        "readOnlyHint": True,
+        "openWorldHint": False,
+        "idempotentHint": True,
+    }
+)
 async def load_variable(
     name: str, ctx: SkipValidation[Context | None] = None
 ) -> LoadVariableResult:
@@ -136,6 +144,8 @@ async def load_variable(
     result_data = _workspace_manager.load_variable(name)
 
     if not result_data["success"]:
+        if ctx:
+            await ctx.warning(f"Variable '{name}' not found in workspace")
         return LoadVariableResult(
             success=False,
             name=name,

@@ -71,7 +71,12 @@ calculate_mcp = FastMCP(name="Calculate Tools")
 
 
 @calculate_mcp.tool(
-    annotations={"title": "Mathematical Calculator", "readOnlyHint": False, "openWorldHint": True}
+    annotations={
+        "title": "Mathematical Calculator",
+        "readOnlyHint": True,
+        "openWorldHint": False,
+        "idempotentHint": True,
+    }
 )
 @validated_tool
 async def calculate(
@@ -103,7 +108,12 @@ async def calculate(
 
 
 @calculate_mcp.tool(
-    annotations={"title": "Statistical Analysis", "readOnlyHint": True, "openWorldHint": False}
+    annotations={
+        "title": "Statistical Analysis",
+        "readOnlyHint": True,
+        "openWorldHint": False,
+        "idempotentHint": True,
+    }
 )
 @validated_tool
 async def statistics(
@@ -116,6 +126,8 @@ async def statistics(
     Available operations: mean, median, mode, std_dev, variance
     """
     if operation not in ALLOWED_OPERATIONS:
+        if ctx:
+            await ctx.warning(f"Invalid operation requested: {operation}")
         raise ValueError(
             f"Invalid operation: {operation}. Allowed: {', '.join(sorted(ALLOWED_OPERATIONS))}"
         )
@@ -129,6 +141,8 @@ async def statistics(
     import statistics as stats
 
     if not numbers:
+        if ctx:
+            await ctx.warning("Cannot calculate statistics on empty list")
         raise ValueError("Cannot calculate statistics on empty list")
 
     if ctx:
@@ -165,7 +179,15 @@ async def statistics(
     )
 
 
-@calculate_mcp.tool()
+@calculate_mcp.tool(
+    annotations={
+        "title": "Compound Interest Calculator",
+        "readOnlyHint": True,
+        "openWorldHint": False,
+        "idempotentHint": True,
+    }
+)
+@validated_tool
 async def compound_interest(
     principal: float,
     rate: float,
@@ -188,12 +210,27 @@ async def compound_interest(
         )
 
     if principal <= 0:
+        if ctx:
+            await ctx.warning(f"Invalid principal: {principal}")
         raise ValueError("Principal must be greater than 0")
     if rate < 0:
+        if ctx:
+            await ctx.warning(f"Negative rate: {rate}")
         raise ValueError("Interest rate cannot be negative")
+    if rate > 1.0:
+        if ctx:
+            await ctx.warning(f"rate {rate} looks like a percentage not a decimal")
+        raise ValueError(
+            f"rate must be a decimal between 0.0 and 1.0 (e.g., 0.05 for 5%). "
+            f"Got {rate}. Did you mean {rate / 100:.4f}?"
+        )
     if time <= 0:
+        if ctx:
+            await ctx.warning(f"Invalid time: {time}")
         raise ValueError("Time must be greater than 0")
     if compounds_per_year <= 0:
+        if ctx:
+            await ctx.warning(f"Invalid compounds_per_year: {compounds_per_year}")
         raise ValueError("Compounds per year must be greater than 0")
 
     final_amount = principal * (1 + rate / compounds_per_year) ** (compounds_per_year * time)
@@ -212,7 +249,15 @@ async def compound_interest(
     )
 
 
-@calculate_mcp.tool()
+@calculate_mcp.tool(
+    annotations={
+        "title": "Unit Converter",
+        "readOnlyHint": True,
+        "openWorldHint": False,
+        "idempotentHint": True,
+    }
+)
+@validated_tool
 async def convert_units(
     value: float,
     from_unit: str,
@@ -254,6 +299,8 @@ async def convert_units(
     else:
         conversion_table = conversions.get(unit_type)
         if not conversion_table:
+            if ctx:
+                await ctx.warning(f"Unknown unit type requested: {unit_type}")
             raise ValueError(
                 f"Unknown unit type '{unit_type}'. Available: length, weight, temperature"
             )
@@ -262,8 +309,12 @@ async def convert_units(
         to_factor = conversion_table.get(to_unit.lower())
 
         if from_factor is None:
+            if ctx:
+                await ctx.warning(f"Unknown {unit_type} unit: {from_unit}")
             raise ValueError(f"Unknown {unit_type} unit '{from_unit}'")
         if to_factor is None:
+            if ctx:
+                await ctx.warning(f"Unknown {unit_type} unit: {to_unit}")
             raise ValueError(f"Unknown {unit_type} unit '{to_unit}'")
 
         base_value = value * from_factor

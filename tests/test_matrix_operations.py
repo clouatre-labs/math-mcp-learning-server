@@ -625,3 +625,36 @@ async def test_matrix_eigenvalues_progress_reporting(mock_context):
         assert total == 2
         assert isinstance(message, str)
         assert len(message) > 0
+
+
+@pytest.mark.asyncio
+async def test_matrix_eigenvalues_complex_warning():
+    """Test that matrix_eigenvalues populates complex_values and warning for complex eigenvalues.
+
+    Arrange: rotation matrix [[0,-1],[1,0]] has purely imaginary eigenvalues +/- i
+    Act: call matrix_eigenvalues
+    Assert: complex_eigenvalues_warning is not None, complex_values is not None
+    """
+    from math_mcp.tools.matrix import matrix_eigenvalues
+
+    result = await matrix_eigenvalues.raw_function([[0, -1], [1, 0]])
+    assert result.success is True
+    assert result.complex_eigenvalues_warning is not None
+    assert result.complex_values is not None
+    assert len(result.complex_values) == 2
+
+
+@pytest.mark.asyncio
+async def test_matrix_eigenvalues_real_no_warning():
+    """Test that matrix_eigenvalues with real eigenvalues leaves warning fields as None.
+
+    Arrange: [[4,2],[1,3]] has real eigenvalues 5 and 2
+    Act: call matrix_eigenvalues
+    Assert: complex_eigenvalues_warning is None, complex_values is None
+    """
+    from math_mcp.tools.matrix import matrix_eigenvalues
+
+    result = await matrix_eigenvalues.raw_function([[4, 2], [1, 3]])
+    assert result.success is True
+    assert result.complex_eigenvalues_warning is None
+    assert result.complex_values is None
