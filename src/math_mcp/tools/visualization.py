@@ -48,16 +48,6 @@ class VisualizationError(BaseModel):
 # --- Helpers ---
 
 
-def make_annotations(difficulty: str, topic: str, **extra: Any) -> dict[str, Any]:
-    """Build an annotation dict with required keys and optional extras (#144).
-
-    Every tool response carries educational metadata. This helper enforces
-    the two required keys (difficulty, topic) and merges any tool-specific
-    extras, reducing inline dict construction across all visualization tools.
-    """
-    return {"difficulty": difficulty, "topic": topic, **extra}
-
-
 def requires_matplotlib(func: Any) -> Any:
     """Decorator ensuring matplotlib is available before running visualization tools.
 
@@ -174,11 +164,15 @@ async def plot_function(
         return Image(data=image_bytes, format="png")
 
     except ValueError as e:
+        if ctx:
+            await ctx.error(f"Plot function error: {e}")
         return VisualizationError(
             message=f"**Plot Error:** {str(e)}\n\nPlease check your expression and x_range values.",
             error_type="plot_error",
         )
     except Exception as e:
+        if ctx:
+            await ctx.error(f"Plot function unexpected error: {e}")
         return VisualizationError(
             message=f"**Unexpected Error:** {str(e)}",
             error_type="unexpected_error",
@@ -259,11 +253,15 @@ async def create_histogram(
         return Image(data=image_bytes, format="png")
 
     except ValueError as e:
+        if ctx:
+            await ctx.error(f"Histogram error: {e}")
         return VisualizationError(
             message=f"**Histogram Error:** {str(e)}\n\nPlease check your data and parameters.",
             error_type="histogram_error",
         )
     except Exception as e:
+        if ctx:
+            await ctx.error(f"Histogram unexpected error: {e}")
         return VisualizationError(
             message=f"**Unexpected Error:** {str(e)}",
             error_type="unexpected_error",

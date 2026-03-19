@@ -6,12 +6,8 @@ Uses FastMCP patterns with structured output and multi-transport support.
 """
 
 import logging
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
-from typing import Any
 
 from fastmcp import FastMCP
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
@@ -27,33 +23,10 @@ from math_mcp.resources import resources_mcp
 from math_mcp.settings import RATE_LIMIT_PER_MINUTE
 from math_mcp.tools import calculate_mcp, matrix_mcp, persistence_mcp, visualization_mcp
 
-# === APPLICATION CONTEXT ===
-
-
-@dataclass
-class AppContext:
-    """Application context with calculation history."""
-
-    calculation_history: list[dict[str, Any]]
-
-
-@asynccontextmanager
-async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
-    """Manage application lifecycle with calculation history."""
-    # Initialize calculation history
-    calculation_history: list[dict[str, Any]] = []
-    try:
-        yield AppContext(calculation_history=calculation_history)
-    finally:
-        # Could save history to file here
-        pass
-
-
 # === FASTMCP SERVER SETUP ===
 
 mcp = FastMCP(
     name="Math Learning Server",
-    lifespan=app_lifespan,
     instructions="A comprehensive math server demonstrating MCP fundamentals with tools, resources, and prompts for educational purposes.",
 )
 

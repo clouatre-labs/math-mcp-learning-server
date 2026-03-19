@@ -106,6 +106,12 @@ async def test_calculate_tool():
             """Mock info logging."""
             self.info_logs.append(message)
 
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
+
         async def set_state(self, key: str, value: object) -> None:
             """Mock state storage (session-scoped)."""
             self._state[key] = value
@@ -136,6 +142,12 @@ async def test_statistics_tool():
         async def info(self, message: str):
             """Mock info logging."""
             self.info_logs.append(message)
+
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
 
         async def report_progress(self, current: int, total: int, message: str = "") -> None:
             """Mock progress reporting."""
@@ -179,6 +191,12 @@ async def test_compound_interest_tool():
             """Mock info logging."""
             self.info_logs.append(message)
 
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
+
     ctx = MockContext()
     result = await compound_interest(1000.0, 0.05, 5.0, 12, ctx)
 
@@ -211,6 +229,12 @@ async def test_convert_units_tool():
         async def info(self, message: str):
             """Mock info logging."""
             self.info_logs.append(message)
+
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
 
     ctx = MockContext()
 
@@ -299,6 +323,12 @@ async def test_statistical_edge_cases():
             """Mock info logging."""
             self.info_logs.append(message)
 
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
+
         async def report_progress(self, current: int, total: int, message: str = "") -> None:
             """Mock progress reporting."""
             self.progress_reports.append((current, total, message))
@@ -333,6 +363,12 @@ async def test_unit_conversion_edge_cases():
         async def info(self, message: str):
             """Mock info logging."""
             self.info_logs.append(message)
+
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
 
     ctx = MockContext()
 
@@ -472,6 +508,12 @@ async def test_expression_length_validation():
         async def info(self, message: str):
             pass
 
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
+
     ctx = MockContext()
 
     # Valid: below limit (off-by-one boundary test)
@@ -508,6 +550,12 @@ async def test_array_size_validation():
         async def info(self, message: str):
             pass
 
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
+
         async def report_progress(self, current: int, total: int, message: str = "") -> None:
             """Mock progress reporting."""
             self.progress_reports.append((current, total, message))
@@ -535,6 +583,12 @@ async def test_operation_whitelist_validation():
             self.progress_reports = []
 
         async def info(self, message: str):
+            pass
+
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
             pass
 
         async def report_progress(self, current: int, total: int, message: str = "") -> None:
@@ -565,6 +619,12 @@ async def test_variable_name_validation():
             self._state: dict = {}
 
         async def info(self, message: str):
+            pass
+
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
             pass
 
         async def set_state(self, key: str, value: object) -> None:
@@ -740,6 +800,12 @@ async def test_empty_input_validation():
         async def info(self, message: str):
             pass
 
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
+
         async def report_progress(self, current: int, total: int, message: str = "") -> None:
             """Mock progress reporting."""
             self.progress_reports.append((current, total, message))
@@ -758,6 +824,12 @@ async def test_validation_error_messages():
     # Mock context
     class MockContext:
         async def info(self, message: str):
+            pass
+
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
             pass
 
     ctx = MockContext()
@@ -786,3 +858,28 @@ async def test_env_var_configuration(monkeypatch):
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+@pytest.mark.asyncio
+async def test_compound_interest_rate_as_percentage_raises():
+    """Test that compound_interest raises ValueError when rate > 1.0 (percentage instead of decimal).
+
+    Arrange: rate=5 (passed as percentage instead of decimal 0.05)
+    Act: call compound_interest with rate=5
+    Assert: ValueError raised with helpful hint including 'Did you mean 0.0500'
+    """
+    with pytest.raises(ValueError, match="Did you mean 0.0500"):
+        await compound_interest.raw_function(1000, 5, 1)
+
+
+@pytest.mark.asyncio
+async def test_compound_interest_valid_decimal_rate():
+    """Test that compound_interest succeeds with valid decimal rate (no regression).
+
+    Arrange: principal=1000, rate=0.05 (decimal), time=1
+    Act: call compound_interest
+    Assert: result is success with final_amount > principal
+    """
+    result = await compound_interest.raw_function(1000, 0.05, 1)
+    assert result.final_amount > result.principal
+    assert result.rate == 0.05

@@ -60,6 +60,12 @@ def mock_context():
             """Mock info logging."""
             self.info_logs.append(message)
 
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
+
         async def set_state(self, key: str, value: object) -> None:
             """Mock state storage (session-scoped)."""
             self._state[key] = value

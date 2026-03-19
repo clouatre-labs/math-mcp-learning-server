@@ -28,6 +28,12 @@ def mock_context():
             """Mock info logging."""
             self.info_logs.append(message)
 
+        async def warning(self, message: str):
+            pass
+
+        async def error(self, message: str):
+            pass
+
         async def report_progress(self, current: int, total: int, message: str = ""):
             """Mock progress reporting."""
             self.progress_reports.append((current, total, message))
