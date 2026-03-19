@@ -117,7 +117,16 @@ async def get_workspace(ctx: Context) -> str:
     await ctx.info("Accessing persistent workspace")
     from math_mcp.persistence.workspace import _workspace_manager
 
-    return _workspace_manager.get_workspace_summary()
+    summary = _workspace_manager.get_workspace_summary()
+
+    # Cap workspace response at 4000 characters
+    if len(summary) > 4000:
+        summary = (
+            summary[:4000]
+            + "\n\n[Response truncated: workspace too large. Use math://variables for variable names only.]"
+        )
+
+    return summary
 
 
 @resources_mcp.prompt()
@@ -169,3 +178,17 @@ Include the following in your explanation:
 
 Make your explanation clear and educational, suitable for someone learning about {context}.
 """
+
+
+@resources_mcp.resource("math://variables")
+async def list_variable_names(ctx: Context) -> str:
+    """List all variable names saved in the workspace (lightweight alternative to math://workspace)."""
+    await ctx.info("Listing workspace variable names")
+    from math_mcp.persistence.workspace import _workspace_manager
+
+    result = _workspace_manager.list_variables()
+    names = result.get("variables", [])
+    count = result.get("count", 0)
+    if not names:
+        return "No variables saved in workspace."
+    return f"Saved variables ({count}):\n" + "\n".join(f"- {name}" for name in names)
