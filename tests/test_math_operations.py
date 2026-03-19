@@ -883,3 +883,63 @@ async def test_compound_interest_valid_decimal_rate():
     result = await compound_interest.raw_function(1000, 0.05, 1)
     assert result.final_amount > result.principal
     assert result.rate == 0.05
+
+
+@pytest.mark.asyncio
+async def test_math_tutor_prompt(http_client):
+    """Test math_tutor prompt protocol access."""
+    result = await http_client.get_prompt(
+        "math_tutor", {"topic": "derivatives", "level": "intermediate", "include_examples": True}
+    )
+    assert result.messages is not None
+    assert len(result.messages) > 0
+    text = result.messages[0].content.text
+    assert "derivatives" in text.lower()
+
+
+@pytest.mark.asyncio
+async def test_formula_explainer_prompt(http_client):
+    """Test formula_explainer prompt protocol access."""
+    result = await http_client.get_prompt(
+        "formula_explainer", {"formula": "A = πr²", "context": "geometry"}
+    )
+    assert result.messages is not None
+    assert len(result.messages) > 0
+    text = result.messages[0].content.text
+    assert "formula" in text.lower()
+
+
+@pytest.mark.asyncio
+async def test_functions_resource(http_client):
+    """Test math://functions resource content."""
+    contents = await http_client.read_resource("math://functions")
+    assert len(contents) > 0
+    text = contents[0].text
+    assert "sin" in text
+
+
+@pytest.mark.asyncio
+async def test_test_resource(http_client):
+    """Test math://test resource content."""
+    contents = await http_client.read_resource("math://test")
+    assert len(contents) > 0
+    text = contents[0].text
+    assert "working" in text.lower()
+
+
+@pytest.mark.asyncio
+async def test_constants_pi_resource(http_client):
+    """Test math://constants/pi resource content."""
+    contents = await http_client.read_resource("math://constants/pi")
+    assert len(contents) > 0
+    text = contents[0].text
+    assert "3.14" in text
+
+
+@pytest.mark.asyncio
+async def test_constants_e_resource(http_client):
+    """Test math://constants/e resource content."""
+    contents = await http_client.read_resource("math://constants/e")
+    assert len(contents) > 0
+    text = contents[0].text
+    assert "2.71" in text
