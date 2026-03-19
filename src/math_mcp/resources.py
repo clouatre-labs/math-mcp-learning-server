@@ -120,6 +120,119 @@ async def get_workspace(ctx: Context) -> str:
     return _workspace_manager.get_workspace_summary()
 
 
+@resources_mcp.resource("math://catalog/tools")
+async def list_tools_catalog(ctx: Context) -> str:
+    """Catalog of all available tools with category, description, and example."""
+    await ctx.info("Accessing tools catalog")
+    catalog = [
+        {
+            "name": "calculate",
+            "category": "calculate",
+            "readOnly": True,
+            "example": "calculate('2 + 2')",
+        },
+        {
+            "name": "statistics",
+            "category": "calculate",
+            "readOnly": True,
+            "example": "statistics([1,2,3,4,5], 'mean')",
+        },
+        {
+            "name": "compound_interest",
+            "category": "calculate",
+            "readOnly": True,
+            "example": "compound_interest(1000, 0.05, 10)",
+        },
+        {
+            "name": "convert_units",
+            "category": "calculate",
+            "readOnly": True,
+            "example": "convert_units(100, 'cm', 'm', 'length')",
+        },
+        {
+            "name": "matrix_multiply",
+            "category": "matrix",
+            "readOnly": True,
+            "example": "matrix_multiply([[1,2],[3,4]], [[5,6],[7,8]])",
+        },
+        {
+            "name": "matrix_determinant",
+            "category": "matrix",
+            "readOnly": True,
+            "example": "matrix_determinant([[1,2],[3,4]])",
+        },
+        {
+            "name": "matrix_inverse",
+            "category": "matrix",
+            "readOnly": True,
+            "example": "matrix_inverse([[1,2],[3,4]])",
+        },
+        {
+            "name": "matrix_transpose",
+            "category": "matrix",
+            "readOnly": True,
+            "example": "matrix_transpose([[1,2,3],[4,5,6]])",
+        },
+        {
+            "name": "matrix_eigenvalues",
+            "category": "matrix",
+            "readOnly": True,
+            "example": "matrix_eigenvalues([[4,2],[1,3]])",
+        },
+        {
+            "name": "plot_function",
+            "category": "visualize",
+            "readOnly": True,
+            "example": "plot_function('sin(x)', (-3.14, 3.14))",
+        },
+        {
+            "name": "plot_histogram",
+            "category": "visualize",
+            "readOnly": True,
+            "example": "plot_histogram([1,2,2,3,3,3])",
+        },
+        {
+            "name": "plot_scatter",
+            "category": "visualize",
+            "readOnly": True,
+            "example": "plot_scatter([1,2,3], [4,5,6])",
+        },
+        {
+            "name": "plot_bar_chart",
+            "category": "visualize",
+            "readOnly": True,
+            "example": "plot_bar_chart(['A','B'], [10,20])",
+        },
+        {
+            "name": "plot_heatmap",
+            "category": "visualize",
+            "readOnly": True,
+            "example": "plot_heatmap([[1,2],[3,4]])",
+        },
+        {
+            "name": "create_animated_plot",
+            "category": "visualize",
+            "readOnly": True,
+            "example": "create_animated_plot('sin(x*t)', (-3.14,3.14))",
+        },
+        {
+            "name": "save_calculation",
+            "category": "workspace",
+            "readOnly": False,
+            "example": "save_calculation('result', 42.0, 'my_calc')",
+        },
+        {
+            "name": "load_variable",
+            "category": "workspace",
+            "readOnly": True,
+            "example": "load_variable('result')",
+        },
+    ]
+    import json
+
+    return json.dumps({"tools": catalog, "count": len(catalog)}, indent=2)
+
+
 @resources_mcp.prompt()
 def math_tutor(topic: str, level: str = "intermediate", include_examples: bool = True) -> str:
     """Generate a math tutoring prompt for explaining concepts.
