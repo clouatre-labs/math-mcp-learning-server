@@ -92,11 +92,13 @@ jobs:
 
       - name: Extract version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
             VERSION=${GITHUB_REF#refs/tags/v}
           else
-            VERSION=${{ inputs.version }}
+            VERSION=$INPUT_VERSION
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -133,7 +135,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
-          enable-cache: true
+          enable-cache: true  # zizmor: ignore[cache-poisoning]
 
       - name: Build package
         run: uv build
