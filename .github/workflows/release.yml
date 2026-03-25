@@ -20,11 +20,15 @@ concurrency:
   group: release
   cancel-in-progress: false
 
+permissions: {}
+
 jobs:
   verify-tag-signature:
     name: Verify GPG tag signature
     runs-on: ubuntu-24.04
     if: github.event_name == 'push'
+    permissions:
+      contents: read
     outputs:
       tag: ${{ steps.extract.outputs.tag }}
     steps:
