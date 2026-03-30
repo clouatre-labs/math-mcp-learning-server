@@ -1,16 +1,19 @@
 <!-- mcp-name: io.github.clouatre-labs/math-mcp-learning-server -->
-# Math MCP Learning Server
 
-[![CI](https://img.shields.io/github/actions/workflow/status/clouatre-labs/math-mcp-learning-server/ci.yml?branch=main)](https://github.com/clouatre-labs/math-mcp-learning-server/actions/workflows/ci.yml)
-[![PyPI version](https://badge.fury.io/py/math-mcp-learning-server.svg)](https://pypi.org/project/math-mcp-learning-server/)
-[![Python](https://img.shields.io/pypi/pyversions/math-mcp-learning-server)](https://pypi.org/project/math-mcp-learning-server/)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![MCP](https://img.shields.io/badge/protocol-MCP-purple.svg)](https://modelcontextprotocol.io)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+<h1 align="center">math-mcp-learning-server</h1>
 
-Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Built with [FastMCP](https://gofastmcp.com) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
+<p align="center">
+  <a href="https://pypi.org/project/math-mcp-learning-server/"><img alt="PyPI" src="https://img.shields.io/pypi/v/math-mcp-learning-server?style=for-the-badge&color=3b82f6" height="20"></a>
+  <a href="https://pypi.org/project/math-mcp-learning-server/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/math-mcp-learning-server?style=for-the-badge" height="20"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=for-the-badge" height="20"></a>
+  <a href="https://modelcontextprotocol.io"><img alt="MCP" src="https://img.shields.io/badge/protocol-MCP-purple.svg?style=for-the-badge" height="20"></a>
+  <a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=for-the-badge" height="20"></a>
+</p>
+
+<p align="center">Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Built with <a href="https://gofastmcp.com">FastMCP</a> and the official <a href="https://github.com/modelcontextprotocol/python-sdk">Model Context Protocol Python SDK</a>.</p>
 
 **Available on:**
+
 - [Official MCP Registry](https://registry.modelcontextprotocol.io/) - `io.github.clouatre-labs/math-mcp-learning-server`
 - [PyPI](https://pypi.org/project/math-mcp-learning-server/) - `math-mcp-learning-server`
 
@@ -33,6 +36,7 @@ Requires an MCP client:
 Connect your MCP client to the hosted server:
 
 **Claude Desktop** (`claude_desktop_config.json`):
+
 ```json
 {
   "mcpServers": {
@@ -60,6 +64,7 @@ Connect your MCP client to the hosted server:
 ```
 
 **Manual installation:**
+
 ```bash
 # Basic installation
 uvx math-mcp-learning-server
