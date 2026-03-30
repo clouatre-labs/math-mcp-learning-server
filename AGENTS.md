@@ -1,6 +1,6 @@
 # Math MCP Learning Server - Python MCP Server [Production]
 
-Educational FastMCP 3.0 server for math operations, visualization, and persistent workspaces.
+Educational MCP server for math operations, visualization, and persistent workspaces.
 
 Restricted `eval()` with character/function whitelist; Pydantic validation on all inputs; KISS.
 
