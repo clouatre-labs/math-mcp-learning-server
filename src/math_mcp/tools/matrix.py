@@ -187,9 +187,6 @@ async def matrix_multiply(
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
 
-    Returns:
-        Result matrix (m x p)
-
     Examples:
         matrix_multiply([[1, 2], [3, 4]], [[5, 6], [7, 8]])
         matrix_multiply([[1, 2, 3]], [[1], [2], [3]])
@@ -248,9 +245,6 @@ async def matrix_transpose(
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
 
-    Returns:
-        Transposed matrix (n x m)
-
     Examples:
         matrix_transpose([[1, 2, 3], [4, 5, 6]])
         matrix_transpose([[1], [2], [3]])
@@ -297,9 +291,6 @@ async def matrix_determinant(
 
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
-
-    Returns:
-        Determinant value (scalar)
 
     Examples:
         matrix_determinant([[1, 2], [3, 4]])
@@ -352,9 +343,6 @@ async def matrix_inverse(
 
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
-
-    Returns:
-        Inverse matrix (n x n)
 
     Examples:
         matrix_inverse([[1, 2], [3, 4]])
@@ -433,9 +421,6 @@ async def matrix_eigenvalues(
 
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
-
-    Returns:
-        List of eigenvalues (may be complex numbers)
 
     Examples:
         matrix_eigenvalues([[4, 2], [1, 3]])

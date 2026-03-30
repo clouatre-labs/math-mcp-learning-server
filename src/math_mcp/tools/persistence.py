@@ -87,18 +87,6 @@ async def save_calculation(
 ) -> SaveCalculationResult:
     """Save calculation to persistent workspace (survives restarts).
 
-    Returns:
-        SaveCalculationResult: Result of saving the calculation containing:
-            - name: The variable name
-            - expression: The saved expression
-            - result: The calculated result
-            - success: Whether the save operation succeeded
-            - is_new: Whether this is a new variable or an update
-            - total_variables: Total number of saved variables in workspace
-            - difficulty: Complexity level of the expression
-            - topic: Category of the expression
-            - session_id: Session identifier
-
     Examples:
         save_calculation("portfolio_return", "10000 * 1.07^5", 14025.52)
         save_calculation("circle_area", "pi * 5^2", 78.54)
@@ -153,20 +141,6 @@ async def load_variable(
     ctx: SkipValidation[Context | None] = None,
 ) -> LoadVariableResult:
     """Load previously saved calculation result from workspace.
-
-    Returns:
-        LoadVariableResult: Result of loading the variable containing:
-            - success: Whether the variable was found
-            - name: The variable name
-            - action: Operation type (load_variable)
-            - result: The calculated result (if successful)
-            - expression: The saved expression (if successful)
-            - timestamp: When the variable was saved
-            - difficulty: Complexity level of the expression
-            - topic: Category of the expression
-            - session_id: Session identifier where it was saved
-            - error: Error message (if unsuccessful)
-            - available_variables: List of available variables (if unsuccessful)
 
     Examples:
         load_variable("portfolio_return")  # Returns saved calculation

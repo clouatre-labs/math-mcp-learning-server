@@ -127,9 +127,6 @@ async def plot_function(
         num_points: Number of points to plot (default: 100)
         ctx: FastMCP context for logging
 
-    Returns:
-        Image object with PNG data or VisualizationError on failure
-
     Examples:
         plot_function("x**2", (-5, 5))
         plot_function("sin(x)", (-3.14, 3.14))
@@ -230,9 +227,6 @@ async def create_histogram(
         bins: Number of histogram bins (default: 20)
         title: Chart title
         ctx: FastMCP context for logging
-
-    Returns:
-        Image object with PNG data or VisualizationError on failure
 
     Examples:
         create_histogram([1.0, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0])
@@ -350,9 +344,6 @@ async def plot_line_chart(
         show_grid: Whether to show grid lines
         ctx: FastMCP context for logging
 
-    Returns:
-        Image object with PNG data or VisualizationError on failure
-
     Note:
         Use for general XY data. For time-series price data with optional moving average, use plot_financial_line instead.
 
@@ -458,9 +449,6 @@ async def plot_scatter_chart(
         point_size: Size of scatter points (default: 50)
         ctx: FastMCP context for logging
 
-    Returns:
-        Image object with PNG data or VisualizationError on failure
-
     Examples:
         plot_scatter_chart([1, 2, 3, 4], [1, 4, 9, 16], title="Correlation Study")
         plot_scatter_chart([1, 2, 3], [2, 4, 5], color='purple', point_size=100)
@@ -561,9 +549,6 @@ async def plot_box_plot(
         color: Box color (name or hex code, e.g., 'blue', '#2E86AB')
         ctx: FastMCP context for logging
 
-    Returns:
-        Image object with PNG data or VisualizationError on failure
-
     Examples:
         plot_box_plot([[1, 2, 3, 4, 5], [2, 4, 6, 8, 10]], group_labels=["A", "B"])
         plot_box_plot([[10, 20, 30], [15, 25, 35], [5, 15, 25]], title="Comparison")
@@ -650,9 +635,6 @@ async def plot_financial_line(
         start_price: Starting price value (default: 100.0)
         color: Line color (name or hex code, e.g., 'blue', '#2E86AB')
         ctx: FastMCP context for logging
-
-    Returns:
-        Image object with PNG data or VisualizationError on failure
 
     Note:
         Use for time-series price data with optional moving average overlay. For general XY data, use plot_line_chart instead.

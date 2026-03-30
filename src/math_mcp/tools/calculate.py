@@ -94,13 +94,6 @@ async def calculate(
     Supported operations: +, -, *, /, **, ()
     Supported functions: sin, cos, tan, log, sqrt, abs, pow
 
-    Returns:
-        CalculationResult: Result of the mathematical evaluation containing:
-            - expression: The input expression
-            - result: Numeric result of the evaluation
-            - difficulty: Complexity level (basic, intermediate, advanced)
-            - topic: Category of the math operation (arithmetic)
-
     Note:
         Use this tool to evaluate a single mathematical expression. To compute descriptive statistics over a list of numbers, use the statistics tool instead.
 
@@ -143,7 +136,8 @@ async def statistics(
     operation: Annotated[
         str,
         Field(
-            description="Statistical operation to perform", examples=["mean", "median", "std_dev"]
+            description="Statistical operation to perform. Allowed values: mean, median, mode, std_dev, variance",
+            examples=["mean", "median", "mode", "std_dev", "variance"],
         ),
     ],
     ctx: SkipValidation[Context | None] = None,
@@ -151,14 +145,6 @@ async def statistics(
     """Perform statistical calculations on a list of numbers.
 
     Available operations: mean, median, mode, std_dev, variance
-
-    Returns:
-        StatisticsResult: Result of the statistical calculation containing:
-            - operation: The operation performed (mean, median, mode, std_dev, variance)
-            - result: The computed statistic value
-            - sample_size: Number of data points analyzed
-            - difficulty: Complexity level (basic, intermediate, advanced)
-            - topic: Category (statistics)
 
     Note:
         Use this tool to compute descriptive statistics over a list of numbers. To evaluate a single mathematical expression, use the calculate tool instead.
@@ -231,11 +217,22 @@ async def statistics(
 )
 @validated_tool
 async def compound_interest(
-    principal: Annotated[float, Field(description="Initial investment amount, e.g., 1000.0")],
-    rate: Annotated[float, Field(description="Annual interest rate as decimal, e.g., 0.05 for 5%")],
-    time: Annotated[float, Field(description="Time period in years, e.g., 10")],
+    principal: Annotated[
+        float,
+        Field(description="Initial investment amount, must be greater than 0. Example: 1000.0"),
+    ],
+    rate: Annotated[
+        float,
+        Field(
+            description="Annual interest rate as decimal between 0.0 and 1.0. Example: 0.05 for 5%"
+        ),
+    ],
+    time: Annotated[
+        float, Field(description="Time period in years, must be greater than 0. Example: 10")
+    ],
     compounds_per_year: Annotated[
-        int, Field(description="Compounding frequency per year, e.g., 12 for monthly")
+        int,
+        Field(description="Compounding frequency per year, must be >= 1. Example: 12 for monthly"),
     ] = 1,
     ctx: SkipValidation[Context | None] = None,
 ) -> CompoundInterestResult:
@@ -247,18 +244,6 @@ async def compound_interest(
     - r = annual interest rate (as decimal)
     - n = number of times interest compounds per year
     - t = time in years
-
-    Returns:
-        CompoundInterestResult: Result of compound interest calculation containing:
-            - principal: The initial investment amount
-            - final_amount: The total amount after interest
-            - total_interest: The interest earned
-            - rate: The annual interest rate used
-            - time: The time period
-            - compounds_per_year: Compounding frequency
-            - difficulty: Complexity level (intermediate)
-            - topic: Category (finance)
-            - formula: The formula used
 
     Examples:
         compound_interest(10000, 0.05, 5)  # $10,000 at 5% for 5 years → $12,762.82
@@ -321,13 +306,25 @@ async def compound_interest(
 async def convert_units(
     value: Annotated[float, Field(description="Numeric value to convert, e.g., 100.0")],
     from_unit: Annotated[
-        str, Field(description="Source unit abbreviation", examples=["m", "kg", "c"])
+        str,
+        Field(
+            description="Source unit abbreviation. Valid units depend on unit_type: length (mm, cm, m, km, in, ft, yd, mi), weight (g, kg, oz, lb), temperature (c, f, k)",
+            examples=["m", "kg", "c"],
+        ),
     ],
     to_unit: Annotated[
-        str, Field(description="Target unit abbreviation", examples=["ft", "lb", "f"])
+        str,
+        Field(
+            description="Target unit abbreviation. Valid units depend on unit_type: length (mm, cm, m, km, in, ft, yd, mi), weight (g, kg, oz, lb), temperature (c, f, k)",
+            examples=["ft", "lb", "f"],
+        ),
     ],
     unit_type: Annotated[
-        str, Field(description="Unit category", examples=["length", "weight", "temperature"])
+        str,
+        Field(
+            description="Unit category: length, weight, or temperature",
+            examples=["length", "weight", "temperature"],
+        ),
     ],
     ctx: SkipValidation[Context | None] = None,
 ) -> UnitConversionResult:
@@ -337,16 +334,6 @@ async def convert_units(
     - length: mm, cm, m, km, in, ft, yd, mi
     - weight: g, kg, oz, lb
     - temperature: c, f, k (Celsius, Fahrenheit, Kelvin)
-
-    Returns:
-        UnitConversionResult: Result of unit conversion containing:
-            - value: The original value
-            - from_unit: The source unit
-            - to_unit: The target unit
-            - converted_value: The result in target units
-            - unit_type: The category of units
-            - difficulty: Complexity level (basic)
-            - topic: Category (unit_conversion)
 
     Examples:
         convert_units(5, "km", "mi", "length")  # 5 kilometers → 3.11 miles
