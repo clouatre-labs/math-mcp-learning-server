@@ -92,6 +92,7 @@ def validate_nested_array_groups(groups: list[list[float]]) -> list[list[float]]
     annotations={
         "title": "Function Plotter",
         "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
@@ -196,6 +197,7 @@ async def plot_function(
     annotations={
         "title": "Statistical Histogram",
         "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
@@ -294,7 +296,12 @@ async def create_histogram(
 
 
 @visualization_mcp.tool(
-    annotations={"title": "Line Chart", "readOnlyHint": True, "openWorldHint": False}
+    annotations={
+        "title": "Line Chart",
+        "readOnlyHint": True,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    }
 )
 @validated_tool
 @requires_matplotlib
@@ -397,6 +404,7 @@ async def plot_line_chart(
     annotations={
         "title": "Scatter Plot",
         "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
@@ -498,7 +506,12 @@ async def plot_scatter_chart(
 
 
 @visualization_mcp.tool(
-    annotations={"title": "Box Plot", "readOnlyHint": True, "openWorldHint": False}
+    annotations={
+        "title": "Box Plot",
+        "readOnlyHint": True,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    }
 )
 @validated_tool
 @requires_matplotlib
@@ -600,6 +613,7 @@ async def plot_box_plot(
     annotations={
         "title": "Financial Line Chart",
         "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )

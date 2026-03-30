@@ -156,6 +156,7 @@ matrix_mcp = FastMCP("matrix-operations")
     annotations={
         "title": "Matrix Multiplication",
         "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
@@ -224,6 +225,7 @@ async def matrix_multiply(
     annotations={
         "title": "Matrix Transpose",
         "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
@@ -273,6 +275,7 @@ async def matrix_transpose(
     annotations={
         "title": "Matrix Determinant",
         "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
@@ -327,6 +330,7 @@ async def matrix_determinant(
     annotations={
         "title": "Matrix Inverse",
         "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
@@ -407,6 +411,7 @@ async def matrix_inverse(
     annotations={
         "title": "Matrix Eigenvalues",
         "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )

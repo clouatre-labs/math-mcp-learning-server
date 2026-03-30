@@ -85,11 +85,6 @@ async def save_calculation(
 ) -> SaveCalculationResult:
     """Save calculation to persistent workspace (survives restarts).
 
-    Args:
-        name: Variable name for the saved calculation. Used to retrieve it later. Example: 'circle_area'
-        expression: The mathematical expression that was evaluated. Example: 'pi * r**2'
-        result: The calculated result
-
     Returns:
         SaveCalculationResult: Result of saving the calculation containing:
             - name: The variable name
@@ -153,9 +148,6 @@ async def load_variable(
     name: str, ctx: SkipValidation[Context | None] = None
 ) -> LoadVariableResult:
     """Load previously saved calculation result from workspace.
-
-    Args:
-        name: Variable name to load
 
     Returns:
         LoadVariableResult: Result of loading the variable containing:

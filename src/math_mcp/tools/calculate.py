@@ -94,9 +94,6 @@ async def calculate(
     Supported operations: +, -, *, /, **, ()
     Supported functions: sin, cos, tan, log, sqrt, abs, pow
 
-    Args:
-        expression: Mathematical expression to evaluate. Supports +, -, *, /, **, and math functions (sin, cos, sqrt, log, etc.). Example: '2 * sin(pi/4) + sqrt(16)'
-
     Returns:
         CalculationResult: Result of the mathematical evaluation containing:
             - expression: The input expression
@@ -149,10 +146,6 @@ async def statistics(
     """Perform statistical calculations on a list of numbers.
 
     Available operations: mean, median, mode, std_dev, variance
-
-    Args:
-        numbers: List of numbers to compute descriptive statistics on. Example: [1.0, 2.5, 3.0, 4.5, 5.0]
-        operation: Type of statistical operation to perform
 
     Returns:
         StatisticsResult: Result of the statistical calculation containing:
@@ -248,12 +241,6 @@ async def compound_interest(
     - n = number of times interest compounds per year
     - t = time in years
 
-    Args:
-        principal: Initial amount of money invested
-        rate: Annual interest rate as decimal (e.g., 0.05 for 5%)
-        time: Time period in years
-        compounds_per_year: Number of times interest compounds per year (default: 1)
-
     Returns:
         CompoundInterestResult: Result of compound interest calculation containing:
             - principal: The initial investment amount
@@ -337,12 +324,6 @@ async def convert_units(
     - length: mm, cm, m, km, in, ft, yd, mi
     - weight: g, kg, oz, lb
     - temperature: c, f, k (Celsius, Fahrenheit, Kelvin)
-
-    Args:
-        value: The numeric value to convert
-        from_unit: Source unit
-        to_unit: Target unit
-        unit_type: Category of units (length, weight, temperature)
 
     Returns:
         UnitConversionResult: Result of unit conversion containing:
