@@ -74,6 +74,10 @@ uvx --from 'math-mcp-learning-server[plotting]' math-mcp-learning-server
 uvx --from 'math-mcp-learning-server[scientific,plotting]' math-mcp-learning-server
 ```
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/clouatre-labs-math-mcp-learning-server).
+
 ## Tools
 
 | Category | Tool | Description |
