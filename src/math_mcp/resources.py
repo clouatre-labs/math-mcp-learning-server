@@ -242,7 +242,11 @@ async def list_tools_catalog(ctx: Context) -> str:
     return json.dumps({"tools": catalog, "count": len(catalog)}, indent=2)
 
 
-@resources_mcp.prompt()
+@resources_mcp.prompt(
+    title="Math Tutor",
+    tags={"education", "tutoring", "math", "explanation"},
+    description="Generate a structured math tutoring prompt for a mathematical concept at a chosen difficulty level, optionally including step-by-step worked examples.",
+)
 def math_tutor(topic: str, level: str = "intermediate", include_examples: bool = True) -> str:
     """Generate a math tutoring prompt for explaining concepts.
 
@@ -269,7 +273,11 @@ Make your explanation engaging and accessible for a {level} learner. Use analogi
     return prompt
 
 
-@resources_mcp.prompt()
+@resources_mcp.prompt(
+    title="Formula Explainer",
+    tags={"education", "formulas", "math", "explanation"},
+    description="Generate a comprehensive prompt for explaining a mathematical formula: variable definitions, contextual background, step-by-step breakdown, example calculation, real-world applications, and common mistakes.",
+)
 def formula_explainer(formula: str, context: str = "general mathematics") -> str:
     """Generate a prompt for explaining mathematical formulas in detail.
 

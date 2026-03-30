@@ -103,3 +103,23 @@ async def test_enum_like_params_have_examples() -> None:
         f"Enum-like params missing examples or enum ({len(violations)} total):\n"
         + "\n".join(f"  - {v}" for v in sorted(violations))
     )
+
+
+async def _get_prompts() -> list:
+    async with Client(mcp) as client:
+        return await client.list_prompts()
+
+
+@pytest.mark.asyncio
+async def test_all_prompts_have_titles_and_descriptions() -> None:
+    """Every prompt must have a non-empty title and a non-empty description string."""
+    prompts = await _get_prompts()
+    violations: list[str] = []
+    for p in prompts:
+        title = (getattr(p, "title", None) or "").strip()
+        description = (p.description or "").strip()
+        if not title:
+            violations.append(f"{p.name}: missing title")
+        if not description:
+            violations.append(f"{p.name}: missing description")
+    assert violations == [], f"Prompt annotation violations: {violations}"
