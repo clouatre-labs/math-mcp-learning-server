@@ -106,7 +106,9 @@ async def plot_function(
             description='Mathematical expression to plot, e.g., "x**2" or "sin(x)". Must be <= MAX_EXPRESSION_LENGTH characters. Example: "x**2"',
         ),
     ],
-    x_range: tuple[float, float],
+    x_range: Annotated[
+        tuple[float, float], Field(description="X-axis range as (min, max), e.g., (-5.0, 5.0)")
+    ],
     num_points: Annotated[
         int,
         Field(
@@ -211,7 +213,7 @@ async def create_histogram(
             description="List of numeric values to bin, e.g., [1.0, 2.0, 2.5, 3.0]",
         ),
     ],
-    bins: int = 20,
+    bins: Annotated[int, Field(description="Number of histogram bins, e.g., 20")] = 20,
     title: Annotated[
         str,
         Field(
@@ -333,7 +335,7 @@ async def plot_line_chart(
             description="Line color (name or hex code, e.g., 'blue', '#2E86AB')",
         ),
     ] = None,
-    show_grid: bool = True,
+    show_grid: Annotated[bool, Field(description="Whether to display grid lines")] = True,
     ctx: SkipValidation[Context | None] = None,
 ) -> Image | VisualizationError:
     """Create a line chart from data points (requires matplotlib).
@@ -441,7 +443,7 @@ async def plot_scatter_chart(
             description="Point color (name or hex code, e.g., 'blue', '#2E86AB')",
         ),
     ] = None,
-    point_size: int = 50,
+    point_size: Annotated[int, Field(description="Scatter point size in points^2, e.g., 50")] = 50,
     ctx: SkipValidation[Context | None] = None,
 ) -> Image | VisualizationError:
     """Create a scatter plot from data points (requires matplotlib).
@@ -623,8 +625,11 @@ async def plot_financial_line(
     days: Annotated[
         int, Field(ge=2, le=MAX_DAYS_FINANCIAL, description="Number of days to generate, e.g., 30")
     ] = 30,
-    trend: str = "bullish",
-    start_price: float = 100.0,
+    trend: Annotated[
+        str,
+        Field(description="Market trend direction", examples=["bullish", "bearish", "volatile"]),
+    ] = "bullish",
+    start_price: Annotated[float, Field(description="Starting price value, e.g., 100.0")] = 100.0,
     color: Annotated[
         str | None,
         Field(

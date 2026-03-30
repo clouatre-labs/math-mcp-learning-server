@@ -80,7 +80,9 @@ async def save_calculation(
             description="The mathematical expression that was evaluated. Example: 'pi * r**2'",
         ),
     ],
-    result: float,
+    result: Annotated[
+        float, Field(description="Numeric result of evaluating the expression, e.g., 78.54")
+    ],
     ctx: SkipValidation[Context | None] = None,
 ) -> SaveCalculationResult:
     """Save calculation to persistent workspace (survives restarts).
@@ -145,7 +147,10 @@ async def save_calculation(
     }
 )
 async def load_variable(
-    name: str, ctx: SkipValidation[Context | None] = None
+    name: Annotated[
+        str, Field(description="Name of the variable to load from workspace, e.g., 'circle_area'")
+    ],
+    ctx: SkipValidation[Context | None] = None,
 ) -> LoadVariableResult:
     """Load previously saved calculation result from workspace.
 
