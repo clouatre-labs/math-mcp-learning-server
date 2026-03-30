@@ -106,7 +106,9 @@ async def plot_function(
             description='Mathematical expression to plot, e.g., "x**2" or "sin(x)". Must be <= MAX_EXPRESSION_LENGTH characters. Example: "x**2"',
         ),
     ],
-    x_range: Annotated[tuple[float, float], Field(description="X-axis range as (min, max), e.g., (-5.0, 5.0)")],
+    x_range: Annotated[
+        tuple[float, float], Field(description="X-axis range as (min, max), e.g., (-5.0, 5.0)")
+    ],
     num_points: Annotated[
         int,
         Field(
@@ -623,7 +625,10 @@ async def plot_financial_line(
     days: Annotated[
         int, Field(ge=2, le=MAX_DAYS_FINANCIAL, description="Number of days to generate, e.g., 30")
     ] = 30,
-    trend: Annotated[str, Field(description="Market trend direction", examples=["bullish", "bearish", "volatile"])] = "bullish",
+    trend: Annotated[
+        str,
+        Field(description="Market trend direction", examples=["bullish", "bearish", "volatile"]),
+    ] = "bullish",
     start_price: Annotated[float, Field(description="Starting price value, e.g., 100.0")] = 100.0,
     color: Annotated[
         str | None,
