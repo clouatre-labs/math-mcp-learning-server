@@ -3,16 +3,8 @@ name: CI
 on:
   push:
     branches: [ main ]
-    paths-ignore:
-      - '**/*.md'
-      - 'LICENSE'
-      - 'docs/**'
   pull_request:
     branches: [ main ]
-    paths-ignore:
-      - '**/*.md'
-      - 'LICENSE'
-      - 'docs/**'
 
 env:
   PYTHON_VERSION: "3.14"
@@ -25,8 +17,29 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'tests/**'
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - '.github/workflows/**'
+
   lint:
-    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout repository
@@ -45,7 +58,8 @@ jobs:
         args: 'format --check'
 
   security:
-    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -60,7 +74,8 @@ jobs:
 
   test:
     # Single-version CI: version pinned in env.PYTHON_VERSION above
-    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout repository
@@ -99,6 +114,8 @@ jobs:
 
   zizmor:
     name: zizmor
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
