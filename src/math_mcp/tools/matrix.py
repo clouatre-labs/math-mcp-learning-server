@@ -155,14 +155,26 @@ matrix_mcp = FastMCP("matrix-operations")
 @matrix_mcp.tool(
     annotations={
         "title": "Matrix Multiplication",
-        "readOnlyHint": False,
+        "readOnlyHint": True,
         "openWorldHint": False,
     }
 )
 @validated_tool
 async def matrix_multiply(
-    matrix_a: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
-    matrix_b: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    matrix_a: Annotated[
+        list[list[float]],
+        Field(
+            max_length=MAX_ARRAY_SIZE,
+            description="2D list of numbers representing the first matrix. Each inner list is a row. Example: [[1, 2], [3, 4]]",
+        ),
+    ],
+    matrix_b: Annotated[
+        list[list[float]],
+        Field(
+            max_length=MAX_ARRAY_SIZE,
+            description="2D list of numbers representing the second matrix. Each inner list is a row. Example: [[5, 6], [7, 8]]",
+        ),
+    ],
     ctx: SkipValidation[Context | None] = None,
 ) -> MatrixMultiplyResult:
     """Multiply two matrices (A × B).
@@ -170,6 +182,9 @@ async def matrix_multiply(
     Args:
         matrix_a: First matrix (m x n)
         matrix_b: Second matrix (n x p)
+
+    Note:
+        Requires NumPy. Raises ValueError if NumPy is unavailable.
 
     Returns:
         Result matrix (m x p)
@@ -208,19 +223,28 @@ async def matrix_multiply(
 @matrix_mcp.tool(
     annotations={
         "title": "Matrix Transpose",
-        "readOnlyHint": False,
+        "readOnlyHint": True,
         "openWorldHint": False,
     }
 )
 @validated_tool
 async def matrix_transpose(
-    matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    matrix: Annotated[
+        list[list[float]],
+        Field(
+            max_length=MAX_ARRAY_SIZE,
+            description="2D list of numbers representing the matrix. Each inner list is a row. Example: [[1, 2, 3], [4, 5, 6]]",
+        ),
+    ],
     ctx: SkipValidation[Context | None] = None,
 ) -> MatrixTransposeResult:
     """Transpose a matrix (swap rows and columns).
 
     Args:
         matrix: Input matrix (m x n)
+
+    Note:
+        Requires NumPy. Raises ValueError if NumPy is unavailable.
 
     Returns:
         Transposed matrix (n x m)
@@ -248,19 +272,28 @@ async def matrix_transpose(
 @matrix_mcp.tool(
     annotations={
         "title": "Matrix Determinant",
-        "readOnlyHint": False,
+        "readOnlyHint": True,
         "openWorldHint": False,
     }
 )
 @validated_tool
 async def matrix_determinant(
-    matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    matrix: Annotated[
+        list[list[float]],
+        Field(
+            max_length=MAX_ARRAY_SIZE,
+            description="2D list of numbers representing a square matrix. Each inner list is a row. Example: [[1, 2], [3, 4]]",
+        ),
+    ],
     ctx: SkipValidation[Context | None] = None,
 ) -> MatrixDeterminantResult:
     """Calculate the determinant of a square matrix.
 
     Args:
         matrix: Square matrix (n x n)
+
+    Note:
+        Requires NumPy. Raises ValueError if NumPy is unavailable.
 
     Returns:
         Determinant value (scalar)
@@ -293,19 +326,28 @@ async def matrix_determinant(
 @matrix_mcp.tool(
     annotations={
         "title": "Matrix Inverse",
-        "readOnlyHint": False,
+        "readOnlyHint": True,
         "openWorldHint": False,
     }
 )
 @validated_tool
 async def matrix_inverse(
-    matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    matrix: Annotated[
+        list[list[float]],
+        Field(
+            max_length=MAX_ARRAY_SIZE,
+            description="2D list of numbers representing a square matrix. Each inner list is a row. Example: [[1, 2], [3, 4]]",
+        ),
+    ],
     ctx: SkipValidation[Context | None] = None,
 ) -> MatrixInverseResult:
     """Calculate the inverse of a square matrix.
 
     Args:
         matrix: Square matrix (n x n)
+
+    Note:
+        Requires NumPy. Raises ValueError if NumPy is unavailable.
 
     Returns:
         Inverse matrix (n x n)
@@ -364,19 +406,28 @@ async def matrix_inverse(
 @matrix_mcp.tool(
     annotations={
         "title": "Matrix Eigenvalues",
-        "readOnlyHint": False,
+        "readOnlyHint": True,
         "openWorldHint": False,
     }
 )
 @validated_tool
 async def matrix_eigenvalues(
-    matrix: Annotated[list[list[float]], Field(max_length=MAX_ARRAY_SIZE)],
+    matrix: Annotated[
+        list[list[float]],
+        Field(
+            max_length=MAX_ARRAY_SIZE,
+            description="2D list of numbers representing a square matrix. Each inner list is a row. Example: [[4, 2], [1, 3]]",
+        ),
+    ],
     ctx: SkipValidation[Context | None] = None,
 ) -> MatrixEigenvaluesResult:
     """Calculate the eigenvalues of a square matrix.
 
     Args:
         matrix: Square matrix (n x n)
+
+    Note:
+        Requires NumPy. Raises ValueError if NumPy is unavailable.
 
     Returns:
         List of eigenvalues (may be complex numbers)

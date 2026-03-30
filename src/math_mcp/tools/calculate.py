@@ -80,13 +80,32 @@ calculate_mcp = FastMCP(name="Calculate Tools")
 )
 @validated_tool
 async def calculate(
-    expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
+    expression: Annotated[
+        str,
+        Field(
+            max_length=MAX_EXPRESSION_LENGTH,
+            description="Mathematical expression to evaluate. Supports +, -, *, /, **, and math functions (sin, cos, sqrt, log, etc.). Example: '2 * sin(pi/4) + sqrt(16)'",
+        ),
+    ],
     ctx: SkipValidation[Context | None] = None,
 ) -> CalculationResult:
     """Safely evaluate mathematical expressions with support for basic operations and math functions.
 
     Supported operations: +, -, *, /, **, ()
     Supported functions: sin, cos, tan, log, sqrt, abs, pow
+
+    Args:
+        expression: Mathematical expression to evaluate. Supports +, -, *, /, **, and math functions (sin, cos, sqrt, log, etc.). Example: '2 * sin(pi/4) + sqrt(16)'
+
+    Returns:
+        CalculationResult: Result of the mathematical evaluation containing:
+            - expression: The input expression
+            - result: Numeric result of the evaluation
+            - difficulty: Complexity level (basic, intermediate, advanced)
+            - topic: Category of the math operation (arithmetic)
+
+    Note:
+        Use this tool to evaluate a single mathematical expression. To compute descriptive statistics over a list of numbers, use the statistics tool instead.
 
     Examples:
     - "2 + 3 * 4" → 14
@@ -117,13 +136,38 @@ async def calculate(
 )
 @validated_tool
 async def statistics(
-    numbers: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
+    numbers: Annotated[
+        list[float],
+        Field(
+            max_length=MAX_ARRAY_SIZE,
+            description="List of numbers to compute descriptive statistics on. Example: [1.0, 2.5, 3.0, 4.5, 5.0]",
+        ),
+    ],
     operation: str,
     ctx: SkipValidation[Context | None] = None,
 ) -> StatisticsResult:
     """Perform statistical calculations on a list of numbers.
 
     Available operations: mean, median, mode, std_dev, variance
+
+    Args:
+        numbers: List of numbers to compute descriptive statistics on. Example: [1.0, 2.5, 3.0, 4.5, 5.0]
+        operation: Type of statistical operation to perform
+
+    Returns:
+        StatisticsResult: Result of the statistical calculation containing:
+            - operation: The operation performed (mean, median, mode, std_dev, variance)
+            - result: The computed statistic value
+            - sample_size: Number of data points analyzed
+            - difficulty: Complexity level (basic, intermediate, advanced)
+            - topic: Category (statistics)
+
+    Note:
+        Use this tool to compute descriptive statistics over a list of numbers. To evaluate a single mathematical expression, use the calculate tool instead.
+
+    Examples:
+        statistics([1.0, 2.5, 3.0, 4.5, 5.0], "mean")  # Returns 3.2
+        statistics([1.0, 2.5, 3.0, 4.5, 5.0], "std_dev")  # Returns ~1.58
     """
     if operation not in ALLOWED_OPERATIONS:
         if ctx:
@@ -203,6 +247,28 @@ async def compound_interest(
     - r = annual interest rate (as decimal)
     - n = number of times interest compounds per year
     - t = time in years
+
+    Args:
+        principal: Initial amount of money invested
+        rate: Annual interest rate as decimal (e.g., 0.05 for 5%)
+        time: Time period in years
+        compounds_per_year: Number of times interest compounds per year (default: 1)
+
+    Returns:
+        CompoundInterestResult: Result of compound interest calculation containing:
+            - principal: The initial investment amount
+            - final_amount: The total amount after interest
+            - total_interest: The interest earned
+            - rate: The annual interest rate used
+            - time: The time period
+            - compounds_per_year: Compounding frequency
+            - difficulty: Complexity level (intermediate)
+            - topic: Category (finance)
+            - formula: The formula used
+
+    Examples:
+        compound_interest(10000, 0.05, 5)  # $10,000 at 5% for 5 years → $12,762.82
+        compound_interest(5000, 0.03, 10, 12)  # $5,000 at 3% compounded monthly → $6,744.25
     """
     if ctx:
         await ctx.info(
@@ -271,6 +337,26 @@ async def convert_units(
     - length: mm, cm, m, km, in, ft, yd, mi
     - weight: g, kg, oz, lb
     - temperature: c, f, k (Celsius, Fahrenheit, Kelvin)
+
+    Args:
+        value: The numeric value to convert
+        from_unit: Source unit
+        to_unit: Target unit
+        unit_type: Category of units (length, weight, temperature)
+
+    Returns:
+        UnitConversionResult: Result of unit conversion containing:
+            - value: The original value
+            - from_unit: The source unit
+            - to_unit: The target unit
+            - converted_value: The result in target units
+            - unit_type: The category of units
+            - difficulty: Complexity level (basic)
+            - topic: Category (unit_conversion)
+
+    Examples:
+        convert_units(5, "km", "mi", "length")  # 5 kilometers → 3.11 miles
+        convert_units(150, "lb", "kg", "weight")  # 150 pounds → 68.04 kilograms
     """
     if ctx:
         await ctx.info(f"Converting {value} {from_unit} to {to_unit} ({unit_type})")
