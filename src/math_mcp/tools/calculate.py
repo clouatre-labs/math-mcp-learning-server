@@ -140,7 +140,7 @@ async def statistics(
             description="List of numbers to compute descriptive statistics on. Example: [1.0, 2.5, 3.0, 4.5, 5.0]",
         ),
     ],
-    operation: str,
+    operation: Annotated[str, Field(description="Statistical operation to perform", examples=["mean", "median", "std_dev"])],
     ctx: SkipValidation[Context | None] = None,
 ) -> StatisticsResult:
     """Perform statistical calculations on a list of numbers.
@@ -226,10 +226,10 @@ async def statistics(
 )
 @validated_tool
 async def compound_interest(
-    principal: float,
-    rate: float,
-    time: float,
-    compounds_per_year: int = 1,
+    principal: Annotated[float, Field(description="Initial investment amount, e.g., 1000.0")],
+    rate: Annotated[float, Field(description="Annual interest rate as decimal, e.g., 0.05 for 5%")],
+    time: Annotated[float, Field(description="Time period in years, e.g., 10")],
+    compounds_per_year: Annotated[int, Field(description="Compounding frequency per year, e.g., 12 for monthly")] = 1,
     ctx: SkipValidation[Context | None] = None,
 ) -> CompoundInterestResult:
     """Calculate compound interest for investments.
@@ -312,10 +312,10 @@ async def compound_interest(
 )
 @validated_tool
 async def convert_units(
-    value: float,
-    from_unit: str,
-    to_unit: str,
-    unit_type: str,
+    value: Annotated[float, Field(description="Numeric value to convert, e.g., 100.0")] ,
+    from_unit: Annotated[str, Field(description="Source unit abbreviation", examples=["m", "kg", "c"])] ,
+    to_unit: Annotated[str, Field(description="Target unit abbreviation", examples=["ft", "lb", "f"])] ,
+    unit_type: Annotated[str, Field(description="Unit category", examples=["length", "weight", "temperature"])] ,
     ctx: SkipValidation[Context | None] = None,
 ) -> UnitConversionResult:
     """Convert between different units of measurement.
