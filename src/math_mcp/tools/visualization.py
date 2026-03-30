@@ -91,16 +91,30 @@ def validate_nested_array_groups(groups: list[list[float]]) -> list[list[float]]
 @visualization_mcp.tool(
     annotations={
         "title": "Function Plotter",
-        "readOnlyHint": False,
+        "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
 @validated_tool
 @requires_matplotlib
 async def plot_function(
-    expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
+    expression: Annotated[
+        str,
+        Field(
+            max_length=MAX_EXPRESSION_LENGTH,
+            description='Mathematical expression to plot, e.g., "x**2" or "sin(x)". Must be <= MAX_EXPRESSION_LENGTH characters. Example: "x**2"',
+        ),
+    ],
     x_range: tuple[float, float],
-    num_points: Annotated[int, Field(ge=2, le=MAX_ARRAY_SIZE)] = 100,
+    num_points: Annotated[
+        int,
+        Field(
+            ge=2,
+            le=MAX_ARRAY_SIZE,
+            description="Number of sample points to plot along x_range, e.g., 100",
+        ),
+    ] = 100,
     ctx: SkipValidation[Context | None] = None,
 ) -> Image | VisualizationError:
     """Generate mathematical function plots (requires matplotlib).
@@ -182,16 +196,29 @@ async def plot_function(
 @visualization_mcp.tool(
     annotations={
         "title": "Statistical Histogram",
-        "readOnlyHint": False,
+        "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
 @validated_tool
 @requires_matplotlib
 async def create_histogram(
-    data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
+    data: Annotated[
+        list[float],
+        Field(
+            max_length=MAX_ARRAY_SIZE,
+            description="List of numeric values to bin, e.g., [1.0, 2.0, 2.5, 3.0]",
+        ),
+    ],
     bins: int = 20,
-    title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Data Distribution",
+    title: Annotated[
+        str,
+        Field(
+            max_length=MAX_STRING_PARAM_LENGTH,
+            description="Chart title string, e.g., 'Data Distribution'",
+        ),
+    ] = "Data Distribution",
     ctx: SkipValidation[Context | None] = None,
 ) -> Image | VisualizationError:
     """Create statistical histograms (requires matplotlib).
@@ -203,7 +230,7 @@ async def create_histogram(
         ctx: FastMCP context for logging
 
     Returns:
-        Dict with base64-encoded PNG image or error message
+        Image object with PNG data or VisualizationError on failure
 
     Examples:
         create_histogram([1.0, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0])
@@ -269,17 +296,43 @@ async def create_histogram(
 
 
 @visualization_mcp.tool(
-    annotations={"title": "Line Chart", "readOnlyHint": False, "openWorldHint": False}
+    annotations={
+        "title": "Line Chart",
+        "readOnlyHint": True,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    }
 )
 @validated_tool
 @requires_matplotlib
 async def plot_line_chart(
-    x_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
-    y_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
-    title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Line Chart",
-    x_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "X",
-    y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Y",
-    color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
+    x_data: Annotated[
+        list[float],
+        Field(max_length=MAX_ARRAY_SIZE, description="X-axis data points, e.g., [1, 2, 3, 4]"),
+    ],
+    y_data: Annotated[
+        list[float],
+        Field(max_length=MAX_ARRAY_SIZE, description="Y-axis data points, e.g., [1, 4, 9, 16]"),
+    ],
+    title: Annotated[
+        str,
+        Field(
+            max_length=MAX_STRING_PARAM_LENGTH, description="Chart title string, e.g., 'Squares'"
+        ),
+    ] = "Line Chart",
+    x_label: Annotated[
+        str, Field(max_length=MAX_STRING_PARAM_LENGTH, description="X-axis label, e.g., 'Time'")
+    ] = "X",
+    y_label: Annotated[
+        str, Field(max_length=MAX_STRING_PARAM_LENGTH, description="Y-axis label, e.g., 'Distance'")
+    ] = "Y",
+    color: Annotated[
+        str | None,
+        Field(
+            max_length=MAX_STRING_PARAM_LENGTH,
+            description="Line color (name or hex code, e.g., 'blue', '#2E86AB')",
+        ),
+    ] = None,
     show_grid: bool = True,
     ctx: SkipValidation[Context | None] = None,
 ) -> Image | VisualizationError:
@@ -296,7 +349,10 @@ async def plot_line_chart(
         ctx: FastMCP context for logging
 
     Returns:
-        Dict with base64-encoded PNG image or error message
+        Image object with PNG data or VisualizationError on failure
+
+    Note:
+        Use for general XY data. For time-series price data with optional moving average, use plot_financial_line instead.
 
     Examples:
         plot_line_chart([1, 2, 3, 4], [1, 4, 9, 16], title="Squares")
@@ -347,19 +403,44 @@ async def plot_line_chart(
 @visualization_mcp.tool(
     annotations={
         "title": "Scatter Plot",
-        "readOnlyHint": False,
+        "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
 @validated_tool
 @requires_matplotlib
 async def plot_scatter_chart(
-    x_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
-    y_data: Annotated[list[float], Field(max_length=MAX_ARRAY_SIZE)],
-    title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Scatter Plot",
-    x_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "X",
-    y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Y",
-    color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
+    x_data: Annotated[
+        list[float],
+        Field(max_length=MAX_ARRAY_SIZE, description="X-axis data points, e.g., [1, 2, 3, 4]"),
+    ],
+    y_data: Annotated[
+        list[float],
+        Field(max_length=MAX_ARRAY_SIZE, description="Y-axis data points, e.g., [1, 4, 9, 16]"),
+    ],
+    title: Annotated[
+        str,
+        Field(
+            max_length=MAX_STRING_PARAM_LENGTH,
+            description="Chart title string, e.g., 'Correlation Study'",
+        ),
+    ] = "Scatter Plot",
+    x_label: Annotated[
+        str,
+        Field(max_length=MAX_STRING_PARAM_LENGTH, description="X-axis label, e.g., 'Variable X'"),
+    ] = "X",
+    y_label: Annotated[
+        str,
+        Field(max_length=MAX_STRING_PARAM_LENGTH, description="Y-axis label, e.g., 'Variable Y'"),
+    ] = "Y",
+    color: Annotated[
+        str | None,
+        Field(
+            max_length=MAX_STRING_PARAM_LENGTH,
+            description="Point color (name or hex code, e.g., 'blue', '#2E86AB')",
+        ),
+    ] = None,
     point_size: int = 50,
     ctx: SkipValidation[Context | None] = None,
 ) -> Image | VisualizationError:
@@ -376,7 +457,7 @@ async def plot_scatter_chart(
         ctx: FastMCP context for logging
 
     Returns:
-        Dict with base64-encoded PNG image or error message
+        Image object with PNG data or VisualizationError on failure
 
     Examples:
         plot_scatter_chart([1, 2, 3, 4], [1, 4, 9, 16], title="Correlation Study")
@@ -425,16 +506,47 @@ async def plot_scatter_chart(
 
 
 @visualization_mcp.tool(
-    annotations={"title": "Box Plot", "readOnlyHint": False, "openWorldHint": False}
+    annotations={
+        "title": "Box Plot",
+        "readOnlyHint": True,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    }
 )
 @validated_tool
 @requires_matplotlib
 async def plot_box_plot(
-    data_groups: Annotated[list[list[float]], Field(max_length=MAX_GROUPS_COUNT)],
-    group_labels: Annotated[list[str] | None, Field(max_length=MAX_GROUPS_COUNT)] = None,
-    title: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Box Plot",
-    y_label: Annotated[str, Field(max_length=MAX_STRING_PARAM_LENGTH)] = "Values",
-    color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
+    data_groups: Annotated[
+        list[list[float]],
+        Field(
+            max_length=MAX_GROUPS_COUNT,
+            description="List of data groups to compare, e.g., [[1, 2, 3], [4, 5, 6]]",
+        ),
+    ],
+    group_labels: Annotated[
+        list[str] | None,
+        Field(
+            max_length=MAX_GROUPS_COUNT,
+            description="Labels for each group, e.g., ['Group A', 'Group B']",
+        ),
+    ] = None,
+    title: Annotated[
+        str,
+        Field(
+            max_length=MAX_STRING_PARAM_LENGTH,
+            description="Chart title string, e.g., 'Distribution Comparison'",
+        ),
+    ] = "Box Plot",
+    y_label: Annotated[
+        str, Field(max_length=MAX_STRING_PARAM_LENGTH, description="Y-axis label, e.g., 'Values'")
+    ] = "Values",
+    color: Annotated[
+        str | None,
+        Field(
+            max_length=MAX_STRING_PARAM_LENGTH,
+            description="Box color (name or hex code, e.g., 'blue', '#2E86AB')",
+        ),
+    ] = None,
     ctx: SkipValidation[Context | None] = None,
 ) -> Image | VisualizationError:
     """Create a box plot for comparing distributions (requires matplotlib).
@@ -448,7 +560,7 @@ async def plot_box_plot(
         ctx: FastMCP context for logging
 
     Returns:
-        Dict with base64-encoded PNG image or error message
+        Image object with PNG data or VisualizationError on failure
 
     Examples:
         plot_box_plot([[1, 2, 3, 4, 5], [2, 4, 6, 8, 10]], group_labels=["A", "B"])
@@ -500,17 +612,26 @@ async def plot_box_plot(
 @visualization_mcp.tool(
     annotations={
         "title": "Financial Line Chart",
-        "readOnlyHint": False,
+        "readOnlyHint": True,
+        "idempotentHint": True,
         "openWorldHint": False,
     }
 )
 @validated_tool
 @requires_matplotlib
 async def plot_financial_line(
-    days: Annotated[int, Field(ge=2, le=MAX_DAYS_FINANCIAL)] = 30,
+    days: Annotated[
+        int, Field(ge=2, le=MAX_DAYS_FINANCIAL, description="Number of days to generate, e.g., 30")
+    ] = 30,
     trend: str = "bullish",
     start_price: float = 100.0,
-    color: Annotated[str | None, Field(max_length=MAX_STRING_PARAM_LENGTH)] = None,
+    color: Annotated[
+        str | None,
+        Field(
+            max_length=MAX_STRING_PARAM_LENGTH,
+            description="Line color (name or hex code, e.g., 'blue', '#2E86AB')",
+        ),
+    ] = None,
     ctx: SkipValidation[Context | None] = None,
 ) -> Image | VisualizationError:
     """Generate and plot synthetic financial price data (requires matplotlib).
@@ -526,7 +647,10 @@ async def plot_financial_line(
         ctx: FastMCP context for logging
 
     Returns:
-        Dict with base64-encoded PNG image or error message
+        Image object with PNG data or VisualizationError on failure
+
+    Note:
+        Use for time-series price data with optional moving average overlay. For general XY data, use plot_line_chart instead.
 
     Examples:
         plot_financial_line(days=60, trend='bullish')

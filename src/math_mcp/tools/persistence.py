@@ -66,17 +66,36 @@ persistence_mcp = FastMCP(name="Persistence Tools")
 )
 @validated_tool
 async def save_calculation(
-    name: Annotated[str, Field(max_length=MAX_VARIABLE_NAME_LENGTH)],
-    expression: Annotated[str, Field(max_length=MAX_EXPRESSION_LENGTH)],
+    name: Annotated[
+        str,
+        Field(
+            max_length=MAX_VARIABLE_NAME_LENGTH,
+            description="Variable name for the saved calculation. Used to retrieve it later. Example: 'circle_area'",
+        ),
+    ],
+    expression: Annotated[
+        str,
+        Field(
+            max_length=MAX_EXPRESSION_LENGTH,
+            description="The mathematical expression that was evaluated. Example: 'pi * r**2'",
+        ),
+    ],
     result: float,
     ctx: SkipValidation[Context | None] = None,
 ) -> SaveCalculationResult:
     """Save calculation to persistent workspace (survives restarts).
 
-    Args:
-        name: Variable name to save under
-        expression: The mathematical expression
-        result: The calculated result
+    Returns:
+        SaveCalculationResult: Result of saving the calculation containing:
+            - name: The variable name
+            - expression: The saved expression
+            - result: The calculated result
+            - success: Whether the save operation succeeded
+            - is_new: Whether this is a new variable or an update
+            - total_variables: Total number of saved variables in workspace
+            - difficulty: Complexity level of the expression
+            - topic: Category of the expression
+            - session_id: Session identifier
 
     Examples:
         save_calculation("portfolio_return", "10000 * 1.07^5", 14025.52)
@@ -130,8 +149,19 @@ async def load_variable(
 ) -> LoadVariableResult:
     """Load previously saved calculation result from workspace.
 
-    Args:
-        name: Variable name to load
+    Returns:
+        LoadVariableResult: Result of loading the variable containing:
+            - success: Whether the variable was found
+            - name: The variable name
+            - action: Operation type (load_variable)
+            - result: The calculated result (if successful)
+            - expression: The saved expression (if successful)
+            - timestamp: When the variable was saved
+            - difficulty: Complexity level of the expression
+            - topic: Category of the expression
+            - session_id: Session identifier where it was saved
+            - error: Error message (if unsuccessful)
+            - available_variables: List of available variables (if unsuccessful)
 
     Examples:
         load_variable("portfolio_return")  # Returns saved calculation
