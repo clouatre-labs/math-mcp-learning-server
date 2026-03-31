@@ -97,6 +97,21 @@ This project implements several security measures:
 - Minimal dependency footprint (core uses stdlib only)
 - Security scanning in CI/CD pipeline
 
+## Security Review
+
+A security review of this project was conducted in March 2026.
+
+**Scope:**
+- `src/math_mcp/eval.py`: restricted `eval()` implementation -- character whitelist,
+  dangerous-pattern blocklist, globals locked to `{abs, math}` only
+- Input validation: Pydantic `validate_call` on all tool inputs
+- Workspace path restriction in `src/math_mcp/persistence/`
+
+**Findings:** No critical issues identified.
+
+**Next review:** Within 12 months or upon any change to `eval.py` or the input
+validation layer.
+
 ## Scope
 
 ### In Scope
