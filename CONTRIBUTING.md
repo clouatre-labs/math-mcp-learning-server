@@ -103,6 +103,20 @@ HTTP integration tests run only on release tags (see [Maintainer Guide](https://
 
 See [CI/CD Workflow](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/.github/workflows/ci.yml) for implementation details.
 
+## Code Review
+
+All pull requests require at least one approving review before merge. This is enforced by
+branch protection on `main`.
+
+Reviewer checklist:
+
+- **Correctness**: logic is sound, edge cases handled, no regressions
+- **Test coverage**: new behavior has a test; no untested code paths added
+- **Security**: no use of `eval()` outside `src/math_mcp/eval.py`; all inputs validated
+  with Pydantic; no secrets or credentials in code
+- **Conventions**: conventional commits, GPG + DCO sign-off, `ruff` and `pyright` clean
+- **Documentation**: public functions have docstrings; architectural changes have an ADR
+
 ## Code Standards
 
 ### Python Style
