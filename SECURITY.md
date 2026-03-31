@@ -4,10 +4,37 @@
 
 We release patches for security vulnerabilities for the following versions:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.8.x   | :white_check_mark: |
-| < 0.8   | :x:                |
+| Version | Supported |
+| ------- | --------- |
+| 0.11.x  | Yes       |
+| 0.10.x  | No        |
+| < 0.10  | No        |
+
+## Verifying release signatures
+
+### GPG-signed tags
+
+Every release tag is GPG-signed by the maintainer. To verify a tag:
+
+```bash
+git fetch --tags
+git tag --verify v<version>
+```
+
+The signing key is visible on the maintainer's GitHub profile and in the
+signed commits in this repository.
+
+### SLSA provenance attestation
+
+Release artifacts on PyPI are attested using GitHub's native attestation
+store (SLSA provenance level 3). To verify a downloaded wheel:
+
+```bash
+gh attestation verify dist/math_mcp_learning_server-<version>-py3-none-any.whl \
+  --repo clouatre-labs/math-mcp-learning-server
+```
+
+Replace `<version>` with the release version (e.g. `0.11.5`).
 
 ## Reporting a Vulnerability
 
@@ -88,8 +115,8 @@ This project implements several security measures:
 ## Security Updates
 
 Security updates will be released as:
-- Patch versions for non-breaking security fixes (0.8.x)
-- Minor versions if breaking changes are necessary (0.9.0)
+- Patch versions for non-breaking security fixes (0.11.x)
+- Minor versions if breaking changes are necessary (0.12.0)
 
 Subscribe to releases on GitHub to receive security notifications.
 
