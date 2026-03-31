@@ -97,7 +97,7 @@ jobs:
       run: uv sync --all-extras
 
     - name: Run tests with coverage
-      run: uv run pytest tests/ -v --cov=math_mcp --cov-report=term-missing --cov-fail-under=80
+      run: uv run pytest tests/ -v --cov=math_mcp --cov-branch --cov-report=term-missing --cov-fail-under=90
 
   test-http-integration:
     if: startsWith(github.ref, 'refs/tags/')

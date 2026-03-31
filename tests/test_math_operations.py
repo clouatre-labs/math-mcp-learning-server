@@ -16,6 +16,7 @@ from math_mcp.eval import (
     evaluate_with_timeout,
     safe_eval_expression,
 )
+from math_mcp.persistence.storage import ensure_workspace_directory
 from math_mcp.resources import get_math_constant, get_workspace
 from math_mcp.settings import (
     MAX_ARRAY_SIZE,
@@ -941,3 +942,273 @@ async def test_constants_e_resource(http_client):
     assert len(contents) > 0
     text = contents[0].text
     assert "2.71" in text
+
+
+# === EVAL.PY ERROR PATHS ===
+
+
+def test_eval_pow_missing_comma():
+    """pow() without comma raises ValueError."""
+    with pytest.raises(ValueError, match="pow"):
+        safe_eval_expression("pow(2 3)")
+
+
+def test_eval_sin_empty():
+    """sin() with no parameters raises ValueError."""
+    with pytest.raises(ValueError, match="sin"):
+        safe_eval_expression("sin()")
+
+
+def test_eval_invalid_character():
+    """Expression with invalid character raises ValueError."""
+    with pytest.raises(ValueError, match="forbidden"):
+        safe_eval_expression("2 + 2; import")
+
+
+def test_eval_zero_division():
+    """Division by zero raises ValueError."""
+    with pytest.raises(ValueError, match="Division by zero"):
+        safe_eval_expression("1/0")
+
+
+def test_eval_overflow():
+    """Very large exponentiation raises ValueError."""
+    with pytest.raises(ValueError, match="too large"):
+        safe_eval_expression("10**10000")
+
+
+def test_eval_math_domain_error():
+    """sqrt of negative number raises ValueError."""
+    with pytest.raises(ValueError, match="Mathematical expression error"):
+        safe_eval_expression("sqrt(-1)")
+
+
+def test_convert_temperature_same_unit():
+    """Converting to same unit returns same value."""
+    result = convert_temperature(100.0, "celsius", "celsius")
+    assert result == 100.0
+
+
+def test_convert_temperature_unknown_from_unit():
+    """Unknown from_unit raises ValueError."""
+    with pytest.raises(ValueError, match="Unknown.*unit"):
+        convert_temperature(100.0, "kelvin", "celsius")
+
+
+def test_convert_temperature_unknown_to_unit():
+    """Unknown to_unit raises ValueError."""
+    with pytest.raises(ValueError, match="Unknown.*unit"):
+        convert_temperature(100.0, "celsius", "rankine")
+
+
+def test_classify_expression_difficulty_basic():
+    """Basic expression returns 'basic' difficulty."""
+    from math_mcp.eval import _classify_expression_difficulty
+
+    result = _classify_expression_difficulty("2 + 3")
+    assert result == "basic"
+
+
+def test_classify_expression_difficulty_advanced():
+    """Expression with functions returns 'advanced' difficulty."""
+    from math_mcp.eval import _classify_expression_difficulty
+
+    result = _classify_expression_difficulty("sin(x) + cos(y)")
+    assert result == "advanced"
+
+
+def test_classify_expression_topic_trigonometry():
+    """Expression with sin/cos returns 'trigonometry' topic."""
+    from math_mcp.eval import _classify_expression_topic
+
+    result = _classify_expression_topic("sin(3.14159)")
+    assert result == "trigonometry"
+
+
+def test_classify_expression_topic_default():
+    """Expression without keywords returns 'arithmetic' topic."""
+    from math_mcp.eval import _classify_expression_topic
+
+    result = _classify_expression_topic("2 + 3 * 4")
+    assert result == "arithmetic"
+
+
+# === MATRIX.PY VALIDATION ===
+
+
+def test_validate_matrix_empty():
+    """Empty matrix raises ValueError."""
+    pytest.importorskip("numpy")
+    from math_mcp.tools.matrix import _validate_matrix
+
+    with pytest.raises(ValueError, match="empty"):
+        _validate_matrix([])
+
+
+def test_validate_matrix_jagged_rows():
+    """Matrix with rows of different lengths raises ValueError."""
+    pytest.importorskip("numpy")
+    from math_mcp.tools.matrix import _validate_matrix
+
+    with pytest.raises(ValueError, match="same length"):
+        _validate_matrix([[1, 2], [3, 4, 5]])
+
+
+def test_validate_matrix_non_numeric():
+    """Matrix with non-numeric element raises ValueError."""
+    pytest.importorskip("numpy")
+    from math_mcp.tools.matrix import _validate_matrix
+
+    with pytest.raises(ValueError, match="numeric"):
+        _validate_matrix([[1, "two"], [3, 4]])
+
+
+def test_validate_matrix_oversized():
+    """Matrix exceeding max_size raises ValueError."""
+    pytest.importorskip("numpy")
+    from math_mcp.tools.matrix import _validate_matrix
+
+    big_matrix = [[1.0] * 101 for _ in range(101)]
+    with pytest.raises(ValueError, match="exceed"):
+        _validate_matrix(big_matrix, max_size=100)
+
+
+# === STORAGE.PY OSERROR PATH ===
+
+
+def test_ensure_workspace_directory_oserror():
+    """mkdir raises OSError -> returns False."""
+    with patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")):
+        result = ensure_workspace_directory()
+        assert result is False
+
+
+# === CALCULATE.PY CTX-GUARDED PATHS ===
+
+
+@pytest.mark.asyncio
+async def test_calculate_with_context():
+    """calculate() logs info via context."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    mock_ctx = AsyncMock()
+    result = await calculate("2 + 2", ctx=mock_ctx)
+    assert result is not None
+    mock_ctx.info.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_calculate_without_context():
+    """calculate() works without context."""
+    result = await calculate("2 + 2", ctx=None)
+    assert result is not None
+    assert hasattr(result, "result")
+
+
+@pytest.mark.asyncio
+async def test_convert_units_with_context():
+    """convert_units() logs info via context."""
+    from unittest.mock import AsyncMock
+
+    mock_ctx = AsyncMock()
+    result = await convert_units(100.0, "m", "ft", "length", ctx=mock_ctx)
+    assert result is not None
+    mock_ctx.info.assert_called_once()
+
+
+# === RESOURCES.PY ===
+
+
+@pytest.mark.asyncio
+async def test_calculation_history_resource(http_client):
+    """get_calculation_history resource returns history text."""
+    contents = await http_client.read_resource("math://history")
+    assert len(contents) > 0
+    text = contents[0].text
+    assert isinstance(text, str)
+
+
+def test_safe_eval_abs_function():
+    """abs() function is available in restricted scope."""
+    result = safe_eval_expression("abs(-5)")
+    assert result == 5.0
+
+
+def test_safe_eval_with_multiple_functions():
+    """Multiple math functions in one expression work correctly."""
+    result = safe_eval_expression("sin(0) + cos(0)")
+    assert abs(result - 1.0) < 0.0001
+
+
+def test_convert_temperature_c_to_f():
+    """Celsius to Fahrenheit conversion works correctly."""
+    result = convert_temperature(0.0, "c", "f")
+    assert abs(result - 32.0) < 0.01
+
+
+def test_convert_temperature_c_to_k():
+    """Celsius to Kelvin conversion works correctly."""
+    result = convert_temperature(0.0, "c", "k")
+    assert abs(result - 273.15) < 0.01
+
+
+def test_settings_validate_timeout_invalid() -> None:
+    """MathMCPSettings rejects non-positive timeout values."""
+    from pydantic import ValidationError
+
+    from math_mcp.settings import MathMCPSettings
+
+    with pytest.raises(ValidationError):
+        MathMCPSettings(math_timeout=-1.0)
+
+
+@pytest.mark.asyncio
+async def test_statistics_with_progress_ctx() -> None:
+    """statistics() covers ctx progress reporting branches."""
+    from unittest.mock import AsyncMock
+
+    from math_mcp.tools.calculate import statistics
+
+    mock_ctx = AsyncMock()
+    result = await statistics.raw_function([1.0, 2.0, 3.0], "mean", mock_ctx)
+    assert result.result == 2.0
+    mock_ctx.report_progress.assert_called()
+
+
+@pytest.mark.asyncio
+async def test_statistics_invalid_op_with_ctx() -> None:
+    """statistics() covers ctx warning branch when operation is invalid."""
+    from unittest.mock import AsyncMock
+
+    from math_mcp.tools.calculate import statistics
+
+    mock_ctx = AsyncMock()
+    with pytest.raises(ValueError, match="Invalid operation"):
+        await statistics.raw_function([1.0, 2.0], "invalid_op", mock_ctx)
+    mock_ctx.warning.assert_called()
+
+
+@pytest.mark.asyncio
+async def test_compound_interest_negative_rate_ctx() -> None:
+    """compound_interest() covers ctx warning branch on negative rate."""
+    from unittest.mock import AsyncMock
+
+    from math_mcp.tools.calculate import compound_interest
+
+    mock_ctx = AsyncMock()
+    with pytest.raises(ValueError, match="Interest rate cannot be negative"):
+        await compound_interest.raw_function(1000.0, -0.05, 1, 12, mock_ctx)
+    mock_ctx.warning.assert_called()
+
+
+@pytest.mark.asyncio
+async def test_compound_interest_zero_time_ctx() -> None:
+    """compound_interest() covers ctx warning branch on zero time."""
+    from unittest.mock import AsyncMock
+
+    from math_mcp.tools.calculate import compound_interest
+
+    mock_ctx = AsyncMock()
+    with pytest.raises(ValueError, match="Time must be greater than 0"):
+        await compound_interest.raw_function(1000.0, 0.05, 0, 12, mock_ctx)
+    mock_ctx.warning.assert_called()

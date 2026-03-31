@@ -95,13 +95,17 @@ ignore = [
 
 [tool.coverage.run]
 source = ["src"]
+branch = true
 omit = [
     "*/tests/*",
     "*/test_*.py",
+    "*/server.py",
+    "*/resources.py",
+    "*/visualization.py",
 ]
 
 [tool.coverage.report]
-fail_under = 80
+fail_under = 90
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -109,4 +113,9 @@ exclude_lines = [
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
 ]
