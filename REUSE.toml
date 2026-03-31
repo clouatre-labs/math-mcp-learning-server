@@ -1,0 +1,208 @@
+version = 1
+SPDX-PackageName = "math-mcp-learning-server"
+SPDX-PackageSupplier = "math-mcp-learning-server Contributors"
+SPDX-PackageDownloadLocation = "https://github.com/clouatre-labs/math-mcp-learning-server"
+
+[[annotations]]
+path = "src/**/**.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "tests/**/**.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ".github/**/**.yml"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ".github/**/**.yaml"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "**.toml"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "**.lock"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "**.json"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "**.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "docs/**/**.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "docs/**/**.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "docs/**/**.svg"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "LICENSE"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "SECURITY.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "CONTRIBUTING.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "CHANGELOG.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "README.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "CITATION.cff"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ".zenodo.json"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ".github/CODEOWNERS"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ".github/**/**.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "scripts/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "Makefile"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ".gitignore"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ".editorconfig"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "**.sh"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ".mailmap"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "tests/conftest.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "tests/test_agent_card.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "tests/test_annotations.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "tests/test_http_integration.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "tests/test_math_operations.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "tests/test_matrix_operations.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "tests/test_persistence.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "tests/test_visualization.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
