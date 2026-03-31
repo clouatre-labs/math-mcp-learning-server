@@ -11,6 +11,6 @@
     "@playwright/test": "^1.52.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0"
+    "@types/node": "22.19.15"
   }
 }
