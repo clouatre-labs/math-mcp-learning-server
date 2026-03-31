@@ -274,9 +274,8 @@ async def test_create_histogram_invalid_bins(mock_context):
 
     from math_mcp.tools.visualization import create_histogram
 
-    # Now raises ValueError due to input validation
-    with pytest.raises(ValueError, match="must be at least 1"):
-        await create_histogram.raw_function([1.0, 2.0, 3.0], 0, "Test", mock_context)
+    result = await create_histogram.raw_function([1.0, 2.0, 3.0], 0, "Test", mock_context)
+    assert isinstance(result, VisualizationError)
 
 
 @pytest.mark.asyncio
@@ -595,9 +594,8 @@ async def test_plot_financial_line_invalid_trend(mock_context):
 
     from math_mcp.tools.visualization import plot_financial_line
 
-    # Now raises ValueError due to input validation
-    with pytest.raises(ValueError, match="Invalid trend"):
-        await plot_financial_line.raw_function(30, "invalid_trend", 100.0, None, mock_context)
+    result = await plot_financial_line.raw_function(30, "invalid_trend", 100.0, None, mock_context)
+    assert isinstance(result, VisualizationError)
 
 
 def test_regex_substitution_preserves_function_names_with_x():
