@@ -658,3 +658,43 @@ async def test_matrix_eigenvalues_real_no_warning():
     assert result.success is True
     assert result.complex_eigenvalues_warning is None
     assert result.complex_values is None
+
+
+# === MATRIX VALIDATION ERROR PATHS ===
+
+
+@pytest.mark.asyncio
+async def test_validate_matrix_empty():
+    """Empty matrix raises ValueError."""
+    from math_mcp.tools.matrix import _validate_matrix
+
+    with pytest.raises(ValueError, match="empty"):
+        _validate_matrix([])
+
+
+@pytest.mark.asyncio
+async def test_validate_matrix_jagged_rows():
+    """Matrix with rows of different lengths raises ValueError."""
+    from math_mcp.tools.matrix import _validate_matrix
+
+    with pytest.raises(ValueError, match="same length"):
+        _validate_matrix([[1, 2], [3, 4, 5]])
+
+
+@pytest.mark.asyncio
+async def test_validate_matrix_non_numeric():
+    """Matrix with non-numeric element raises ValueError."""
+    from math_mcp.tools.matrix import _validate_matrix
+
+    with pytest.raises(ValueError, match="numeric"):
+        _validate_matrix([[1, "two"], [3, 4]])
+
+
+@pytest.mark.asyncio
+async def test_validate_matrix_oversized():
+    """Matrix exceeding max_size raises ValueError."""
+    from math_mcp.tools.matrix import _validate_matrix
+
+    big_matrix = [[1.0] * 101 for _ in range(101)]
+    with pytest.raises(ValueError, match="exceed"):
+        _validate_matrix(big_matrix, max_size=100)

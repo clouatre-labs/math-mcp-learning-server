@@ -511,3 +511,15 @@ async def test_session_id_stability_same_context(temp_workspace, mock_context):
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+# === STORAGE.PY OSERROR PATH ===
+
+
+def test_ensure_workspace_directory_oserror():
+    """mkdir raises OSError -> returns False."""
+    with patch("math_mcp.persistence.storage.get_workspace_dir") as mock_dir:
+        mock_dir.return_value = Path("/invalid/path")
+        with patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")):
+            result = ensure_workspace_directory()
+            assert result is False
