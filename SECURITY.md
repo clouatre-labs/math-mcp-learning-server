@@ -72,6 +72,24 @@ Include:
 - We will publicly disclose the vulnerability after a fix is released
 - We will credit you for the discovery (unless you prefer to remain anonymous)
 
+## Supply Chain Security
+
+### OpenSSF Best Practices
+
+**OpenSSF Best Practices Silver certified.** Fewer than 1% of open source projects reach this level. See [project criteria](https://www.bestpractices.dev/projects/12334).
+
+### REUSE/SPDX
+
+All files carry SPDX license headers, verified by the [REUSE API](https://api.reuse.software/info/github.com/clouatre-labs/math-mcp-learning-server).
+
+### Signed Commits
+
+GPG-signed commits are required on all branches.
+
+### Dependency Scanning
+
+Automated dependency updates via Renovate, including GitHub Actions pins.
+
 ## Security Best Practices
 
 This project implements several security measures:
