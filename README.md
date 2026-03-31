@@ -122,6 +122,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contr
 
 ## Security
 
+- **OpenSSF Best Practices Silver** - Fewer than 1% of open source projects reach this level
+- **REUSE/SPDX** - License compliance for all files
+- **Signed Commits** - GPG-signed commits required
+- **Dependency Scanning** - Automated updates via Renovate
+
 The `calculate` tool uses restricted `eval()` with a whitelist of allowed characters and functions, restricted global scope (only `math` module and `abs`), and no access to dangerous built-ins or imports. All tool inputs are validated with Pydantic models. File operations are restricted to the designated workspace directory. Complete type hints and validation are enforced for all operations.
 
 ## Links
