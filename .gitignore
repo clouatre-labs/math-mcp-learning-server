@@ -178,3 +178,6 @@ internal/
 # macOS
 .DS_Store
 ._*
+
+# scripts/ dependencies (Playwright/Node)
+scripts/node_modules/

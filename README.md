@@ -6,7 +6,8 @@
   <a href="https://pypi.org/project/math-mcp-learning-server/"><img alt="PyPI" src="https://img.shields.io/pypi/v/math-mcp-learning-server?style=for-the-badge&color=3b82f6" height="20"></a>
   <a href="https://pypi.org/project/math-mcp-learning-server/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/math-mcp-learning-server?style=for-the-badge" height="20"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=for-the-badge" height="20"></a>
-  <a href="https://modelcontextprotocol.io"><img alt="MCP" src="https://img.shields.io/badge/protocol-MCP-purple.svg?style=for-the-badge" height="20"></a>
+  <a href="https://api.reuse.software/info/github.com/clouatre-labs/math-mcp-learning-server"><img alt="REUSE" src="https://api.reuse.software/badge/github.com/clouatre-labs/math-mcp-learning-server" height="20"></a>
+  <a href="https://www.bestpractices.dev/projects/12334"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/12334/badge" height="20"></a>
 </p>
 
 <p align="center">Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Built with <a href="https://gofastmcp.com">FastMCP</a> and the official <a href="https://github.com/modelcontextprotocol/python-sdk">Model Context Protocol Python SDK</a>.</p>
