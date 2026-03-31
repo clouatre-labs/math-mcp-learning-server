@@ -72,6 +72,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
+    - name: Set up uv
+      uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+
+    - name: Scan dependencies for CVEs
+      run: uv tool run pip-audit
+
   test:
     # Single-version CI: version pinned in env.PYTHON_VERSION above
     needs: changes
@@ -127,11 +133,26 @@ jobs:
           annotations: true
           min-severity: high
 
+  commitlint:
+    name: commitlint
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Lint commit messages
+        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+
   ci-result:
     name: CI Result
     runs-on: ubuntu-24.04
     if: always()
-    needs: [lint, security, test, zizmor]
+    needs: [lint, security, test, zizmor, commitlint]
     permissions: {}
     steps:
       - name: Verify all jobs passed or were skipped
