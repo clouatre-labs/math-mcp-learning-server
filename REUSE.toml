@@ -154,12 +154,6 @@ SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = ".mailmap"
-precedence = "aggregate"
-SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
-SPDX-License-Identifier = "Apache-2.0"
-
-[[annotations]]
 path = "tests/conftest.py"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
