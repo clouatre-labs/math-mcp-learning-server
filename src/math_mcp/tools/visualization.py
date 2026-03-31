@@ -74,15 +74,23 @@ def requires_matplotlib(func: Any) -> Any:
     return wrapper
 
 
-def validate_nested_array_groups(groups: list[list[float]]) -> list[list[float]]:
-    """Validate nested array group sizes."""
+def validate_nested_array_groups(
+    groups: list[list[float]],
+) -> VisualizationError | None:
+    """Validate nested array group sizes.
+
+    Returns a VisualizationError if any group exceeds MAX_GROUP_SIZE, else None.
+    """
     for i, group in enumerate(groups):
         if len(group) > MAX_GROUP_SIZE:
-            raise ValueError(
-                f"Group {i} exceeds maximum size of {MAX_GROUP_SIZE} elements. "
-                f"Current size: {len(group)}"
+            return VisualizationError(
+                message=(
+                    f"Group {i} exceeds maximum size of {MAX_GROUP_SIZE} elements. "
+                    f"Current size: {len(group)}"
+                ),
+                error_type="validation_error",
             )
-    return groups
+    return None
 
 
 # === TOOLS: VISUALIZATION OPERATIONS ===
@@ -234,7 +242,10 @@ async def create_histogram(
     """
 
     if bins < 1:
-        raise ValueError("bins must be at least 1")
+        return VisualizationError(
+            message="bins must be at least 1",
+            error_type="validation_error",
+        )
 
     # Matplotlib is guaranteed to be available (decorator handles ImportError)
     if ctx:
@@ -555,7 +566,8 @@ async def plot_box_plot(
     """
 
     # Validate nested array group sizes
-    validate_nested_array_groups(data_groups)
+    if err := validate_nested_array_groups(data_groups):
+        return err
 
     # Matplotlib is guaranteed to be available (decorator handles ImportError)
     if ctx:
@@ -645,7 +657,10 @@ async def plot_financial_line(
     """
     # Validate trend against whitelist
     if trend not in ALLOWED_TRENDS:
-        raise ValueError(f"Invalid trend: {trend}. Allowed: {', '.join(sorted(ALLOWED_TRENDS))}")
+        return VisualizationError(
+            message=f"Invalid trend: {trend}. Allowed: {', '.join(sorted(ALLOWED_TRENDS))}",
+            error_type="validation_error",
+        )
 
     # Matplotlib is guaranteed to be available (decorator handles ImportError)
     if ctx:
