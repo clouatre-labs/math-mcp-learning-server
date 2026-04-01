@@ -19,6 +19,8 @@
 
 ## Requirements
 
+[![SafeSkill 86/100](https://img.shields.io/badge/SafeSkill-86%2F100_Passes%20with%20Notes-yellow)](https://safeskill.dev/scan/clouatre-labs-math-mcp-learning-server)
+
 Requires an MCP client:
 
 - **Claude Desktop** - Anthropic's desktop app
