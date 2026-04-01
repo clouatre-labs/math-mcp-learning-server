@@ -16,7 +16,7 @@ Trusted Publishing uses OpenID Connect (OIDC) to allow GitHub Actions to publish
 
 These steps have already been completed for this repository:
 
-1. ✅ GitHub Actions workflow created (`.github/workflows/python-publish.yml`)
+1. ✅ GitHub Actions workflow created (`.github/workflows/release.yml`)
 2. ✅ GitHub environment `pypi` created
 3. ⚠️ **PyPI Trusted Publisher configuration** (requires manual setup - see below)
 
@@ -42,12 +42,12 @@ Click "Add a new publisher" and fill in:
 Publisher: GitHub
 Repository owner: clouatre
 Repository name: math-mcp-learning-server
-Workflow name: python-publish.yml
+Workflow name: release.yml
 Environment name: pypi
 ```
 
 **Important:**
-- Workflow name must exactly match: `python-publish.yml`
+- Workflow name must exactly match: `release.yml`
 - Environment name must exactly match: `pypi`
 
 ### Step 4: Save

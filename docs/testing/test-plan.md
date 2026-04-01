@@ -84,10 +84,12 @@ Complete user workflows spanning multiple tools.
 | **Matrix Operations** | 21 | multiply, transpose, determinant, inverse, eigenvalues |
 | **Persistence** | 22 | save_calculation, load_variable, workspace management |
 | **Visualization** | 31 | plot_function, histograms, line/scatter charts, box plots |
+| **Annotations** | — | MCP annotation quality tests (per ADR-008) |
+| **Agent Card** | — | A2A agent card schema validation |
 
 ### Coverage Targets
 
-- **Code coverage:** >90% (run `pytest --cov=src --cov-report=html`)
+- **Code coverage:** >90% (enforced in CI - run `pytest --cov=src --cov-report=html`)
 - **Tool coverage:** 100% (all 17 tools tested)
 - **MCP protocol:** Resources and prompts (gap in v0.10.0)
 - **Security:** All input validation paths tested

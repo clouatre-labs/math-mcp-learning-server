@@ -13,14 +13,10 @@ Build capabilities LLMs lack natively: **persistent state**, **visual output**, 
 - **Production Hardening** (v0.9.0) -- Rate limiting, input validation, structured logging, CI matrix
 - **Matrix Operations** (v0.10.0) -- Multiply, transpose, determinant, inverse, eigenvalues via NumPy
 - **FastMCP Upgrade** (v0.11.0) -- Upgraded to FastMCP 3.0; migrated to [PrefectHQ/fastmcp](https://github.com/PrefectHQ/fastmcp); adopted streamable-http transport
+- **Test Coverage >90%** (v0.11.x) -- Annotation tests, prompts testing, and 90% code coverage enforced in CI
+- **MCP Resources and Prompts Testing** (v0.11.x) -- Complete protocol validation via test_annotations.py and test_agent_card.py
 
 ## Upcoming
-
-### Test Coverage Expansion
-
-- MCP resources and prompts testing (currently untested via protocol)
-- End-to-end workflow tests (calculate, save, load, visualize)
-- Property-based testing with Hypothesis
 
 ### FastMCP Features
 
@@ -33,7 +29,6 @@ New capabilities available with the 3.0 upgrade:
 ### Production Hardening
 
 - Load testing and memory profiling
-- Test coverage reporting (target: >90%)
 - Performance regression detection
 
 ## Future Considerations

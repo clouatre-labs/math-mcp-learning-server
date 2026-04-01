@@ -93,9 +93,12 @@ uv run pytest -v && uv run pyright src/ && uv run ruff check src/ tests/
 
 All pull requests run automated checks in parallel:
 
-- **Linting** (ruff) - Code quality and formatting
-- **Type checking** (pyright) - Type safety
-- **Tests** (pytest) - Functionality validation on Python 3.14
+- **lint** - Ruff code quality and formatting checks
+- **security** - gitleaks secret scanning and pip-audit CVE scanning
+- **test** - pytest functionality validation on Python 3.14 with >=90% coverage
+- **zizmor** - GitHub Actions workflow security scanning
+- **commitlint** - Conventional commit message validation
+- **reuse** - SPDX license header compliance
 
 All checks must pass before merge. Jobs run in parallel for faster feedback.
 
@@ -122,7 +125,7 @@ Reviewer checklist:
 ### Python Style
 - Follow PEP 8 (enforced by ruff)
 - Use type hints throughout
-- Maximum line length: 88 characters
+- Maximum line length: 100 characters
 - Meaningful variable and function names
 
 ### Documentation
@@ -173,11 +176,18 @@ ROADMAP.md               # Ideas for later consideration
 4. Include educational annotations
 5. Add corresponding tests
 
+**New Files:**
+- All new source files require SPDX license headers for REUSE compliance (enforced by reuse.yml in CI)
+
 **Educational Features:**
 1. Ensure it serves mathematical learning
 2. Keep implementation minimal
 3. Add appropriate difficulty classification
 4. Test educational metadata
+
+## Commit Message Standards (CI-Enforced)
+
+Commit messages are validated by commitlint in CI to ensure they follow [Conventional Commits](https://www.conventionalcommits.org/). All commits must follow the format outlined in the Commit Message Standards section above.
 
 ## Contribution Checklist
 
@@ -195,7 +205,7 @@ ROADMAP.md               # Ideas for later consideration
 
 ## What We're Looking For
 
-**[High Priority]** Additional mathematical domains (linear algebra, calculus); Educational enhancements (better error explanations); Performance improvements; Security hardening; Test coverage improvements
+**[High Priority]** Additional mathematical domains (linear algebra, calculus); Educational enhancements (better error explanations); Performance improvements; Security hardening
 
 **[Medium Priority]** Documentation improvements; Example applications; Integration guides; Educational use cases
 

@@ -39,7 +39,7 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.clo
 **Method:** Pull Request to README
 
 ```markdown
-- **[Math MCP Learning](https://github.com/clouatre-labs/math-mcp-learning-server)** - Educational MCP with 12 math/stats tools, persistent workspace, cloud hosting. Demonstrates FastMCP best practices.
+- **[Math MCP Learning](https://github.com/clouatre-labs/math-mcp-learning-server)** - Educational MCP with 17 tools, persistent workspace, cloud hosting. Demonstrates FastMCP best practices.
 ```
 
 ### Awesome MCP Servers
