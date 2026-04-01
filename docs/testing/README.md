@@ -37,6 +37,8 @@ uv run ruff check --select S
 **Success Rate:** 100% (v0.10.0)
 **Execution Time:** ~35 seconds
 
+Run `uv run pytest --co -q` for current test count.
+
 ### Test Categories
 
 | Category | Tests | Coverage |
@@ -46,6 +48,8 @@ uv run ruff check --select S
 | Matrix Operations | 21 | multiply, transpose, determinant, inverse, eigenvalues |
 | Persistence | 22 | save_calculation, load_variable, workspace |
 | Visualization | 31 | plotting functions, charts, histograms |
+| Annotations | — | MCP annotation quality tests (per ADR-008) |
+| Agent Card | — | A2A agent card schema validation |
 
 ## Test Structure
 
@@ -101,7 +105,7 @@ Tests run automatically on:
 - Pull request creation/updates
 - Pre-release validation
 
-GitHub Actions workflow: `.github/workflows/test.yml`
+GitHub Actions workflow: `.github/workflows/ci.yml`
 
 ## More Information
 

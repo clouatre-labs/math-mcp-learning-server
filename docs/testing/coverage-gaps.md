@@ -2,8 +2,8 @@
 
 Known testing gaps and planned improvements for math-mcp-learning-server.
 
-**Last Updated:** December 13, 2025
-**Current Version:** v0.10.0
+**Last Updated:** March 31, 2026
+**Current Version:** v0.11.5
 **Test Success Rate:** 126/126 (100%)
 
 ---
@@ -23,7 +23,7 @@ While v0.10.0 has excellent core functionality coverage (126 tests), several are
 
 ### Gap 1.1: MCP Resources Not Explicitly Tested
 
-**Status:** ⚠️ Gap
+**Status:** ✅ Completed (PR #283)
 **Impact:** Medium
 **Affected Resources:** 5 out of 5
 
@@ -64,7 +64,7 @@ async def test_mcp_resource_workspace():
 
 ### Gap 1.2: MCP Prompts Not Explicitly Tested
 
-**Status:** ⚠️ Gap
+**Status:** ✅ Completed (PR #286)
 **Impact:** Medium
 **Affected Prompts:** 2 out of 2
 
@@ -286,11 +286,11 @@ async def test_fuzz_calculate_random_expressions():
 
 ## Summary Roadmap
 
-### v0.11.0 (Target: Q1 2025)
+### v0.11.0 (Completed in v0.11.x)
 - [x] Core functionality (126 tests) ✅ **DONE in v0.10.0**
-- [ ] MCP Resources (5 resources) 🔴 **P1**
-- [ ] MCP Prompts (2 prompts) 🔴 **P1**
-- **Estimated Total:** 3-5 hours
+- [x] MCP Resources (5 resources) ✅ **Completed PR #283**
+- [x] MCP Prompts (2 prompts) ✅ **Completed PR #286**
+- [x] Code coverage >90% ✅ **Enforced in CI (PR #303)**
 
 ### v0.12.0 (Target: Q2 2025)
 - [ ] Integration workflows (3-5 tests) 🟡 **P2**

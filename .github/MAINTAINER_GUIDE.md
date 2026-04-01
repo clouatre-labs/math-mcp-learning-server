@@ -185,7 +185,7 @@ Key points for maintainers:
 - All PRs require passing automated checks
 - Enforce conventional commits in PR titles
 - Review code for security and educational value
-- Ensure test coverage remains above 80%
+- Ensure test coverage remains above 90%
 - Document breaking changes clearly
 
 ## Merge Queue

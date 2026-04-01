@@ -19,10 +19,11 @@ This server includes a `fastmcp.json` configuration file for seamless cloud depl
     "type": "uv",
     "python": ">=3.14",
     "dependencies": [
-      "fastmcp>=2.0.0",
-      "pydantic>=2.11.9",
-      "matplotlib>=3.8.0",
-      "numpy>=1.26.0"
+      "fastmcp>=3.0.0",
+      "pydantic>=2.12.0",
+      "pydantic-settings>=2.0.0",
+      "matplotlib>=3.10.6",
+      "numpy>=2.3.3"
     ]
   },
   "deployment": {

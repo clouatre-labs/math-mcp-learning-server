@@ -107,6 +107,8 @@ uvx --from 'math-mcp-learning-server[scientific,plotting]' math-mcp-learning-ser
 - `math://history` - Chronological calculation history
 - `math://functions` - Available mathematical functions reference
 - `math://constants/{constant}` - Mathematical constants (pi, e, golden_ratio, etc.)
+- `math://catalog/tools` - Tool catalog with metadata and usage examples
+- `math://variables` - Active variables in the current workspace
 - `math://test` - Server health check
 
 ## Prompts
@@ -126,6 +128,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contr
 - **REUSE/SPDX** - License compliance for all files
 - **Signed Commits** - GPG-signed commits required
 - **Dependency Scanning** - Automated updates via Renovate
+- **pip-audit CVE Scanning** - Automated dependency vulnerability checks
+- **gitleaks Secret Scanning** - Detects secrets in code and history
+- **zizmor GitHub Actions Security** - Workflow security scanning
+- **commitlint Enforcement** - Conventional commit validation in CI
+- **OpenSSF Scorecard** - Continuous open source security assessment
 
 The `calculate` tool uses restricted `eval()` with a whitelist of allowed characters and functions, restricted global scope (only `math` module and `abs`), and no access to dangerous built-ins or imports. All tool inputs are validated with Pydantic models. File operations are restricted to the designated workspace directory. Complete type hints and validation are enforced for all operations.
 

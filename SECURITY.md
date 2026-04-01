@@ -111,7 +111,7 @@ This project implements several security measures:
 - Atomic file operations with proper locking
 
 ### Dependencies
-- Regular dependency updates via Dependabot
+- Regular dependency updates via Renovate
 - Minimal dependency footprint (core uses stdlib only)
 - Security scanning in CI/CD pipeline
 
