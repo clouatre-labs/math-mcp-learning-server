@@ -1,0 +1,29 @@
+# Smithery configuration file: https://smithery.ai/docs/build/project-config/smithery-yaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      math_timeout:
+        type: number
+        title: "Expression Timeout (seconds)"
+        description: "Maximum time allowed to evaluate a math expression. Increase if you hit timeouts on complex expressions."
+        default: 5.0
+        minimum: 0.1
+        maximum: 60.0
+      mcp_rate_limit_per_minute:
+        type: integer
+        title: "Rate Limit (requests/minute)"
+        description: "Maximum number of tool calls per minute. Set to 0 to disable rate limiting."
+        default: 100
+        minimum: 0
+  commandFunction: |-
+    (config) => ({
+      command: "uvx",
+      args: ["math-mcp-learning-server"],
+      env: {
+        ...(config.math_timeout !== undefined && { MATH_TIMEOUT: String(config.math_timeout) }),
+        ...(config.mcp_rate_limit_per_minute !== undefined && { MCP_RATE_LIMIT_PER_MINUTE: String(config.mcp_rate_limit_per_minute) }),
+      }
+    })
