@@ -150,11 +150,12 @@ Note: the registry API is cached by Cloudflare (TTL ~14 400 s). Score changes fr
 
 | Platform | Status | Date | Notes |
 |----------|--------|------|-------|
-| Official MCP Registry | ✅ Done | 2025-12-10 | Published v0.9.1 |
+| Official MCP Registry | ✅ Done | 2025-12-10 | Published v0.9.1 via `mcp-publisher publish` |
+| mcp.so | ✅ Done | 2026-03-30 | Auto-crawled; live at mcp.so/server/math-mcp-learning-server |
 | AWSome MCP | ✅ Done | 2025-12-10 | Form submitted |
-| Smithery | ✅ Done | 2026-04-01 | 98/100 score |
+| Smithery | ✅ Done | 2026-03-30 | 98/100 score as of 2026-04-01 |
 | Community MCP Servers | ⏳ Pending | - | PR needed |
 | Awesome Remote MCP | ⏳ Pending | - | PR needed |
 | FastMCP Showcase | ⏳ Pending | - | PR needed |
 | ToolSDK Registry | ⏳ Pending | - | Check process |
-| Awesome MCP Servers | ⏳ Pending | - | PR needed |
+| Awesome MCP Servers (punkpeye) | ⏳ Pending | - | PR must be opened from browser (GitHub fork permission issue) |
