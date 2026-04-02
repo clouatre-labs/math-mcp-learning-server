@@ -80,8 +80,8 @@ select = [
     "W",   # pycodestyle warnings
     "I",   # isort
     "UP",  # pyupgrade
-    "B",   # flake8-bugbear
-    "S",   # flake8-bandit (security)
+    "B",   # bugbear
+    "S",   # bandit (security)
     "C",   # mccabe cyclomatic complexity
 ]
 ignore = [
