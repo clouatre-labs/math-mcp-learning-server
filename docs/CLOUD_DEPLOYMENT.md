@@ -43,7 +43,7 @@ This server includes a `fastmcp.json` configuration file for seamless cloud depl
 ### Cloud Storage Considerations
 
 **Persistent Workspace Behavior in Cloud:**
-- The persistent workspace (`save_calculation`, `load_variable`) uses ephemeral storage in cloud deployments
+- The persistent workspace (`workspace_save`, `workspace_load`) uses ephemeral storage in cloud deployments
 - Saved calculations persist during active sessions but reset on container restart
 - This is standard cloud/serverless behavior and suitable for educational/demonstration purposes
 

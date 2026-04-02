@@ -44,9 +44,9 @@ Run `uv run pytest --co -q` for current test count.
 | Category | Tests | Coverage |
 |----------|-------|----------|
 | HTTP Integration | 18 | MCP server protocol, tool/resource discovery |
-| Math Operations | 34 | calculate, statistics, units, financial |
+| Math Operations | 34 | calc_expression, calc_statistics, calc_units, calc_interest |
 | Matrix Operations | 21 | multiply, transpose, determinant, inverse, eigenvalues |
-| Persistence | 22 | save_calculation, load_variable, workspace |
+| Persistence | 22 | workspace_save, workspace_load, workspace |
 | Visualization | 31 | plotting functions, charts, histograms |
 | Annotations | — | MCP annotation quality tests (per ADR-008) |
 | Agent Card | — | A2A agent card schema validation |
@@ -118,7 +118,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`
 The test suite validates:
 - ✅ DoS prevention (expression length limits, array size limits, matrix size limits)
 - ✅ Input validation (type checking, range validation)
-- ✅ Injection protection (no eval/exec/import in calculate tool)
+- ✅ Injection protection (no eval/exec/import in calc_expression tool)
 - ✅ Rate limiting implementation
 
 ## Getting Help

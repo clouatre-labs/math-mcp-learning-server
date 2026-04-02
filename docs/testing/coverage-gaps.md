@@ -123,20 +123,20 @@ async def test_workflow_calculate_save_load_visualize():
     """Test complete workflow: calculate → save → load → visualize"""
     # 1. Calculate
     result = await client.call_tool(
-        "calculate",
+        "calc_expression",
         expression="[x**2 for x in range(1, 11)]"
     )
 
     # 2. Save
     await client.call_tool(
-        "save_calculation",
+        "workspace_save",
         name="squares",
         value=result
     )
 
     # 3. Load
     loaded = await client.call_tool(
-        "load_variable",
+        "workspace_load",
         name="squares"
     )
     assert loaded == result
@@ -202,7 +202,7 @@ async def test_rate_limit_behavior():
     """Verify rate limiting under sustained load"""
     results = []
     for _ in range(100):
-        result = await client.call_tool("calculate", expression="2+2")
+        result = await client.call_tool("calc_expression", expression="2+2")
         results.append(result)
 
     assert len(results) > 0  # Should not crash

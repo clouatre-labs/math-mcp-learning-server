@@ -64,12 +64,12 @@ DoS prevention, input validation, injection protection.
 - Expression length limits (500 chars)
 - Array size limits (10,000 elements)
 - Matrix size limits (100x100)
-- No eval/exec/import in calculate tool
+- No eval/exec/import in calc_expression tool
 
 ### 4. End-to-End Workflows (Future - v0.11.0)
 Complete user workflows spanning multiple tools.
 
-**Planned:** calculate → save → load → visualize
+**Planned:** calc_expression → workspace_save → workspace_load → visualize
 
 ---
 
@@ -80,9 +80,9 @@ Complete user workflows spanning multiple tools.
 | Feature Category | Test Count | Coverage Areas |
 |------------------|-----------|----------------|
 | **HTTP Integration** | 18 | Server startup, tool discovery, resource enumeration, prompts |
-| **Math Operations** | 34 | calculate, statistics, compound_interest, convert_units |
+| **Math Operations** | 34 | calc_expression, calc_statistics, calc_interest, calc_units |
 | **Matrix Operations** | 21 | multiply, transpose, determinant, inverse, eigenvalues |
-| **Persistence** | 22 | save_calculation, load_variable, workspace management |
+| **Persistence** | 22 | workspace_save, workspace_load, workspace management |
 | **Visualization** | 31 | plot_function, histograms, line/scatter charts, box plots |
 | **Annotations** | — | MCP annotation quality tests (per ADR-008) |
 | **Agent Card** | — | A2A agent card schema validation |

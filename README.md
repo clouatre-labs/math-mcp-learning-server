@@ -83,12 +83,12 @@ uvx --from 'math-mcp-learning-server[scientific,plotting]' math-mcp-learning-ser
 
 | Category | Tool | Description |
 |----------|------|-------------|
-| **Workspace** | `save_calculation` | Save calculations to persistent storage |
-| | `load_variable` | Retrieve previously saved calculations |
-| **Math** | `calculate` | Safely evaluate mathematical expressions |
-| | `statistics` | Statistical analysis (mean, median, mode, std_dev, variance) |
-| | `compound_interest` | Calculate compound interest for investments |
-| | `convert_units` | Convert between units (length, weight, temperature) |
+| **Workspace** | `workspace_save` | Save calculations to persistent storage |
+| | `workspace_load` | Retrieve previously saved calculations |
+| **Math** | `calc_expression` | Safely evaluate mathematical expressions |
+| | `calc_statistics` | Statistical analysis (mean, median, mode, std_dev, variance) |
+| | `calc_interest` | Calculate compound interest for investments |
+| | `calc_units` | Convert between units (length, weight, temperature) |
 | **Matrix** | `matrix_multiply` | Multiply two matrices |
 | | `matrix_transpose` | Transpose a matrix |
 | | `matrix_determinant` | Calculate matrix determinant |
@@ -134,7 +134,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contr
 - **commitlint Enforcement** - Conventional commit validation in CI
 - **OpenSSF Scorecard** - Continuous open source security assessment
 
-The `calculate` tool uses restricted `eval()` with a whitelist of allowed characters and functions, restricted global scope (only `math` module and `abs`), and no access to dangerous built-ins or imports. All tool inputs are validated with Pydantic models. File operations are restricted to the designated workspace directory. Complete type hints and validation are enforced for all operations.
+The `calc_expression` tool uses restricted `eval()` with a whitelist of allowed characters and functions, restricted global scope (only `math` module and `abs`), and no access to dangerous built-ins or imports. All tool inputs are validated with Pydantic models. File operations are restricted to the designated workspace directory. Complete type hints and validation are enforced for all operations.
 
 ## Links
 

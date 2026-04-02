@@ -24,10 +24,10 @@ graph TD
 ```mermaid
 graph TD
     subgraph Calc["Calculate"]
-        C1["calculate"]
-        C2["statistics"]
-        C3["compound_interest"]
-        C4["convert_units"]
+        C1["calc_expression"]
+        C2["calc_statistics"]
+        C3["calc_interest"]
+        C4["calc_units"]
     end
 
     subgraph Matrix["Matrix"]
@@ -39,8 +39,8 @@ graph TD
     end
 
     subgraph Persist["Persistence"]
-        P1["save_calculation"]
-        P2["load_variable"]
+        P1["workspace_save"]
+        P2["workspace_load"]
     end
 
     subgraph Viz["Visualization"]
