@@ -141,3 +141,69 @@ async def http_client_high_limit(http_server_high_limit: str) -> Client:
     """
     async with Client(transport=StreamableHttpTransport(http_server_high_limit)) as client:
         yield client
+
+
+@pytest.fixture
+def mock_context():
+    """Standard mock MCP context for tools (visualization, matrix, math operations)."""
+    from unittest.mock import AsyncMock
+
+    ctx = AsyncMock()
+    ctx.info_logs = []
+    ctx.progress_reports = []
+
+    async def mock_info(msg):
+        ctx.info_logs.append(msg)
+
+    async def mock_warning(msg):
+        ctx.info_logs.append(f"WARNING: {msg}")
+
+    async def mock_error(msg):
+        ctx.info_logs.append(f"ERROR: {msg}")
+
+    async def mock_report_progress(current, total, message=""):
+        ctx.progress_reports.append((current, total, message))
+
+    ctx.info = mock_info
+    ctx.warning = mock_warning
+    ctx.error = mock_error
+    ctx.report_progress = mock_report_progress
+    return ctx
+
+
+@pytest.fixture
+def mock_persistence_context():
+    """Extended mock MCP context for persistence tools (adds lifespan state management)."""
+    from unittest.mock import AsyncMock
+
+    ctx = AsyncMock()
+    ctx.info_logs = []
+    ctx.progress_reports = []
+    ctx._state = {}
+    ctx.lifespan_context = {}
+
+    async def mock_info(msg):
+        ctx.info_logs.append(msg)
+
+    async def mock_warning(msg):
+        ctx.info_logs.append(f"WARNING: {msg}")
+
+    async def mock_error(msg):
+        ctx.info_logs.append(f"ERROR: {msg}")
+
+    async def mock_report_progress(current, total, message=""):
+        ctx.progress_reports.append((current, total, message))
+
+    async def set_state(key, value):
+        ctx._state[key] = value
+
+    async def get_state(key, default=None):
+        return ctx._state.get(key, default)
+
+    ctx.info = mock_info
+    ctx.warning = mock_warning
+    ctx.error = mock_error
+    ctx.report_progress = mock_report_progress
+    ctx.set_state = set_state
+    ctx.get_state = get_state
+    return ctx

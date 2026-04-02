@@ -553,26 +553,6 @@ class TestMatrixEdgeCases:
 # === PROGRESS REPORTING TESTS ===
 
 
-@pytest.fixture
-def mock_context():
-    """Create a mock FastMCP context for testing progress reporting."""
-
-    class MockContext:
-        def __init__(self):
-            self.info_logs = []
-            self.progress_reports = []
-
-        async def info(self, message: str):
-            """Mock info logging."""
-            self.info_logs.append(message)
-
-        async def report_progress(self, current: int, total: int, message: str = ""):
-            """Mock progress reporting."""
-            self.progress_reports.append((current, total, message))
-
-    return MockContext()
-
-
 @pytest.mark.asyncio
 async def test_matrix_inverse_progress_reporting(mock_context):
     """Test matrix_inverse reports progress through 4 stages with messages.

@@ -12,35 +12,6 @@ from fastmcp.utilities.types import Image
 
 from math_mcp.tools.visualization import VisualizationError
 
-# === HELPER FIXTURES ===
-
-
-@pytest.fixture
-def mock_context():
-    """Create a mock FastMCP context for testing."""
-
-    class MockContext:
-        def __init__(self):
-            self.info_logs = []
-            self.progress_reports = []
-
-        async def info(self, message: str):
-            """Mock info logging."""
-            self.info_logs.append(message)
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-        async def report_progress(self, current: int, total: int, message: str = ""):
-            """Mock progress reporting."""
-            self.progress_reports.append((current, total, message))
-
-    return MockContext()
-
-
 # === PLOT FUNCTION TESTS ===
 
 

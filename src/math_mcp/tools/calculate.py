@@ -207,72 +207,6 @@ async def statistics(
     )
 
 
-def _validate_principal(principal: float) -> None:
-    """Validate principal amount."""
-    if principal <= 0:
-        raise ValueError("Principal must be greater than 0")
-
-
-def _validate_rate(rate: float) -> None:
-    """Validate interest rate."""
-    if rate < 0:
-        raise ValueError("Interest rate cannot be negative")
-    if rate > 1.0:
-        raise ValueError(
-            f"rate must be a decimal between 0.0 and 1.0 (e.g., 0.05 for 5%). "
-            f"Got {rate}. Did you mean {rate / 100:.4f}?"
-        )
-
-
-def _validate_time(time: float) -> None:
-    """Validate time period."""
-    if time <= 0:
-        raise ValueError("Time must be greater than 0")
-
-
-def _validate_compounds(compounds_per_year: int) -> None:
-    """Validate compounds per year."""
-    if compounds_per_year <= 0:
-        raise ValueError("Compounds per year must be greater than 0")
-
-
-async def _validate_compound_interest_inputs(
-    principal: float,
-    rate: float,
-    time: float,
-    compounds_per_year: int,
-    ctx: SkipValidation[Context | None] = None,
-) -> None:
-    """Validate compound interest inputs and raise ValueError for invalid parameters."""
-    try:
-        _validate_principal(principal)
-    except ValueError as e:
-        if ctx:
-            await ctx.warning(str(e))
-        raise
-
-    try:
-        _validate_rate(rate)
-    except ValueError as e:
-        if ctx:
-            await ctx.warning(str(e))
-        raise
-
-    try:
-        _validate_time(time)
-    except ValueError as e:
-        if ctx:
-            await ctx.warning(str(e))
-        raise
-
-    try:
-        _validate_compounds(compounds_per_year)
-    except ValueError as e:
-        if ctx:
-            await ctx.warning(str(e))
-        raise
-
-
 @calculate_mcp.tool(
     annotations={
         "title": "Compound Interest Calculator",
@@ -285,21 +219,27 @@ async def _validate_compound_interest_inputs(
 async def compound_interest(
     principal: Annotated[
         float,
-        Field(description="Initial investment amount, must be greater than 0. Example: 1000.0"),
+        Field(gt=0, description="Initial investment amount in dollars (must be > 0), e.g. 1000.0"),
     ],
     rate: Annotated[
         float,
         Field(
-            description="Annual interest rate as decimal between 0.0 and 1.0. Example: 0.05 for 5%"
+            ge=0,
+            le=1.0,
+            description="Annual interest rate as decimal 0.0-1.0 (e.g. 0.05 = 5%). If entering a percentage, divide by 100 first.",
         ),
     ],
     time: Annotated[
-        float, Field(description="Time period in years, must be greater than 0. Example: 10")
+        float,
+        Field(gt=0, description="Investment time in years (must be > 0), e.g. 10.0"),
     ],
     compounds_per_year: Annotated[
         int,
-        Field(description="Compounding frequency per year, must be >= 1. Example: 12 for monthly"),
-    ] = 1,
+        Field(
+            gt=0,
+            description="Compounding frequency per year (must be > 0): 12=monthly, 365=daily",
+        ),
+    ] = 12,
     ctx: SkipValidation[Context | None] = None,
 ) -> CompoundInterestResult:
     """Calculate compound interest for investments.
@@ -319,8 +259,6 @@ async def compound_interest(
         await ctx.info(
             f"Calculating compound interest: ${principal:,.2f} @ {rate * 100}% for {time} years"
         )
-
-    await _validate_compound_interest_inputs(principal, rate, time, compounds_per_year, ctx)
 
     final_amount = principal * (1 + rate / compounds_per_year) ** (compounds_per_year * time)
     total_interest = final_amount - principal
