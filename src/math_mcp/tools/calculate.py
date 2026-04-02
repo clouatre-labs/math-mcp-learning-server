@@ -71,12 +71,13 @@ calculate_mcp = FastMCP(name="Calculate Tools")
 
 
 @calculate_mcp.tool(
+    name="calc_expression",
     annotations={
         "title": "Mathematical Calculator",
         "readOnlyHint": True,
         "openWorldHint": False,
         "idempotentHint": True,
-    }
+    },
 )
 @validated_tool
 async def calculate(
@@ -117,12 +118,13 @@ async def calculate(
 
 
 @calculate_mcp.tool(
+    name="calc_statistics",
     annotations={
         "title": "Statistical Analysis",
         "readOnlyHint": True,
         "openWorldHint": False,
         "idempotentHint": True,
-    }
+    },
 )
 @validated_tool
 async def statistics(
@@ -208,12 +210,13 @@ async def statistics(
 
 
 @calculate_mcp.tool(
+    name="calc_interest",
     annotations={
         "title": "Compound Interest Calculator",
         "readOnlyHint": True,
         "openWorldHint": False,
         "idempotentHint": True,
-    }
+    },
 )
 @validated_tool
 async def compound_interest(
@@ -277,12 +280,13 @@ async def compound_interest(
 
 
 @calculate_mcp.tool(
+    name="calc_units",
     annotations={
         "title": "Unit Converter",
         "readOnlyHint": True,
         "openWorldHint": False,
         "idempotentHint": True,
-    }
+    },
 )
 @validated_tool
 async def convert_units(
