@@ -95,9 +95,9 @@ uvx --from 'math-mcp-learning-server[scientific,plotting]' math-mcp-learning-ser
 | | `matrix_inverse` | Calculate matrix inverse |
 | | `matrix_eigenvalues` | Calculate eigenvalues |
 | **Visualization** | `plot_function` | Plot mathematical functions |
-| | `create_histogram` | Create statistical histograms |
+| | `plot_histogram` | Create statistical histograms |
 | | `plot_line_chart` | Create line charts |
-| | `plot_scatter_chart` | Create scatter plots |
+| | `plot_scatter` | Create scatter plots |
 | | `plot_box_plot` | Create box plots |
 | | `plot_financial_line` | Create financial line charts |
 
