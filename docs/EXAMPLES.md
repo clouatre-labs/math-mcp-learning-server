@@ -2,7 +2,7 @@
 
 ## Available Tools
 
-### calculate
+### calc_expression
 Safely evaluate mathematical expressions with support for basic operations and math functions.
 
 **Parameters:**
@@ -19,7 +19,7 @@ Safely evaluate mathematical expressions with support for basic operations and m
 "pow(2, 3)" → 8.0
 ```
 
-### statistics
+### calc_statistics
 Perform statistical calculations on a list of numbers.
 
 **Parameters:**
@@ -35,7 +35,7 @@ numbers=[1, 2, 3, 4, 5], operation="median" → 3.0
 numbers=[1, 1, 2, 3], operation="mode" → 1.0
 ```
 
-### compound_interest
+### calc_interest
 Calculate compound interest for investments.
 
 **Parameters:**
@@ -52,7 +52,7 @@ principal=5000, rate=0.045, time=10, compounds_per_year=12
 → Final: $7814.17, Interest: $2814.17
 ```
 
-### convert_units
+### calc_units
 Convert between different units of measurement.
 
 **Parameters:**
@@ -73,7 +73,7 @@ value=5, from_unit="mi", to_unit="km", unit_type="length" → 8.047 km
 value=1, from_unit="kg", to_unit="lb", unit_type="weight" → 2.205 lb
 ```
 
-### save_calculation
+### workspace_save
 Save calculation to persistent workspace (survives server restarts).
 
 **Parameters:**
@@ -87,7 +87,7 @@ name="portfolio_return", expression="10000 * 1.07^5", result=14025.52
 → Saved successfully
 ```
 
-### load_variable
+### workspace_load
 Load previously saved calculation from workspace.
 
 **Parameters:**
