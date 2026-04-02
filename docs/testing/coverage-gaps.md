@@ -143,7 +143,7 @@ async def test_workflow_calculate_save_load_visualize():
 
     # 4. Visualize
     plot = await client.call_tool(
-        "create_histogram",
+        "plot_histogram",
         data=loaded
     )
     assert plot.startswith("iVBORw0KGgo")

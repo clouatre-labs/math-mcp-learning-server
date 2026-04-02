@@ -114,7 +114,7 @@ expression="sin(x)", x_range=(-3.14, 3.14) → Sine wave plot
 expression="log(x)", x_range=(0.1, 10) → Logarithm plot
 ```
 
-### create_histogram
+### plot_histogram
 Create statistical histogram (requires matplotlib).
 
 **Parameters:**
@@ -146,7 +146,7 @@ Create line chart from data points (requires matplotlib).
 x_data=[1, 2, 3, 4], y_data=[1, 4, 9, 16], title="Squares", color="blue"
 ```
 
-### plot_scatter_chart
+### plot_scatter
 Create scatter plot for correlation analysis (requires matplotlib).
 
 **Parameters:**

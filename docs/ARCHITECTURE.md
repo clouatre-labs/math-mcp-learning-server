@@ -45,9 +45,9 @@ graph TD
 
     subgraph Viz["Visualization"]
         V1["plot_function"]
-        V2["create_histogram"]
+        V2["plot_histogram"]
         V3["plot_line_chart"]
-        V4["plot_scatter_chart"]
+        V4["plot_scatter"]
         V5["plot_box_plot"]
         V6["plot_financial_line"]
     end
