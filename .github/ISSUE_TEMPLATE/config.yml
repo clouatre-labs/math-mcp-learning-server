@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & Discussions
+    url: https://github.com/orgs/clouatre-labs/discussions
+    about: Ask questions and discuss ideas here.
+  - name: Report a Security Vulnerability
+    url: https://github.com/clouatre-labs/.github/blob/master/SECURITY.md
+    about: Please report security vulnerabilities privately.

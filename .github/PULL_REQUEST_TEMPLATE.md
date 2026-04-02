@@ -1,28 +1,26 @@
-## Description
-<!-- Describe your changes in detail -->
+## Summary
 
-## Type of Change
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
-- [ ] Educational content improvement
-
-## Testing
-- [ ] All tests pass locally (`uv run pytest tests/ -v`)
-- [ ] Code formatting checked (`uv run ruff format --check src/ tests/`)
-- [ ] Linting passed (`uv run ruff check src/ tests/`)
-- [ ] Added tests for new functionality (if applicable)
-- [ ] Coverage maintained or improved
-
-## Checklist
-- [ ] Created feature branch (not pushing to main directly)
-- [ ] Code follows project style guidelines (Ruff enforced)
-- [ ] Self-review completed
-- [ ] Documentation updated if needed
-- [ ] CI pipeline passes (lint + format + tests)
-- [ ] Educational value considered (is this helpful for learners?)
+<!-- Brief description of changes: what changed and why. -->
 
 ## Related Issues
-<!-- Link any related issues here -->
-Closes #
+
+<!-- Link issues: "Closes #123" or "Related to #456" -->
+
+## Changes
+
+<!-- Bullet list of what was modified. Be specific about files and scope. -->
+
+## Test Plan
+
+<!-- How was this tested? Include edge cases covered. -->
+
+## Checklist
+
+- [ ] Tests pass locally (`uv run pytest tests/ -v`)
+- [ ] Linter clean (`uv run ruff check src/ tests/`)
+- [ ] Formatter clean (`uv run ruff format --check src/ tests/`)
+- [ ] Type check clean (`uv run pyright src/`)
+- [ ] Commits are signed and follow conventional commit format
+- [ ] DCO signed-off: `git commit --signoff`
+- [ ] No scope creep (changes match assigned issue)
+- [ ] No secrets, API keys, or credentials in diff
