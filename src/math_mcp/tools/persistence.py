@@ -66,7 +66,7 @@ persistence_mcp = FastMCP(name="Persistence Tools")
     },
 )
 @validated_tool
-async def save_calculation(
+async def workspace_save(
     name: Annotated[
         str,
         Field(
@@ -136,7 +136,7 @@ async def save_calculation(
         "idempotentHint": True,
     },
 )
-async def load_variable(
+async def workspace_load(
     name: Annotated[
         str, Field(description="Name of the variable to load from workspace, e.g., 'circle_area'")
     ],

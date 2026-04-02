@@ -81,7 +81,7 @@ async def get_calculation_history(ctx: Context) -> str:
     workspace_data = _workspace_manager._load_workspace()
 
     if not workspace_data.variables:
-        return "No calculations in workspace yet. Use save_calculation() to persist calculations."
+        return "No calculations in workspace yet. Use workspace_save() to persist calculations."
 
     history_text = "Calculation History (from workspace):\n\n"
 

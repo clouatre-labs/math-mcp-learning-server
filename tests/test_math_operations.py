@@ -24,14 +24,14 @@ from math_mcp.settings import (
     MAX_VARIABLE_NAME_LENGTH,
 )
 from math_mcp.tools.calculate import (
-    calculate,
-    compound_interest,
-    convert_units,
+    calc_expression,
+    calc_interest,
+    calc_units,
 )
 from math_mcp.tools.calculate import (
-    statistics as stats_tool,
+    calc_statistics as stats_tool,
 )
-from math_mcp.tools.persistence import load_variable, save_calculation
+from math_mcp.tools.persistence import workspace_load, workspace_save
 from math_mcp.tools.visualization import VisualizationError
 
 # === SECURITY TESTS ===
@@ -115,7 +115,7 @@ def test_temperature_conversions():
 async def test_calculate_tool(mock_context):
     """Test the calculate tool returns structured output with annotations."""
 
-    result = await calculate.raw_function("2 + 3", mock_context)
+    result = await calc_expression.raw_function("2 + 3", mock_context)
 
     assert result.expression == "2 + 3"
     assert result.result == 5.0
@@ -157,7 +157,7 @@ async def test_compound_interest_tool(mock_context):
     """Test compound interest calculations."""
 
     ctx = mock_context
-    result = await compound_interest(1000.0, 0.05, 5.0, 12, ctx)
+    result = await calc_interest(1000.0, 0.05, 5.0, 12, ctx)
 
     assert result.principal == 1000.0
     assert result.rate == 0.05
@@ -172,10 +172,10 @@ async def test_compound_interest_tool(mock_context):
     from pydantic import ValidationError
 
     with pytest.raises(ValidationError):
-        await compound_interest(0, 0.05, 5.0, 1, ctx)
+        await calc_interest(0, 0.05, 5.0, 1, ctx)
 
     with pytest.raises(ValidationError):
-        await compound_interest(1000, -0.01, 5.0, 1, ctx)
+        await calc_interest(1000, -0.01, 5.0, 1, ctx)
 
 
 @pytest.mark.asyncio
@@ -185,7 +185,7 @@ async def test_convert_units_tool(mock_context):
     ctx = mock_context
 
     # Test length conversion
-    result = await convert_units(100, "cm", "m", "length", ctx)
+    result = await calc_units(100, "cm", "m", "length", ctx)
 
     assert result.value == 100.0
     assert result.from_unit == "cm"
@@ -196,13 +196,13 @@ async def test_convert_units_tool(mock_context):
     assert result.difficulty == "basic"
 
     # Test temperature conversion
-    result = await convert_units(0, "c", "f", "temperature", ctx)
+    result = await calc_units(0, "c", "f", "temperature", ctx)
     assert result.converted_value == 32.0
     assert result.unit_type == "temperature"
 
     # Test invalid unit type
     with pytest.raises(ValueError, match="Unknown unit type"):
-        await convert_units(100, "cm", "m", "invalid_type", ctx)
+        await calc_units(100, "cm", "m", "invalid_type", ctx)
 
 
 # === RESOURCE TESTS ===
@@ -254,13 +254,13 @@ async def test_unit_conversion_edge_cases(mock_context):
     ctx = mock_context
 
     # Convert to same unit
-    result = await convert_units(100, "m", "m", "length", ctx)
+    result = await calc_units(100, "m", "m", "length", ctx)
     assert result.converted_value == 100
     assert result.from_unit == "m"
     assert result.to_unit == "m"
 
     # Test case insensitivity
-    result = await convert_units(1, "M", "KM", "length", ctx)
+    result = await calc_units(1, "M", "KM", "length", ctx)
     assert result.converted_value == 0.001
     assert result.from_unit.upper() == "M"
     assert result.to_unit.upper() == "KM"
@@ -386,14 +386,14 @@ async def test_expression_length_validation(mock_context):
     # Valid: below limit (off-by-one boundary test)
     # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH - 1 chars
     below_limit_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH) // 2))[: MAX_EXPRESSION_LENGTH - 1]
-    result = await calculate.raw_function(below_limit_expr, ctx)
+    result = await calc_expression.raw_function(below_limit_expr, ctx)
     assert hasattr(result, "result")
     assert isinstance(result.result, (int, float))
 
     # Valid: at limit (use a valid expression that's exactly at the limit)
     # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH chars
     valid_expr = "+".join(["1"] * ((MAX_EXPRESSION_LENGTH + 1) // 2))[:MAX_EXPRESSION_LENGTH]
-    result = await calculate.raw_function(valid_expr, ctx)
+    result = await calc_expression.raw_function(valid_expr, ctx)
     assert hasattr(result, "result")
 
     # Invalid: exceeds limit
@@ -402,7 +402,7 @@ async def test_expression_length_validation(mock_context):
     with pytest.raises(
         ValueError, match=f"String should have at most {MAX_EXPRESSION_LENGTH} characters"
     ):
-        await calculate(invalid_expr, ctx)
+        await calc_expression(invalid_expr, ctx)
 
 
 @pytest.mark.asyncio
@@ -446,12 +446,12 @@ async def test_variable_name_validation(mock_persistence_context):
     ctx = mock_persistence_context
 
     # Valid: alphanumeric with underscore and hyphen
-    result = await save_calculation.raw_function("valid_name-123", "2+2", 4.0, ctx)
+    result = await workspace_save.raw_function("valid_name-123", "2+2", 4.0, ctx)
     assert result.success is True
 
     # Valid: at limit
     valid_name = "a" * MAX_VARIABLE_NAME_LENGTH
-    result = await save_calculation.raw_function(valid_name, "2+2", 4.0, ctx)
+    result = await workspace_save.raw_function(valid_name, "2+2", 4.0, ctx)
     assert result.success is True
 
     # Invalid: exceeds length
@@ -459,15 +459,15 @@ async def test_variable_name_validation(mock_persistence_context):
     with pytest.raises(
         ValueError, match=f"String should have at most {MAX_VARIABLE_NAME_LENGTH} characters"
     ):
-        await save_calculation(invalid_name, "2+2", 4.0, ctx)
+        await workspace_save(invalid_name, "2+2", 4.0, ctx)
 
     # Invalid: empty
     with pytest.raises(ValueError, match="cannot be empty"):
-        await save_calculation("", "2+2", 4.0, ctx)
+        await workspace_save("", "2+2", 4.0, ctx)
 
     # Invalid: special characters
     with pytest.raises(ValueError, match="only letters, numbers, underscores, and hyphens"):
-        await save_calculation("invalid@name", "2+2", 4.0, ctx)
+        await workspace_save("invalid@name", "2+2", 4.0, ctx)
 
 
 @pytest.mark.asyncio
@@ -614,7 +614,7 @@ async def test_validation_error_messages(mock_context):
     # Test error message includes max value (Pydantic format)
     invalid_expr = "1" * (MAX_EXPRESSION_LENGTH + 1)
     try:
-        await calculate(invalid_expr, ctx)
+        await calc_expression(invalid_expr, ctx)
         raise AssertionError("Should have raised ValueError")
     except ValueError as e:
         error_msg = str(e)
@@ -648,7 +648,7 @@ async def test_compound_interest_rate_as_percentage_raises():
     from pydantic import ValidationError
 
     with pytest.raises(ValidationError):
-        await compound_interest(1000, 5, 1)
+        await calc_interest(1000, 5, 1)
 
 
 @pytest.mark.asyncio
@@ -659,7 +659,7 @@ async def test_compound_interest_valid_decimal_rate():
     Act: call compound_interest
     Assert: result is success with final_amount > principal
     """
-    result = await compound_interest.raw_function(1000, 0.05, 1)
+    result = await calc_interest.raw_function(1000, 0.05, 1)
     assert result.final_amount > result.principal
     assert result.rate == 0.05
 
@@ -863,7 +863,7 @@ async def test_calculate_with_context():
     from unittest.mock import AsyncMock, MagicMock
 
     mock_ctx = AsyncMock()
-    result = await calculate("2 + 2", ctx=mock_ctx)
+    result = await calc_expression("2 + 2", ctx=mock_ctx)
     assert result is not None
     mock_ctx.info.assert_called_once()
 
@@ -871,7 +871,7 @@ async def test_calculate_with_context():
 @pytest.mark.asyncio
 async def test_calculate_without_context():
     """calculate() works without context."""
-    result = await calculate("2 + 2", ctx=None)
+    result = await calc_expression("2 + 2", ctx=None)
     assert result is not None
     assert hasattr(result, "result")
 
@@ -882,7 +882,7 @@ async def test_convert_units_with_context():
     from unittest.mock import AsyncMock
 
     mock_ctx = AsyncMock()
-    result = await convert_units(100.0, "m", "ft", "length", ctx=mock_ctx)
+    result = await calc_units(100.0, "m", "ft", "length", ctx=mock_ctx)
     assert result is not None
     mock_ctx.info.assert_called_once()
 
@@ -914,10 +914,10 @@ async def test_statistics_with_progress_ctx() -> None:
     """statistics() covers ctx progress reporting branches."""
     from unittest.mock import AsyncMock
 
-    from math_mcp.tools.calculate import statistics
+    from math_mcp.tools.calculate import calc_statistics
 
     mock_ctx = AsyncMock()
-    result = await statistics.raw_function([1.0, 2.0, 3.0], "mean", mock_ctx)
+    result = await calc_statistics.raw_function([1.0, 2.0, 3.0], "mean", mock_ctx)
     assert result.result == 2.0
     mock_ctx.report_progress.assert_called()
 
@@ -927,11 +927,11 @@ async def test_statistics_invalid_op_with_ctx() -> None:
     """statistics() covers ctx warning branch when operation is invalid."""
     from unittest.mock import AsyncMock
 
-    from math_mcp.tools.calculate import statistics
+    from math_mcp.tools.calculate import calc_statistics
 
     mock_ctx = AsyncMock()
     with pytest.raises(ValueError, match="Invalid operation"):
-        await statistics.raw_function([1.0, 2.0], "invalid_op", mock_ctx)
+        await calc_statistics.raw_function([1.0, 2.0], "invalid_op", mock_ctx)
     mock_ctx.warning.assert_called()
 
 
@@ -942,11 +942,11 @@ async def test_compound_interest_negative_rate_ctx() -> None:
 
     from pydantic import ValidationError
 
-    from math_mcp.tools.calculate import compound_interest
+    from math_mcp.tools.calculate import calc_interest
 
     mock_ctx = AsyncMock()
     with pytest.raises(ValidationError):
-        await compound_interest(1000.0, -0.05, 1, 12, mock_ctx)
+        await calc_interest(1000.0, -0.05, 1, 12, mock_ctx)
 
 
 @pytest.mark.asyncio
@@ -956,8 +956,8 @@ async def test_compound_interest_zero_time_ctx() -> None:
 
     from pydantic import ValidationError
 
-    from math_mcp.tools.calculate import compound_interest
+    from math_mcp.tools.calculate import calc_interest
 
     mock_ctx = AsyncMock()
     with pytest.raises(ValidationError):
-        await compound_interest(1000.0, 0.05, 0, 12, mock_ctx)
+        await calc_interest(1000.0, 0.05, 0, 12, mock_ctx)
