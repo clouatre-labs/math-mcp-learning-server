@@ -207,6 +207,72 @@ async def statistics(
     )
 
 
+def _validate_principal(principal: float) -> None:
+    """Validate principal amount."""
+    if principal <= 0:
+        raise ValueError("Principal must be greater than 0")
+
+
+def _validate_rate(rate: float) -> None:
+    """Validate interest rate."""
+    if rate < 0:
+        raise ValueError("Interest rate cannot be negative")
+    if rate > 1.0:
+        raise ValueError(
+            f"rate must be a decimal between 0.0 and 1.0 (e.g., 0.05 for 5%). "
+            f"Got {rate}. Did you mean {rate / 100:.4f}?"
+        )
+
+
+def _validate_time(time: float) -> None:
+    """Validate time period."""
+    if time <= 0:
+        raise ValueError("Time must be greater than 0")
+
+
+def _validate_compounds(compounds_per_year: int) -> None:
+    """Validate compounds per year."""
+    if compounds_per_year <= 0:
+        raise ValueError("Compounds per year must be greater than 0")
+
+
+async def _validate_compound_interest_inputs(
+    principal: float,
+    rate: float,
+    time: float,
+    compounds_per_year: int,
+    ctx: SkipValidation[Context | None] = None,
+) -> None:
+    """Validate compound interest inputs and raise ValueError for invalid parameters."""
+    try:
+        _validate_principal(principal)
+    except ValueError as e:
+        if ctx:
+            await ctx.warning(str(e))
+        raise
+
+    try:
+        _validate_rate(rate)
+    except ValueError as e:
+        if ctx:
+            await ctx.warning(str(e))
+        raise
+
+    try:
+        _validate_time(time)
+    except ValueError as e:
+        if ctx:
+            await ctx.warning(str(e))
+        raise
+
+    try:
+        _validate_compounds(compounds_per_year)
+    except ValueError as e:
+        if ctx:
+            await ctx.warning(str(e))
+        raise
+
+
 @calculate_mcp.tool(
     annotations={
         "title": "Compound Interest Calculator",
@@ -254,29 +320,7 @@ async def compound_interest(
             f"Calculating compound interest: ${principal:,.2f} @ {rate * 100}% for {time} years"
         )
 
-    if principal <= 0:
-        if ctx:
-            await ctx.warning(f"Invalid principal: {principal}")
-        raise ValueError("Principal must be greater than 0")
-    if rate < 0:
-        if ctx:
-            await ctx.warning(f"Negative rate: {rate}")
-        raise ValueError("Interest rate cannot be negative")
-    if rate > 1.0:
-        if ctx:
-            await ctx.warning(f"rate {rate} looks like a percentage not a decimal")
-        raise ValueError(
-            f"rate must be a decimal between 0.0 and 1.0 (e.g., 0.05 for 5%). "
-            f"Got {rate}. Did you mean {rate / 100:.4f}?"
-        )
-    if time <= 0:
-        if ctx:
-            await ctx.warning(f"Invalid time: {time}")
-        raise ValueError("Time must be greater than 0")
-    if compounds_per_year <= 0:
-        if ctx:
-            await ctx.warning(f"Invalid compounds_per_year: {compounds_per_year}")
-        raise ValueError("Compounds per year must be greater than 0")
+    await _validate_compound_interest_inputs(principal, rate, time, compounds_per_year, ctx)
 
     final_amount = principal * (1 + rate / compounds_per_year) ** (compounds_per_year * time)
     total_interest = final_amount - principal

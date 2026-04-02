@@ -37,38 +37,34 @@ def _validate_expression_syntax(expression: str) -> None:
             raise ValueError(f"Function '{func}()' requires one parameter. Example: {func}(3.14)")
 
 
-def safe_eval_expression(expression: str) -> float:
-    """Safely evaluate mathematical expressions with restricted scope."""
-    # Validate syntax and provide helpful error messages
-    _validate_expression_syntax(expression)
-
-    # Remove whitespace
-    clean_expr = expression.replace(" ", "")
-
-    # Only allow safe characters (including comma for function parameters)
+def _check_expression_security(clean_expr: str, expression: str) -> None:
+    """Check for dangerous patterns and unsafe characters in expression."""
     allowed_chars = set("0123456789+-*/.(),e")
 
-    # Security check - log and block dangerous patterns
     if any(pattern in clean_expr.lower() for pattern in DANGEROUS_PATTERNS):
         logging.warning(f"Security: Blocked unsafe expression attempt: {expression[:50]}...")
         raise ValueError(
             "Expression contains forbidden operations. Only mathematical expressions are allowed."
         )
 
-    # Check for unsafe characters
     if not all(c in allowed_chars or c.isalpha() for c in clean_expr):
         raise ValueError(
             "Expression contains invalid characters. Use only numbers, +, -, *, /, (), and math functions."
         )
 
-    # Replace math functions with safe alternatives
+
+def _build_safe_expr(clean_expr: str) -> str:
+    """Replace math functions with safe alternatives (prefix with math. module)."""
     safe_expr = clean_expr
     for func in MATH_FUNCTIONS_ALL:
         if func in clean_expr:
-            if func != "abs":  # abs is built-in, others need math module
+            if func != "abs":
                 safe_expr = safe_expr.replace(func, f"math.{func}")
+    return safe_expr
 
-    # Evaluate with restricted globals
+
+def _eval_in_restricted_scope(safe_expr: str) -> float:
+    """Evaluate expression in restricted scope with safe globals."""
     try:
         allowed_globals = {"__builtins__": {"abs": abs}, "math": math}
         result = eval(safe_expr, allowed_globals, {})
@@ -85,6 +81,15 @@ def safe_eval_expression(expression: str) -> float:
         raise ValueError(f"Mathematical expression error: {str(e)}")
     except Exception as e:
         raise ValueError(f"Expression evaluation failed: {str(e)}")
+
+
+def safe_eval_expression(expression: str) -> float:
+    """Safely evaluate mathematical expressions with restricted scope."""
+    _validate_expression_syntax(expression)
+    clean_expr = expression.replace(" ", "")
+    _check_expression_security(clean_expr, expression)
+    safe_expr = _build_safe_expr(clean_expr)
+    return _eval_in_restricted_scope(safe_expr)
 
 
 def validate_variable_name(name: str) -> str:
