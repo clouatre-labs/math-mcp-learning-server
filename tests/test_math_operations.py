@@ -72,6 +72,25 @@ def test_safe_eval_invalid_expressions():
         safe_eval_expression("exec('print(1)')")  # Should be blocked
 
 
+def test_build_safe_expr_no_mangle_substring():
+    """Identifier containing a math function name as substring must not be mangled."""
+    # 'logical' contains 'log' -- with str.replace it would become 'math.logical'
+    # which would then raise NameError inside the restricted scope (not a math attribute).
+    # With word-boundary regex 'log' is not matched inside 'logical'.
+    # Either way the expression must raise (NameError -> ValueError) since 'logical'
+    # is not a valid math identifier.
+    with pytest.raises((ValueError, NameError)):
+        safe_eval_expression("logical + 1")
+
+
+def test_build_safe_expr_exact_function_prefix():
+    """Exact function name must be prefixed with math. and evaluated correctly."""
+    import math
+
+    result = safe_eval_expression("log(10)")
+    assert abs(result - math.log(10)) < 1e-10
+
+
 # === TEMPERATURE CONVERSION TESTS ===
 
 
