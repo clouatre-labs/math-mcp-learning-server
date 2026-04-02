@@ -129,8 +129,8 @@ async def test_agent_card_skills_structure(http_server: str) -> None:
 
         # Verify key tools are present
         skill_ids = [skill["id"] for skill in skills]
-        assert "calculate" in skill_ids
-        assert "statistics" in skill_ids
+        assert "calc_expression" in skill_ids
+        assert "calc_statistics" in skill_ids
 
 
 async def test_agent_card_consistency_across_requests(http_server: str) -> None:

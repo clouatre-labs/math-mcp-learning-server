@@ -127,12 +127,13 @@ async def _evaluate_expression_points(
 
 
 @visualization_mcp.tool(
+    name="plot_function",
     annotations={
         "title": "Function Plotter",
         "readOnlyHint": True,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 @validated_tool
 @requires_matplotlib
@@ -199,12 +200,13 @@ async def plot_function(
 
 
 @visualization_mcp.tool(
+    name="plot_histogram",
     annotations={
         "title": "Statistical Histogram",
         "readOnlyHint": True,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 @validated_tool
 @requires_matplotlib
@@ -287,12 +289,13 @@ async def plot_histogram(  # noqa: C901
 
 
 @visualization_mcp.tool(
+    name="plot_line_chart",
     annotations={
         "title": "Line Chart",
         "readOnlyHint": True,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 @validated_tool
 @requires_matplotlib
@@ -367,12 +370,13 @@ async def plot_line_chart(
 
 
 @visualization_mcp.tool(
+    name="plot_scatter",
     annotations={
         "title": "Scatter Plot",
         "readOnlyHint": True,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 @validated_tool
 @requires_matplotlib
@@ -447,12 +451,13 @@ async def plot_scatter(
 
 
 @visualization_mcp.tool(
+    name="plot_box_plot",
     annotations={
         "title": "Box Plot",
         "readOnlyHint": True,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 @validated_tool
 @requires_matplotlib
@@ -529,12 +534,13 @@ async def plot_box_plot(
 
 
 @visualization_mcp.tool(
+    name="plot_financial_line",
     annotations={
         "title": "Financial Line Chart",
         "readOnlyHint": True,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 @validated_tool
 @requires_matplotlib

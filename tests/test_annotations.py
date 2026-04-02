@@ -80,8 +80,8 @@ async def test_enum_like_params_have_examples() -> None:
     of values should be added to this list.
     """
     enum_like_params = {
-        "statistics": ["operation"],
-        "convert_units": ["from_unit", "to_unit", "unit_type"],
+        "calc_statistics": ["operation"],
+        "calc_units": ["from_unit", "to_unit", "unit_type"],
         "plot_financial_line": ["trend"],
     }
     tools = await _get_tools()

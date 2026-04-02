@@ -57,12 +57,13 @@ persistence_mcp = FastMCP(name="Persistence Tools")
 
 
 @persistence_mcp.tool(
+    name="workspace_save",
     annotations={
         "title": "Save Calculation to Workspace",
         "readOnlyHint": False,
         "openWorldHint": False,
         "idempotentHint": False,
-    }
+    },
 )
 @validated_tool
 async def save_calculation(
@@ -127,12 +128,13 @@ async def save_calculation(
 
 
 @persistence_mcp.tool(
+    name="workspace_load",
     annotations={
         "title": "Load Variable",
         "readOnlyHint": True,
         "openWorldHint": False,
         "idempotentHint": True,
-    }
+    },
 )
 async def load_variable(
     name: Annotated[

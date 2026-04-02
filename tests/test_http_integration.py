@@ -20,7 +20,7 @@ async def test_http_ping(http_client: Client) -> None:
 
 async def test_http_calculate_basic(http_client: Client) -> None:
     """Test basic calculation over HTTP."""
-    result = await http_client.call_tool("calculate", {"expression": "2 + 2"})
+    result = await http_client.call_tool("calc_expression", {"expression": "2 + 2"})
     assert len(result.content) > 0
     text = result.content[0].text
     data = json.loads(text)
@@ -30,7 +30,7 @@ async def test_http_calculate_basic(http_client: Client) -> None:
 
 async def test_http_calculate_complex(http_client: Client) -> None:
     """Test complex calculation over HTTP."""
-    result = await http_client.call_tool("calculate", {"expression": "sqrt(16) * 3"})
+    result = await http_client.call_tool("calc_expression", {"expression": "sqrt(16) * 3"})
     assert len(result.content) > 0
     text = result.content[0].text
     data = json.loads(text)
@@ -40,13 +40,13 @@ async def test_http_calculate_complex(http_client: Client) -> None:
 async def test_http_calculate_invalid_expression(http_client: Client) -> None:
     """Test error handling for invalid expression over HTTP."""
     with pytest.raises(ToolError):
-        await http_client.call_tool("calculate", {"expression": "invalid syntax"})
+        await http_client.call_tool("calc_expression", {"expression": "invalid syntax"})
 
 
 async def test_http_statistics_mean(http_client: Client) -> None:
     """Test statistics calculation over HTTP."""
     result = await http_client.call_tool(
-        "statistics", {"operation": "mean", "numbers": [1, 2, 3, 4, 5]}
+        "calc_statistics", {"operation": "mean", "numbers": [1, 2, 3, 4, 5]}
     )
     assert len(result.content) > 0
     text = result.content[0].text
@@ -58,7 +58,7 @@ async def test_http_statistics_mean(http_client: Client) -> None:
 async def test_http_statistics_median(http_client: Client) -> None:
     """Test median calculation over HTTP."""
     result = await http_client.call_tool(
-        "statistics", {"operation": "median", "numbers": [1, 2, 3, 4, 5]}
+        "calc_statistics", {"operation": "median", "numbers": [1, 2, 3, 4, 5]}
     )
     assert len(result.content) > 0
     text = result.content[0].text
@@ -70,7 +70,7 @@ async def test_http_statistics_median(http_client: Client) -> None:
 async def test_http_compound_interest(http_client: Client) -> None:
     """Test compound interest calculation over HTTP."""
     result = await http_client.call_tool(
-        "compound_interest",
+        "calc_interest",
         {"principal": 1000, "rate": 0.05, "time": 10, "compounds_per_year": 12},
     )
     assert len(result.content) > 0
@@ -83,7 +83,7 @@ async def test_http_compound_interest(http_client: Client) -> None:
 async def test_http_convert_units_length(http_client: Client) -> None:
     """Test unit conversion over HTTP."""
     result = await http_client.call_tool(
-        "convert_units", {"value": 1, "from_unit": "m", "to_unit": "cm", "unit_type": "length"}
+        "calc_units", {"value": 1, "from_unit": "m", "to_unit": "cm", "unit_type": "length"}
     )
     assert len(result.content) > 0
     text = result.content[0].text
@@ -95,7 +95,7 @@ async def test_http_convert_units_invalid(http_client: Client) -> None:
     """Test error handling for invalid unit conversion over HTTP."""
     with pytest.raises(ToolError):
         await http_client.call_tool(
-            "convert_units",
+            "calc_units",
             {"value": 1, "from_unit": "invalid", "to_unit": "m", "unit_type": "length"},
         )
 
@@ -121,7 +121,7 @@ async def test_http_calculate_parametrized(
     http_client: Client, expression: str, expected_in_text: str
 ) -> None:
     """Test multiple calculations with parametrization over HTTP."""
-    result = await http_client.call_tool("calculate", {"expression": expression})
+    result = await http_client.call_tool("calc_expression", {"expression": expression})
     assert len(result.content) > 0
     assert expected_in_text in result.content[0].text
 
@@ -130,15 +130,15 @@ async def test_http_list_tools(http_client: Client) -> None:
     """Test listing available tools over HTTP."""
     tools = await http_client.list_tools()
     tool_names = [t.name for t in tools]
-    assert "calculate" in tool_names
-    assert "statistics" in tool_names
-    assert "compound_interest" in tool_names
+    assert "calc_expression" in tool_names
+    assert "calc_statistics" in tool_names
+    assert "calc_interest" in tool_names
 
 
 async def test_http_response_serialization(http_client: Client) -> None:
     """Test that responses serialize correctly over HTTP."""
     result = await http_client.call_tool(
-        "statistics", {"operation": "std_dev", "numbers": [1, 2, 3, 4, 5]}
+        "calc_statistics", {"operation": "std_dev", "numbers": [1, 2, 3, 4, 5]}
     )
     assert len(result.content) > 0
     text = result.content[0].text
