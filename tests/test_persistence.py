@@ -46,37 +46,6 @@ def temp_workspace():
             yield temp_path
 
 
-@pytest.fixture
-def mock_context():
-    """Create mock context for MCP tool testing."""
-
-    class MockContext:
-        def __init__(self):
-            self.lifespan_context = type("LC", (), {"calculation_history": []})()
-            self.info_logs = []
-            self._state: dict = {}
-
-        async def info(self, message: str):
-            """Mock info logging."""
-            self.info_logs.append(message)
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-        async def set_state(self, key: str, value: object) -> None:
-            """Mock state storage (session-scoped)."""
-            self._state[key] = value
-
-        async def get_state(self, key: str) -> object:
-            """Mock state retrieval (session-scoped)."""
-            return self._state.get(key)
-
-    return MockContext()
-
-
 # === MODEL TESTS ===
 
 
@@ -332,12 +301,12 @@ def test_permission_error_handling(temp_workspace):
 
 
 @pytest.mark.asyncio
-async def test_save_calculation_tool(temp_workspace, mock_context):
+async def test_save_calculation_tool(temp_workspace, mock_persistence_context):
     """Test save_calculation MCP tool."""
     from math_mcp.tools.persistence import SaveCalculationResult
 
     result = await save_calculation.raw_function(
-        "portfolio_return", "10000 * 1.07^5", 14025.52, mock_context
+        "portfolio_return", "10000 * 1.07^5", 14025.52, mock_persistence_context
     )
 
     assert isinstance(result, SaveCalculationResult)
@@ -352,7 +321,7 @@ async def test_save_calculation_tool(temp_workspace, mock_context):
 
 
 @pytest.mark.asyncio
-async def test_load_variable_tool(temp_workspace, mock_context):
+async def test_load_variable_tool(temp_workspace, mock_persistence_context):
     """Test load_variable MCP tool."""
     from math_mcp.tools.persistence import LoadVariableResult
 
@@ -360,7 +329,7 @@ async def test_load_variable_tool(temp_workspace, mock_context):
     _workspace_manager.save_variable("circle_area", "pi * 5^2", 78.54, {"topic": "geometry"})
 
     # Then load it using the MCP tool
-    result = await load_variable("circle_area", mock_context)
+    result = await load_variable("circle_area", mock_persistence_context)
 
     assert isinstance(result, LoadVariableResult)
     assert result.success is True
@@ -372,11 +341,11 @@ async def test_load_variable_tool(temp_workspace, mock_context):
 
 
 @pytest.mark.asyncio
-async def test_load_variable_not_found(temp_workspace, mock_context):
+async def test_load_variable_not_found(temp_workspace, mock_persistence_context):
     """Test load_variable tool with nonexistent variable."""
     from math_mcp.tools.persistence import LoadVariableResult
 
-    result = await load_variable("nonexistent_var", mock_context)
+    result = await load_variable("nonexistent_var", mock_persistence_context)
 
     assert isinstance(result, LoadVariableResult)
     assert result.success is False
@@ -387,7 +356,7 @@ async def test_load_variable_not_found(temp_workspace, mock_context):
 
 
 @pytest.mark.asyncio
-async def test_workspace_resource(temp_workspace, mock_context):
+async def test_workspace_resource(temp_workspace, mock_persistence_context):
     """Test math://workspace resource."""
     # Add some variables
     _workspace_manager.save_variable("var1", "2 + 2", 4.0, {"difficulty": "basic"})
@@ -408,7 +377,7 @@ async def test_workspace_resource(temp_workspace, mock_context):
 
 
 @pytest.mark.asyncio
-async def test_workspace_resource_empty(temp_workspace, mock_context):
+async def test_workspace_resource_empty(temp_workspace, mock_persistence_context):
     """Test math://workspace resource when empty."""
     mcp = FastMCP("test")
     ctx = Context(mcp)
@@ -424,18 +393,20 @@ async def test_workspace_resource_empty(temp_workspace, mock_context):
 
 
 @pytest.mark.asyncio
-async def test_save_calculation_validation(temp_workspace, mock_context):
+async def test_save_calculation_validation(temp_workspace, mock_persistence_context):
     """Test input validation for save_calculation tool."""
     # Empty name
     with pytest.raises(ValueError, match="Variable name cannot be empty"):
-        await save_calculation("", "2 + 2", 4.0, mock_context)
+        await save_calculation("", "2 + 2", 4.0, mock_persistence_context)
 
     # Invalid characters in name
     with pytest.raises(ValueError, match="Variable name must contain only"):
-        await save_calculation("invalid name!", "2 + 2", 4.0, mock_context)
+        await save_calculation("invalid name!", "2 + 2", 4.0, mock_persistence_context)
 
     # Valid names should work
-    result = await save_calculation.raw_function("valid_name-123", "2 + 2", 4.0, mock_context)
+    result = await save_calculation.raw_function(
+        "valid_name-123", "2 + 2", 4.0, mock_persistence_context
+    )
     assert result.success is True
 
 
@@ -462,11 +433,11 @@ def test_persistent_across_manager_instances(temp_workspace):
 
 
 @pytest.mark.asyncio
-async def test_session_id_is_valid_uuid(temp_workspace, mock_context):
+async def test_session_id_is_valid_uuid(temp_workspace, mock_persistence_context):
     """Test that session_id in saved metadata is a valid UUID string (happy path)."""
     import uuid
 
-    result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, mock_context)
+    result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, mock_persistence_context)
 
     # Extract session_id directly from the result model
     session_id = result.session_id
@@ -492,14 +463,14 @@ async def test_session_id_none_when_ctx_is_none(temp_workspace):
 
 
 @pytest.mark.asyncio
-async def test_session_id_stability_same_context(temp_workspace, mock_context):
+async def test_session_id_stability_same_context(temp_workspace, mock_persistence_context):
     """Test that two save_calculation calls on the same MockContext produce the same session_id."""
     # First save
-    result1 = await save_calculation.raw_function("var1", "2 + 2", 4.0, mock_context)
+    result1 = await save_calculation.raw_function("var1", "2 + 2", 4.0, mock_persistence_context)
     session_id_1 = result1.session_id
 
     # Second save on same context
-    result2 = await save_calculation.raw_function("var2", "3 + 3", 6.0, mock_context)
+    result2 = await save_calculation.raw_function("var2", "3 + 3", 6.0, mock_persistence_context)
     session_id_2 = result2.session_id
 
     # Both should be the same UUID (stable across calls on same context)

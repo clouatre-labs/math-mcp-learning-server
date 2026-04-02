@@ -112,36 +112,10 @@ def test_temperature_conversions():
 
 
 @pytest.mark.asyncio
-async def test_calculate_tool():
+async def test_calculate_tool(mock_context):
     """Test the calculate tool returns structured output with annotations."""
 
-    # Mock context for calculation history
-    class MockContext:
-        def __init__(self):
-            self.lifespan_context = type("LC", (), {"calculation_history": []})()
-            self.info_logs = []
-            self._state: dict = {}
-
-        async def info(self, message: str):
-            """Mock info logging."""
-            self.info_logs.append(message)
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-        async def set_state(self, key: str, value: object) -> None:
-            """Mock state storage (session-scoped)."""
-            self._state[key] = value
-
-        async def get_state(self, key: str) -> object:
-            """Mock state retrieval (session-scoped)."""
-            return self._state.get(key)
-
-    ctx = MockContext()
-    result = await calculate.raw_function("2 + 3", ctx)
+    result = await calculate.raw_function("2 + 3", mock_context)
 
     assert result.expression == "2 + 3"
     assert result.result == 5.0
@@ -150,30 +124,10 @@ async def test_calculate_tool():
 
 
 @pytest.mark.asyncio
-async def test_statistics_tool():
+async def test_statistics_tool(mock_context):
     """Test the statistics tool with various operations."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.info_logs = []
-            self.progress_reports = []
-
-        async def info(self, message: str):
-            """Mock info logging."""
-            self.info_logs.append(message)
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-        async def report_progress(self, current: int, total: int, message: str = "") -> None:
-            """Mock progress reporting."""
-            self.progress_reports.append((current, total, message))
-
-    ctx = MockContext()
+    ctx = mock_context
 
     # Test mean
     result = await stats_tool.raw_function([1, 2, 3, 4, 5], "mean", ctx)
@@ -199,25 +153,10 @@ async def test_statistics_tool():
 
 
 @pytest.mark.asyncio
-async def test_compound_interest_tool():
+async def test_compound_interest_tool(mock_context):
     """Test compound interest calculations."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.info_logs = []
-
-        async def info(self, message: str):
-            """Mock info logging."""
-            self.info_logs.append(message)
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-    ctx = MockContext()
+    ctx = mock_context
     result = await compound_interest(1000.0, 0.05, 5.0, 12, ctx)
 
     assert result.principal == 1000.0
@@ -229,34 +168,21 @@ async def test_compound_interest_tool():
     assert result.final_amount > result.principal
     assert result.total_interest == result.final_amount - result.principal
 
-    # Test validation errors
-    with pytest.raises(ValueError, match="Principal must be greater than 0"):
+    # Test validation errors (Pydantic Field constraints)
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
         await compound_interest(0, 0.05, 5.0, 1, ctx)
 
-    with pytest.raises(ValueError, match="Interest rate cannot be negative"):
+    with pytest.raises(ValidationError):
         await compound_interest(1000, -0.01, 5.0, 1, ctx)
 
 
 @pytest.mark.asyncio
-async def test_convert_units_tool():
+async def test_convert_units_tool(mock_context):
     """Test unit conversion tool."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.info_logs = []
-
-        async def info(self, message: str):
-            """Mock info logging."""
-            self.info_logs.append(message)
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-    ctx = MockContext()
+    ctx = mock_context
 
     # Test length conversion
     result = await convert_units(100, "cm", "m", "length", ctx)
@@ -299,61 +225,11 @@ def test_math_constants_resource():
 # === INTEGRATION TESTS ===
 
 
-def test_calculation_with_math_functions():
-    """Test calculations that use various math functions."""
-    # Test trigonometric functions
-    result = safe_eval_expression("sin(0)")
-    assert abs(result - 0.0) < 1e-10
-
-    result = safe_eval_expression("cos(0)")
-    assert abs(result - 1.0) < 1e-10
-
-    # Test square root
-    result = safe_eval_expression("sqrt(25)")
-    assert abs(result - 5.0) < 1e-10
-
-    # Test logarithm
-    result = safe_eval_expression("log(1)")
-    assert abs(result - 0.0) < 1e-10
-
-
-def test_complex_calculations():
-    """Test complex mathematical expressions."""
-    # Test compound expression
-    result = safe_eval_expression("2 * (3 + 4) - sqrt(16)")
-    expected = 2 * (3 + 4) - 4  # 14 - 4 = 10
-    assert abs(result - expected) < 1e-10
-
-    # Test with scientific notation
-    result = safe_eval_expression("1e2 + 50")
-    assert abs(result - 150.0) < 1e-10
-
-
 @pytest.mark.asyncio
-async def test_statistical_edge_cases():
+async def test_statistical_edge_cases(mock_context):
     """Test statistical functions with edge cases."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.info_logs = []
-            self.progress_reports = []
-
-        async def info(self, message: str):
-            """Mock info logging."""
-            self.info_logs.append(message)
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-        async def report_progress(self, current: int, total: int, message: str = "") -> None:
-            """Mock progress reporting."""
-            self.progress_reports.append((current, total, message))
-
-    ctx = MockContext()
+    ctx = mock_context
 
     # Single value
     result = await stats_tool.raw_function([42.0], "mean", ctx)
@@ -372,25 +248,10 @@ async def test_statistical_edge_cases():
 
 
 @pytest.mark.asyncio
-async def test_unit_conversion_edge_cases():
+async def test_unit_conversion_edge_cases(mock_context):
     """Test unit conversions with various edge cases."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.info_logs = []
-
-        async def info(self, message: str):
-            """Mock info logging."""
-            self.info_logs.append(message)
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-    ctx = MockContext()
+    ctx = mock_context
 
     # Convert to same unit
     result = await convert_units(100, "m", "m", "length", ctx)
@@ -517,24 +378,10 @@ async def test_rate_limit_default_value(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_expression_length_validation():
+async def test_expression_length_validation(mock_context):
     """Test expression length validation."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.lifespan_context = type("LC", (), {"calculation_history": []})()
-
-        async def info(self, message: str):
-            pass
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-    ctx = MockContext()
+    ctx = mock_context
 
     # Valid: below limit (off-by-one boundary test)
     # Create expression like "1+1+1+1..." that's exactly MAX_EXPRESSION_LENGTH - 1 chars
@@ -559,28 +406,10 @@ async def test_expression_length_validation():
 
 
 @pytest.mark.asyncio
-async def test_array_size_validation():
+async def test_array_size_validation(mock_context):
     """Test array size validation."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.progress_reports = []
-
-        async def info(self, message: str):
-            pass
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-        async def report_progress(self, current: int, total: int, message: str = "") -> None:
-            """Mock progress reporting."""
-            self.progress_reports.append((current, total, message))
-
-    ctx = MockContext()
+    ctx = mock_context
 
     # Valid: at limit
     valid_array = [1.0] * MAX_ARRAY_SIZE
@@ -594,28 +423,10 @@ async def test_array_size_validation():
 
 
 @pytest.mark.asyncio
-async def test_operation_whitelist_validation():
+async def test_operation_whitelist_validation(mock_context):
     """Test operation whitelist validation."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.progress_reports = []
-
-        async def info(self, message: str):
-            pass
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-        async def report_progress(self, current: int, total: int, message: str = "") -> None:
-            """Mock progress reporting."""
-            self.progress_reports.append((current, total, message))
-
-    ctx = MockContext()
+    ctx = mock_context
 
     # Valid operations
     for op in ["mean", "median", "mode", "std_dev", "variance"]:
@@ -629,33 +440,10 @@ async def test_operation_whitelist_validation():
 
 
 @pytest.mark.asyncio
-async def test_variable_name_validation():
+async def test_variable_name_validation(mock_persistence_context):
     """Test variable name validation."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.lifespan_context = type("LC", (), {"calculation_history": []})()
-            self._state: dict = {}
-
-        async def info(self, message: str):
-            pass
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-        async def set_state(self, key: str, value: object) -> None:
-            """Mock state storage (session-scoped)."""
-            self._state[key] = value
-
-        async def get_state(self, key: str) -> object:
-            """Mock state retrieval (session-scoped)."""
-            return self._state.get(key)
-
-    ctx = MockContext()
+    ctx = mock_persistence_context
 
     # Valid: alphanumeric with underscore and hyphen
     result = await save_calculation.raw_function("valid_name-123", "2+2", 4.0, ctx)
@@ -807,28 +595,10 @@ async def test_bins_validation():
 
 
 @pytest.mark.asyncio
-async def test_empty_input_validation():
+async def test_empty_input_validation(mock_context):
     """Test validation with empty inputs."""
 
-    # Mock context
-    class MockContext:
-        def __init__(self):
-            self.progress_reports = []
-
-        async def info(self, message: str):
-            pass
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-        async def report_progress(self, current: int, total: int, message: str = "") -> None:
-            """Mock progress reporting."""
-            self.progress_reports.append((current, total, message))
-
-    ctx = MockContext()
+    ctx = mock_context
 
     # Empty array should fail at business logic level (not size validation)
     with pytest.raises(ValueError, match="Cannot calculate statistics on empty list"):
@@ -836,21 +606,10 @@ async def test_empty_input_validation():
 
 
 @pytest.mark.asyncio
-async def test_validation_error_messages():
+async def test_validation_error_messages(mock_context):
     """Test that validation error messages are clear and include limits."""
 
-    # Mock context
-    class MockContext:
-        async def info(self, message: str):
-            pass
-
-        async def warning(self, message: str):
-            pass
-
-        async def error(self, message: str):
-            pass
-
-    ctx = MockContext()
+    ctx = mock_context
 
     # Test error message includes max value (Pydantic format)
     invalid_expr = "1" * (MAX_EXPRESSION_LENGTH + 1)
@@ -880,14 +639,16 @@ if __name__ == "__main__":
 
 @pytest.mark.asyncio
 async def test_compound_interest_rate_as_percentage_raises():
-    """Test that compound_interest raises ValueError when rate > 1.0 (percentage instead of decimal).
+    """Test that compound_interest raises ValidationError when rate > 1.0 (percentage instead of decimal).
 
     Arrange: rate=5 (passed as percentage instead of decimal 0.05)
     Act: call compound_interest with rate=5
-    Assert: ValueError raised with helpful hint including 'Did you mean 0.0500'
+    Assert: ValidationError raised (Pydantic Field le=1.0 constraint violated)
     """
-    with pytest.raises(ValueError, match="Did you mean 0.0500"):
-        await compound_interest.raw_function(1000, 5, 1)
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        await compound_interest(1000, 5, 1)
 
 
 @pytest.mark.asyncio
@@ -1138,30 +899,6 @@ async def test_calculation_history_resource(http_client):
     assert isinstance(text, str)
 
 
-def test_safe_eval_abs_function():
-    """abs() function is available in restricted scope."""
-    result = safe_eval_expression("abs(-5)")
-    assert result == 5.0
-
-
-def test_safe_eval_with_multiple_functions():
-    """Multiple math functions in one expression work correctly."""
-    result = safe_eval_expression("sin(0) + cos(0)")
-    assert abs(result - 1.0) < 0.0001
-
-
-def test_convert_temperature_c_to_f():
-    """Celsius to Fahrenheit conversion works correctly."""
-    result = convert_temperature(0.0, "c", "f")
-    assert abs(result - 32.0) < 0.01
-
-
-def test_convert_temperature_c_to_k():
-    """Celsius to Kelvin conversion works correctly."""
-    result = convert_temperature(0.0, "c", "k")
-    assert abs(result - 273.15) < 0.01
-
-
 def test_settings_validate_timeout_invalid() -> None:
     """MathMCPSettings rejects non-positive timeout values."""
     from pydantic import ValidationError
@@ -1200,25 +937,27 @@ async def test_statistics_invalid_op_with_ctx() -> None:
 
 @pytest.mark.asyncio
 async def test_compound_interest_negative_rate_ctx() -> None:
-    """compound_interest() covers ctx warning branch on negative rate."""
+    """compound_interest() raises ValidationError on negative rate (Pydantic Field ge=0)."""
     from unittest.mock import AsyncMock
+
+    from pydantic import ValidationError
 
     from math_mcp.tools.calculate import compound_interest
 
     mock_ctx = AsyncMock()
-    with pytest.raises(ValueError, match="Interest rate cannot be negative"):
-        await compound_interest.raw_function(1000.0, -0.05, 1, 12, mock_ctx)
-    mock_ctx.warning.assert_called()
+    with pytest.raises(ValidationError):
+        await compound_interest(1000.0, -0.05, 1, 12, mock_ctx)
 
 
 @pytest.mark.asyncio
 async def test_compound_interest_zero_time_ctx() -> None:
-    """compound_interest() covers ctx warning branch on zero time."""
+    """compound_interest() raises ValidationError on zero time (Pydantic Field gt=0)."""
     from unittest.mock import AsyncMock
+
+    from pydantic import ValidationError
 
     from math_mcp.tools.calculate import compound_interest
 
     mock_ctx = AsyncMock()
-    with pytest.raises(ValueError, match="Time must be greater than 0"):
-        await compound_interest.raw_function(1000.0, 0.05, 0, 12, mock_ctx)
-    mock_ctx.warning.assert_called()
+    with pytest.raises(ValidationError):
+        await compound_interest(1000.0, 0.05, 0, 12, mock_ctx)
