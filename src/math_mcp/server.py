@@ -36,7 +36,7 @@ mcp = FastMCP(
         "MATRIX: Use `matrix_multiply`, `matrix_determinant`, `matrix_inverse`, "
         "`matrix_transpose`, `matrix_eigenvalues` for linear algebra.\n\n"
         "VISUALIZE: Use `plot_function`, `plot_histogram`, `plot_scatter`, "
-        "`plot_bar_chart`, `plot_heatmap`, `create_animated_plot` for charts.\n\n"
+        "`plot_line_chart`, `plot_box_plot`, `plot_financial_line` for charts.\n\n"
         "WORKSPACE: Use `save_calculation` to persist results, `load_variable` to retrieve. "
         "Results survive server restarts. View all via math://workspace resource.\n\n"
         "RESOURCES: math://functions (syntax reference), math://constants/{name} "

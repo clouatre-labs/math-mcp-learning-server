@@ -25,7 +25,6 @@ class WorkspaceManager:
         """Initialize workspace manager with thread safety."""
         self._lock = threading.RLock()  # Reentrant lock for nested operations
         self._workspace_file = get_workspace_file()
-        self._cache: WorkspaceData | None = None
 
     def _load_workspace(self) -> WorkspaceData:
         """Load workspace from disk with comprehensive error handling.
@@ -48,7 +47,7 @@ class WorkspaceManager:
         return WorkspaceData(
             created=now,
             updated=now,
-            statistics={"total_calculations": 0, "session_count": 1, "last_access": now},
+            statistics={"total_calculations": 0, "last_access": now},
         )
 
     def _save_workspace(self, workspace: WorkspaceData) -> bool:
@@ -140,10 +139,6 @@ class WorkspaceManager:
 
             variable = workspace.variables[name]
 
-            # Update access time
-            workspace.statistics["last_access"] = datetime.now().isoformat()
-            self._save_workspace(workspace)
-
             return {
                 "success": True,
                 "variable_name": name,
@@ -181,7 +176,6 @@ class WorkspaceManager:
             stats = workspace.statistics
             summary += "## Statistics\n\n"
             summary += f"- **Total Calculations:** {stats.get('total_calculations', 0)}\n"
-            summary += f"- **Session Count:** {stats.get('session_count', 1)}\n"
             summary += f"- **Last Access:** {stats.get('last_access', 'Never')}\n"
 
             return summary

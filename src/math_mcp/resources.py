@@ -11,13 +11,6 @@ from fastmcp import Context, FastMCP
 resources_mcp = FastMCP(name="Resources and Prompts")
 
 
-@resources_mcp.resource("math://test")
-async def simple_test(ctx: Context) -> str:
-    """Simple test resource like FastMCP examples"""
-    await ctx.info("Accessing test resource")
-    return "Test resource working successfully!"
-
-
 @resources_mcp.resource(
     "math://constants/{constant}", annotations={"readOnlyHint": True, "idempotentHint": True}
 )
@@ -205,24 +198,6 @@ async def list_tools_catalog(ctx: Context) -> str:
             "category": "visualize",
             "readOnly": True,
             "example": "plot_scatter([1,2,3], [4,5,6])",
-        },
-        {
-            "name": "plot_bar_chart",
-            "category": "visualize",
-            "readOnly": True,
-            "example": "plot_bar_chart(['A','B'], [10,20])",
-        },
-        {
-            "name": "plot_heatmap",
-            "category": "visualize",
-            "readOnly": True,
-            "example": "plot_heatmap([[1,2],[3,4]])",
-        },
-        {
-            "name": "create_animated_plot",
-            "category": "visualize",
-            "readOnly": True,
-            "example": "create_animated_plot('sin(x*t)', (-3.14,3.14))",
         },
         {
             "name": "save_calculation",

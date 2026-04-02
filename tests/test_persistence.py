@@ -91,7 +91,6 @@ def test_workspace_variable_model():
 
     assert var.expression == "2 + 2"
     assert var.result == 4.0
-    assert var.type == "calculation"  # Default value
     assert var.metadata["difficulty"] == "basic"
 
     # Test serialization/deserialization

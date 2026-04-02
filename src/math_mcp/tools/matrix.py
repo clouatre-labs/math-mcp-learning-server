@@ -92,10 +92,6 @@ def _check_numpy_available() -> None:
 def _validate_matrix(matrix: list[list[float]], max_size: int = 100) -> Any:  # np.ndarray
     """Validate matrix input and convert to numpy array.
 
-    Args:
-        matrix: Input matrix as list of lists
-        max_size: Maximum dimension size (prevents DoS)
-
     Returns:
         numpy.ndarray: Validated matrix
 
@@ -126,26 +122,6 @@ def _validate_matrix(matrix: list[list[float]], max_size: int = 100) -> Any:  # 
         )
 
     return np.array(matrix, dtype=float)  # type: ignore
-
-
-def _format_matrix(matrix_array: Any) -> str:
-    """Format numpy array as readable string.
-
-    Args:
-        matrix_array: numpy array to format
-
-    Returns:
-        Formatted string representation
-    """
-    if matrix_array.size == 0:
-        return "[]"
-
-    # For small matrices, show full precision
-    if matrix_array.size <= 9:
-        return str(matrix_array)
-
-    # For larger matrices, use compact format
-    return np.array2string(matrix_array, separator=", ", suppress_small=True, precision=6)  # type: ignore
 
 
 # Module-level FastMCP instance for matrix operations
@@ -179,10 +155,6 @@ async def matrix_multiply(
     ctx: SkipValidation[Context | None] = None,
 ) -> MatrixMultiplyResult:
     """Multiply two matrices (A × B).
-
-    Args:
-        matrix_a: First matrix (m x n)
-        matrix_b: Second matrix (n x p)
 
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
@@ -239,9 +211,6 @@ async def matrix_transpose(
 ) -> MatrixTransposeResult:
     """Transpose a matrix (swap rows and columns).
 
-    Args:
-        matrix: Input matrix (m x n)
-
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
 
@@ -285,9 +254,6 @@ async def matrix_determinant(
     ctx: SkipValidation[Context | None] = None,
 ) -> MatrixDeterminantResult:
     """Calculate the determinant of a square matrix.
-
-    Args:
-        matrix: Square matrix (n x n)
 
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
@@ -337,9 +303,6 @@ async def matrix_inverse(
     ctx: SkipValidation[Context | None] = None,
 ) -> MatrixInverseResult:
     """Calculate the inverse of a square matrix.
-
-    Args:
-        matrix: Square matrix (n x n)
 
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
@@ -415,9 +378,6 @@ async def matrix_eigenvalues(
     ctx: SkipValidation[Context | None] = None,
 ) -> MatrixEigenvaluesResult:
     """Calculate the eigenvalues of a square matrix.
-
-    Args:
-        matrix: Square matrix (n x n)
 
     Note:
         Requires NumPy. Raises ValueError if NumPy is unavailable.
