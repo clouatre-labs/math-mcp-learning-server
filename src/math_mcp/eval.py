@@ -59,6 +59,8 @@ def _build_safe_expr(clean_expr: str) -> str:
     safe_expr = clean_expr
     for func in MATH_FUNCTIONS_ALL:
         if func != "abs":
+            # Word-boundary anchors prevent partial matches: "logical" must not
+            # become "math.logical" just because it contains "log".
             safe_expr = re.sub(rf"\b{func}\b", f"math.{func}", safe_expr)
     return safe_expr
 
