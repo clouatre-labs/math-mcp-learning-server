@@ -15,7 +15,6 @@ class WorkspaceVariable(BaseModel):
     expression: str = Field(description="The mathematical expression")
     result: float = Field(description="The calculated result")
     timestamp: str = Field(description="When the variable was saved")
-    type: str = Field(default="calculation", description="Variable type")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Educational metadata")
 
 

@@ -686,11 +686,11 @@ async def test_variable_name_validation():
 async def test_string_param_validation():
     """Test string parameter validation."""
 
-    from math_mcp.tools.visualization import MAX_STRING_PARAM_LENGTH, create_histogram
+    from math_mcp.tools.visualization import MAX_STRING_PARAM_LENGTH, plot_histogram
 
     # Valid: at limit
     valid_title = "a" * MAX_STRING_PARAM_LENGTH
-    result = await create_histogram.raw_function([1.0, 2.0, 3.0], 10, valid_title, None)
+    result = await plot_histogram.raw_function([1.0, 2.0, 3.0], 10, valid_title, None)
     # Should return Image or VisualizationError
     assert isinstance(result, (Image, VisualizationError))
 
@@ -699,7 +699,7 @@ async def test_string_param_validation():
     with pytest.raises(
         ValueError, match=f"String should have at most {MAX_STRING_PARAM_LENGTH} characters"
     ):
-        await create_histogram([1.0, 2.0, 3.0], 10, invalid_title, None)
+        await plot_histogram([1.0, 2.0, 3.0], 10, invalid_title, None)
 
 
 @pytest.mark.asyncio
@@ -789,20 +789,20 @@ async def test_num_points_validation():
 
 @pytest.mark.asyncio
 async def test_bins_validation():
-    """Test bins validation for create_histogram."""
+    """Test bins validation for plot_histogram."""
 
-    from math_mcp.tools.visualization import create_histogram
+    from math_mcp.tools.visualization import plot_histogram
 
     # Valid: positive bins
-    result = await create_histogram.raw_function([1.0, 2.0, 3.0], 10, "Test", None)
+    result = await plot_histogram.raw_function([1.0, 2.0, 3.0], 10, "Test", None)
     assert isinstance(result, (Image, VisualizationError))
 
     # Invalid: zero bins
-    result = await create_histogram([1.0, 2.0, 3.0], 0, "Test", None)
+    result = await plot_histogram([1.0, 2.0, 3.0], 0, "Test", None)
     assert isinstance(result, VisualizationError)
 
     # Invalid: negative bins
-    result = await create_histogram([1.0, 2.0, 3.0], -1, "Test", None)
+    result = await plot_histogram([1.0, 2.0, 3.0], -1, "Test", None)
     assert isinstance(result, VisualizationError)
 
 
@@ -934,15 +934,6 @@ async def test_functions_resource(http_client):
     assert len(contents) > 0
     text = contents[0].text
     assert "sin" in text
-
-
-@pytest.mark.asyncio
-async def test_test_resource(http_client):
-    """Test math://test resource content."""
-    contents = await http_client.read_resource("math://test")
-    assert len(contents) > 0
-    text = contents[0].text
-    assert "working" in text.lower()
 
 
 @pytest.mark.asyncio

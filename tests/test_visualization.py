@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test cases for visualization tools (plot_function and create_histogram)
+Test cases for visualization tools (plot_function and plot_histogram)
 
 Note: The import matplotlib/numpy pattern in tests is intentional for checking
 package availability before running visualization tests. The noqa: F401 comments
@@ -181,8 +181,8 @@ async def test_plot_function_without_context():
 
 
 @pytest.mark.asyncio
-async def test_create_histogram_graceful_degradation_structure(mock_context):
-    """Test create_histogram has graceful degradation for missing matplotlib.
+async def test_plot_histogram_graceful_degradation_structure(mock_context):
+    """Test plot_histogram has graceful degradation for missing matplotlib.
 
     Note: This test verifies the error message structure that would be returned
     if matplotlib were not available. The actual ImportError path is tested
@@ -203,7 +203,7 @@ async def test_create_histogram_graceful_degradation_structure(mock_context):
 
 
 @pytest.mark.asyncio
-async def test_create_histogram_basic(mock_context):
+async def test_plot_histogram_basic(mock_context):
     """Test creating a basic histogram."""
     try:
         import matplotlib
@@ -211,10 +211,10 @@ async def test_create_histogram_basic(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram
+    from math_mcp.tools.visualization import plot_histogram
 
     data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
-    result = await create_histogram.raw_function(data, 5, "Test Distribution", mock_context)
+    result = await plot_histogram.raw_function(data, 5, "Test Distribution", mock_context)
 
     assert isinstance(result, Image)
     assert result.data is not None
@@ -227,17 +227,17 @@ async def test_create_histogram_basic(mock_context):
 
 
 @pytest.mark.asyncio
-async def test_create_histogram_empty_data(mock_context):
-    """Test create_histogram with empty data."""
+async def test_plot_histogram_empty_data(mock_context):
+    """Test plot_histogram with empty data."""
     try:
         import matplotlib
         import numpy as np
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram
+    from math_mcp.tools.visualization import plot_histogram
 
-    result = await create_histogram.raw_function([], 10, "Test", mock_context)
+    result = await plot_histogram.raw_function([], 10, "Test", mock_context)
 
     assert isinstance(result, VisualizationError)
     assert "Histogram Error" in result.message
@@ -246,17 +246,17 @@ async def test_create_histogram_empty_data(mock_context):
 
 
 @pytest.mark.asyncio
-async def test_create_histogram_single_value(mock_context):
-    """Test create_histogram with single data point."""
+async def test_plot_histogram_single_value(mock_context):
+    """Test plot_histogram with single data point."""
     try:
         import matplotlib
         import numpy as np
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram
+    from math_mcp.tools.visualization import plot_histogram
 
-    result = await create_histogram.raw_function([42.0], 10, "Test", mock_context)
+    result = await plot_histogram.raw_function([42.0], 10, "Test", mock_context)
 
     assert isinstance(result, VisualizationError)
     assert "Histogram Error" in result.message
@@ -264,34 +264,34 @@ async def test_create_histogram_single_value(mock_context):
 
 
 @pytest.mark.asyncio
-async def test_create_histogram_invalid_bins(mock_context):
-    """Test create_histogram with invalid bins parameter."""
+async def test_plot_histogram_invalid_bins(mock_context):
+    """Test plot_histogram with invalid bins parameter."""
     try:
         import matplotlib
         import numpy as np
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram
+    from math_mcp.tools.visualization import plot_histogram
 
-    result = await create_histogram.raw_function([1.0, 2.0, 3.0], 0, "Test", mock_context)
+    result = await plot_histogram.raw_function([1.0, 2.0, 3.0], 0, "Test", mock_context)
     assert isinstance(result, VisualizationError)
 
 
 @pytest.mark.asyncio
-async def test_create_histogram_large_dataset(mock_context):
-    """Test create_histogram with larger dataset."""
+async def test_plot_histogram_large_dataset(mock_context):
+    """Test plot_histogram with larger dataset."""
     try:
         import matplotlib
         import numpy as np
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram
+    from math_mcp.tools.visualization import plot_histogram
 
     # Generate normally distributed data
     data = [float(i) for i in range(100)]
-    result = await create_histogram.raw_function(data, 20, "Large Dataset", mock_context)
+    result = await plot_histogram.raw_function(data, 20, "Large Dataset", mock_context)
 
     assert isinstance(result, Image)
     assert result.data is not None
@@ -299,18 +299,18 @@ async def test_create_histogram_large_dataset(mock_context):
 
 
 @pytest.mark.asyncio
-async def test_create_histogram_custom_title(mock_context):
-    """Test create_histogram with custom title."""
+async def test_plot_histogram_custom_title(mock_context):
+    """Test plot_histogram with custom title."""
     try:
         import matplotlib
         import numpy as np
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram
+    from math_mcp.tools.visualization import plot_histogram
 
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
-    result = await create_histogram.raw_function(data, 5, "Custom Title", mock_context)
+    result = await plot_histogram.raw_function(data, 5, "Custom Title", mock_context)
 
     assert isinstance(result, Image)
     assert result.data is not None
@@ -318,18 +318,18 @@ async def test_create_histogram_custom_title(mock_context):
 
 
 @pytest.mark.asyncio
-async def test_create_histogram_without_context():
-    """Test create_histogram works without context parameter."""
+async def test_plot_histogram_without_context():
+    """Test plot_histogram works without context parameter."""
     try:
         import matplotlib
         import numpy as np
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram
+    from math_mcp.tools.visualization import plot_histogram
 
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
-    result = await create_histogram.raw_function(data, 5, "Test", None)
+    result = await plot_histogram.raw_function(data, 5, "Test", None)
 
     assert isinstance(result, Image)
     assert result.data is not None
@@ -348,7 +348,7 @@ async def test_visualization_tools_return_proper_structure(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram, plot_function
+    from math_mcp.tools.visualization import plot_function, plot_histogram
 
     # Test plot_function
     plot_result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, mock_context)
@@ -356,8 +356,8 @@ async def test_visualization_tools_return_proper_structure(mock_context):
     assert plot_result.data is not None
     assert len(plot_result.data) > 0
 
-    # Test create_histogram
-    histogram_result = await create_histogram.raw_function([1.0, 2.0, 3.0], 5, "Test", mock_context)
+    # Test plot_histogram
+    histogram_result = await plot_histogram.raw_function([1.0, 2.0, 3.0], 5, "Test", mock_context)
     assert isinstance(histogram_result, Image)
     assert histogram_result.data is not None
     assert len(histogram_result.data) > 0
@@ -372,7 +372,7 @@ async def test_visualization_educational_annotations():
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram, plot_function
+    from math_mcp.tools.visualization import plot_function, plot_histogram
 
     # Test plot_function returns Image
     plot_result = await plot_function.raw_function("sin(x)", (-3.14, 3.14), 100, None)
@@ -380,10 +380,8 @@ async def test_visualization_educational_annotations():
     assert plot_result.data is not None
     assert len(plot_result.data) > 0
 
-    # Test create_histogram returns Image
-    histogram_result = await create_histogram.raw_function(
-        [1.0, 2.0, 3.0, 4.0, 5.0], 5, "Test", None
-    )
+    # Test plot_histogram returns Image
+    histogram_result = await plot_histogram.raw_function([1.0, 2.0, 3.0, 4.0, 5.0], 5, "Test", None)
     assert isinstance(histogram_result, Image)
     assert histogram_result.data is not None
     assert len(histogram_result.data) > 0
@@ -507,16 +505,16 @@ async def test_plot_line_chart_basic(mock_context):
 
 
 @pytest.mark.asyncio
-async def test_plot_scatter_chart_basic(mock_context):
-    """Test plot_scatter_chart tool."""
+async def test_plot_scatter_basic(mock_context):
+    """Test plot_scatter tool."""
     try:
         import matplotlib
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import plot_scatter_chart
+    from math_mcp.tools.visualization import plot_scatter
 
-    result = await plot_scatter_chart.raw_function(
+    result = await plot_scatter.raw_function(
         [1.0, 2.0, 3.0], [2.0, 4.0, 6.0], "Test Scatter", "X", "Y", "purple", 50, mock_context
     )
 
@@ -854,11 +852,11 @@ async def test_plot_function_progress_reporting(mock_context):
 
 
 @pytest.mark.asyncio
-async def test_create_histogram_progress_reporting(mock_context):
-    """Test create_histogram reports progress through 4 stages with messages.
+async def test_plot_histogram_progress_reporting(mock_context):
+    """Test plot_histogram reports progress through 4 stages with messages.
 
-    Arrange: Create mock context and call create_histogram
-    Act: Call create_histogram with mock context
+    Arrange: Create mock context and call plot_histogram
+    Act: Call plot_histogram with mock context
     Assert: progress_reports contains 4 stages with 3-tuples (current, total, message)
     """
     try:
@@ -867,15 +865,15 @@ async def test_create_histogram_progress_reporting(mock_context):
     except ImportError:
         pytest.skip("matplotlib not available")
 
-    from math_mcp.tools.visualization import create_histogram
+    from math_mcp.tools.visualization import plot_histogram
 
     # Arrange: Sample data
     data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
     bins = 5
     title = "Test Distribution"
 
-    # Act: Call create_histogram with mock context
-    await create_histogram.raw_function(data, bins, title, mock_context)
+    # Act: Call plot_histogram with mock context
+    await plot_histogram.raw_function(data, bins, title, mock_context)
 
     # Assert: Progress reports contain 4 stages with 3-tuples
     assert len(mock_context.progress_reports) == 4

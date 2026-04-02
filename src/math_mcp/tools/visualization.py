@@ -159,12 +159,6 @@ async def plot_function(
 ) -> Image | VisualizationError:
     """Generate mathematical function plots (requires matplotlib).
 
-    Args:
-        expression: Mathematical expression to plot (e.g., "x**2", "sin(x)")
-        x_range: Tuple of (min, max) for x-axis range
-        num_points: Number of points to plot (default: 100)
-        ctx: FastMCP context for logging
-
     Examples:
         plot_function("x**2", (-5, 5))
         plot_function("sin(x)", (-3.14, 3.14))
@@ -214,7 +208,7 @@ async def plot_function(
 )
 @validated_tool
 @requires_matplotlib
-async def create_histogram(
+async def plot_histogram(  # noqa: C901
     data: Annotated[
         list[float],
         Field(
@@ -234,15 +228,9 @@ async def create_histogram(
 ) -> Image | VisualizationError:
     """Create statistical histograms (requires matplotlib).
 
-    Args:
-        data: List of numerical values
-        bins: Number of histogram bins (default: 20)
-        title: Chart title
-        ctx: FastMCP context for logging
-
     Examples:
-        create_histogram([1.0, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0])
-        create_histogram([10, 20, 30, 40, 50], bins=5, title="Test Scores")
+        plot_histogram([1.0, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0])
+        plot_histogram([10, 20, 30, 40, 50], bins=5, title="Test Scores")
     """
 
     if bins < 1:
@@ -255,20 +243,30 @@ async def create_histogram(
         await ctx.info(f"Creating histogram with {len(data)} data points and {bins} bins")
 
     try:
-        _validate_histogram_data(data)
+        if not data:
+            raise ValueError("Cannot create histogram with empty data")
+        if len(data) == 1:
+            raise ValueError("Histogram requires at least 2 data points")
 
-        await _report_histogram_stage(ctx, 0, 3, "Validating inputs")
-        await _report_histogram_stage(ctx, 1, 3, "Calculating statistics")
+        import statistics as stats
 
-        mean_val, median_val, std_dev = _compute_histogram_stats(data)
+        if ctx:
+            await ctx.report_progress(0, 3, "Validating inputs")
+            await ctx.report_progress(1, 3, "Calculating statistics")
 
-        await _report_histogram_stage(ctx, 2, 3, "Rendering histogram")
+        mean_val = stats.mean(data)
+        median_val = stats.median(data)
+        std_dev = stats.stdev(data)
+
+        if ctx:
+            await ctx.report_progress(2, 3, "Rendering histogram")
 
         image_bytes = visualization.create_histogram_chart(
             data, bins, title, mean_val, median_val, std_dev
         )
 
-        await _report_histogram_stage(ctx, 3, 3, "Complete")
+        if ctx:
+            await ctx.report_progress(3, 3, "Complete")
 
         return Image(data=image_bytes, format="png")
 
@@ -286,34 +284,6 @@ async def create_histogram(
             message=f"**Unexpected Error:** {str(e)}",
             error_type="unexpected_error",
         )
-
-
-def _validate_histogram_data(data: list[float]) -> None:
-    """Validate histogram data and raise ValueError for invalid inputs."""
-    if not data:
-        raise ValueError("Cannot create histogram with empty data")
-
-    if len(data) == 1:
-        raise ValueError("Histogram requires at least 2 data points")
-
-
-async def _report_histogram_stage(
-    ctx: SkipValidation[Context | None], stage: int, total: int, message: str
-) -> None:
-    """Report histogram progress stage."""
-    if ctx:
-        await ctx.report_progress(stage, total, message)
-
-
-def _compute_histogram_stats(data: list[float]) -> tuple[float, float, float]:
-    """Compute histogram statistics and return (mean, median, std_dev)."""
-    import statistics as stats
-
-    mean_val = stats.mean(data)
-    median_val = stats.median(data)
-    std_dev = stats.stdev(data) if len(data) > 1 else 0.0
-
-    return (mean_val, median_val, std_dev)
 
 
 @visualization_mcp.tool(
@@ -359,16 +329,6 @@ async def plot_line_chart(
 ) -> Image | VisualizationError:
     """Create a line chart from data points (requires matplotlib).
 
-    Args:
-        x_data: X-axis data points
-        y_data: Y-axis data points
-        title: Chart title
-        x_label: X-axis label
-        y_label: Y-axis label
-        color: Line color (name or hex code, e.g., 'blue', '#2E86AB')
-        show_grid: Whether to show grid lines
-        ctx: FastMCP context for logging
-
     Note:
         Use for general XY data. For time-series price data with optional moving average, use plot_financial_line instead.
 
@@ -382,18 +342,6 @@ async def plot_line_chart(
         await ctx.info(f"Creating line chart with {len(x_data)} data points")
 
     try:
-        # Stage 0: Start
-        if ctx:
-            await ctx.report_progress(0, 2, "Validating data")
-
-        # Stage 1: Validate data
-        if ctx:
-            await ctx.report_progress(1, 2, "Creating chart")
-
-        # Stage 2: Render and complete
-        if ctx:
-            await ctx.report_progress(2, 2, "Complete")
-
         image_bytes = visualization.create_line_chart(
             x_data=x_data,
             y_data=y_data,
@@ -428,7 +376,7 @@ async def plot_line_chart(
 )
 @validated_tool
 @requires_matplotlib
-async def plot_scatter_chart(
+async def plot_scatter(
     x_data: Annotated[
         list[float],
         Field(max_length=MAX_ARRAY_SIZE, description="X-axis data points, e.g., [1, 2, 3, 4]"),
@@ -464,19 +412,9 @@ async def plot_scatter_chart(
 ) -> Image | VisualizationError:
     """Create a scatter plot from data points (requires matplotlib).
 
-    Args:
-        x_data: X-axis data points
-        y_data: Y-axis data points
-        title: Chart title
-        x_label: X-axis label
-        y_label: Y-axis label
-        color: Point color (name or hex code, e.g., 'blue', '#2E86AB')
-        point_size: Size of scatter points (default: 50)
-        ctx: FastMCP context for logging
-
     Examples:
-        plot_scatter_chart([1, 2, 3, 4], [1, 4, 9, 16], title="Correlation Study")
-        plot_scatter_chart([1, 2, 3], [2, 4, 5], color='purple', point_size=100)
+        plot_scatter([1, 2, 3, 4], [1, 4, 9, 16], title="Correlation Study")
+        plot_scatter([1, 2, 3], [2, 4, 5], color='purple', point_size=100)
     """
 
     # Matplotlib is guaranteed to be available (decorator handles ImportError)
@@ -484,18 +422,6 @@ async def plot_scatter_chart(
         await ctx.info(f"Creating scatter plot with {len(x_data)} data points")
 
     try:
-        # Stage 0: Start
-        if ctx:
-            await ctx.report_progress(0, 2, "Validating data")
-
-        # Stage 1: Validate data
-        if ctx:
-            await ctx.report_progress(1, 2, "Creating chart")
-
-        # Stage 2: Render and complete
-        if ctx:
-            await ctx.report_progress(2, 2, "Complete")
-
         image_bytes = visualization.create_scatter_plot(
             x_data=x_data,
             y_data=y_data,
@@ -566,14 +492,6 @@ async def plot_box_plot(
 ) -> Image | VisualizationError:
     """Create a box plot for comparing distributions (requires matplotlib).
 
-    Args:
-        data_groups: List of data groups to compare
-        group_labels: Optional labels for each group
-        title: Chart title
-        y_label: Y-axis label
-        color: Box color (name or hex code, e.g., 'blue', '#2E86AB')
-        ctx: FastMCP context for logging
-
     Examples:
         plot_box_plot([[1, 2, 3, 4, 5], [2, 4, 6, 8, 10]], group_labels=["A", "B"])
         plot_box_plot([[10, 20, 30], [15, 25, 35], [5, 15, 25]], title="Comparison")
@@ -588,18 +506,6 @@ async def plot_box_plot(
         await ctx.info(f"Creating box plot with {len(data_groups)} groups")
 
     try:
-        # Stage 0: Start
-        if ctx:
-            await ctx.report_progress(0, 2, "Validating data")
-
-        # Stage 1: Validate data
-        if ctx:
-            await ctx.report_progress(1, 2, "Creating chart")
-
-        # Stage 2: Render and complete
-        if ctx:
-            await ctx.report_progress(2, 2, "Complete")
-
         image_bytes = visualization.create_box_plot(
             data_groups=data_groups,
             group_labels=group_labels,
@@ -655,13 +561,6 @@ async def plot_financial_line(
     Creates realistic price movement patterns for educational purposes.
     Does not use real market data.
 
-    Args:
-        days: Number of days to generate (default: 30)
-        trend: Market trend ('bullish', 'bearish', or 'volatile')
-        start_price: Starting price value (default: 100.0)
-        color: Line color (name or hex code, e.g., 'blue', '#2E86AB')
-        ctx: FastMCP context for logging
-
     Note:
         Use for time-series price data with optional moving average overlay. For general XY data, use plot_line_chart instead.
 
@@ -688,10 +587,6 @@ async def plot_financial_line(
         # Stage 1: Validate and generate data
         if ctx:
             await ctx.report_progress(1, 3, "Generating synthetic data")
-
-        # Validate trend parameter
-        if trend not in ["bullish", "bearish", "volatile"]:
-            raise ValueError("trend must be 'bullish', 'bearish', or 'volatile'")
 
         # Generate synthetic data
         dates, prices = visualization.generate_synthetic_price_data(

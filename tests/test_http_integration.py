@@ -104,16 +104,7 @@ async def test_http_resource_math_constants(http_client: Client) -> None:
     """Test resource access over HTTP."""
     resources = await http_client.list_resources()
     resource_uris = [str(r.uri) for r in resources]
-    assert "math://test" in resource_uris
     assert "math://functions" in resource_uris
-
-
-async def test_http_read_resource(http_client: Client) -> None:
-    """Test reading resource content over HTTP."""
-    content = await http_client.read_resource("math://test")
-    assert len(content) > 0
-    assert hasattr(content[0], "text")
-    assert "Test resource working successfully" in content[0].text
 
 
 @pytest.mark.parametrize(
