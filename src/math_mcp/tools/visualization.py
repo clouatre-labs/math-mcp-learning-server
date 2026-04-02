@@ -93,6 +93,36 @@ def validate_nested_array_groups(
     return None
 
 
+def _validate_plot_range(x_range: tuple[float, float], num_points: int) -> tuple[float, float]:
+    """Validate plot range and return (x_min, x_max)."""
+    x_min, x_max = x_range
+    if x_min >= x_max:
+        raise ValueError("x_range minimum must be less than maximum")
+    if num_points < 2:
+        raise ValueError("num_points must be at least 2")
+    return (x_min, x_max)
+
+
+async def _evaluate_expression_points(
+    x_values: Any, expression: str, ctx: SkipValidation[Context | None], num_points: int
+) -> list[float]:
+    """Evaluate expression for each x value with progress reporting."""
+    y_values = []
+    var_pattern = re.compile(r"\bx\b")
+    for i, x in enumerate(x_values):
+        if ctx and i % max(1, num_points // 10) == 0:
+            await ctx.report_progress(i, num_points, f"Evaluating points: {i}/{num_points}")
+
+        expr_with_value = var_pattern.sub(f"({x})", expression)
+        try:
+            y = await evaluate_with_timeout(expr_with_value)
+            y_values.append(y)
+        except ValueError:
+            y_values.append(float("nan"))
+
+    return y_values
+
+
 # === TOOLS: VISUALIZATION OPERATIONS ===
 
 
@@ -140,46 +170,20 @@ async def plot_function(
         plot_function("sin(x)", (-3.14, 3.14))
     """
 
-    # FastMCP Context logging
     if ctx:
         await ctx.info(f"Plotting function: {expression} over range {x_range}")
 
     try:
-        # Validate x_range
-        x_min, x_max = x_range
-        if x_min >= x_max:
-            raise ValueError("x_range minimum must be less than maximum")
-        if num_points < 2:
-            raise ValueError("num_points must be at least 2")
-
-        # Generate x values and evaluate expression
         import numpy as np
 
+        x_min, x_max = _validate_plot_range(x_range, num_points)
         x_values = np.linspace(x_min, x_max, num_points)
 
-        # Evaluate expression for each x value
-        y_values = []
-        var_pattern = re.compile(r"\bx\b")
-        for i, x in enumerate(x_values):
-            # Report progress at ~10% intervals
-            if ctx and i % max(1, num_points // 10) == 0:
-                await ctx.report_progress(i, num_points, f"Evaluating points: {i}/{num_points}")
+        y_values = await _evaluate_expression_points(x_values, expression, ctx, num_points)
 
-            # Replace x in expression with actual value using word boundaries
-            # to avoid corrupting function names like exp, max, hex
-            expr_with_value = var_pattern.sub(f"({x})", expression)
-            try:
-                y = await evaluate_with_timeout(expr_with_value)
-                y_values.append(y)
-            except ValueError:
-                # Handle domain errors (like sqrt of negative) or timeout
-                y_values.append(float("nan"))
-
-        # Report final progress
         if ctx:
             await ctx.report_progress(num_points, num_points, "Rendering plot")
 
-        # Delegate rendering to visualization helper
         image_bytes = visualization.create_function_plot(x_values.tolist(), y_values, expression)
 
         return Image(data=image_bytes, format="png")
@@ -247,42 +251,24 @@ async def create_histogram(
             error_type="validation_error",
         )
 
-    # Matplotlib is guaranteed to be available (decorator handles ImportError)
     if ctx:
         await ctx.info(f"Creating histogram with {len(data)} data points and {bins} bins")
 
     try:
-        # Validate inputs
-        if not data:
-            raise ValueError("Cannot create histogram with empty data")
-        if len(data) == 1:
-            raise ValueError("Histogram requires at least 2 data points")
+        _validate_histogram_data(data)
 
-        # Report initial progress
-        if ctx:
-            await ctx.report_progress(0, 3, "Validating inputs")
+        await _report_histogram_stage(ctx, 0, 3, "Validating inputs")
+        await _report_histogram_stage(ctx, 1, 3, "Calculating statistics")
 
-        # Stage 1: Calculate statistics
-        if ctx:
-            await ctx.report_progress(1, 3, "Calculating statistics")
+        mean_val, median_val, std_dev = _compute_histogram_stats(data)
 
-        import statistics as stats
-
-        mean_val = stats.mean(data)
-        median_val = stats.median(data)
-        std_dev = stats.stdev(data) if len(data) > 1 else 0
-
-        # Stage 2: Render visualization
-        if ctx:
-            await ctx.report_progress(2, 3, "Rendering histogram")
+        await _report_histogram_stage(ctx, 2, 3, "Rendering histogram")
 
         image_bytes = visualization.create_histogram_chart(
             data, bins, title, mean_val, median_val, std_dev
         )
 
-        # Stage 3: Complete
-        if ctx:
-            await ctx.report_progress(3, 3, "Complete")
+        await _report_histogram_stage(ctx, 3, 3, "Complete")
 
         return Image(data=image_bytes, format="png")
 
@@ -300,6 +286,34 @@ async def create_histogram(
             message=f"**Unexpected Error:** {str(e)}",
             error_type="unexpected_error",
         )
+
+
+def _validate_histogram_data(data: list[float]) -> None:
+    """Validate histogram data and raise ValueError for invalid inputs."""
+    if not data:
+        raise ValueError("Cannot create histogram with empty data")
+
+    if len(data) == 1:
+        raise ValueError("Histogram requires at least 2 data points")
+
+
+async def _report_histogram_stage(
+    ctx: SkipValidation[Context | None], stage: int, total: int, message: str
+) -> None:
+    """Report histogram progress stage."""
+    if ctx:
+        await ctx.report_progress(stage, total, message)
+
+
+def _compute_histogram_stats(data: list[float]) -> tuple[float, float, float]:
+    """Compute histogram statistics and return (mean, median, std_dev)."""
+    import statistics as stats
+
+    mean_val = stats.mean(data)
+    median_val = stats.median(data)
+    std_dev = stats.stdev(data) if len(data) > 1 else 0.0
+
+    return (mean_val, median_val, std_dev)
 
 
 @visualization_mcp.tool(
