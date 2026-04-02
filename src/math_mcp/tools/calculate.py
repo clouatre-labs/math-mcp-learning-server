@@ -80,7 +80,7 @@ calculate_mcp = FastMCP(name="Calculate Tools")
     },
 )
 @validated_tool
-async def calculate(
+async def calc_expression(
     expression: Annotated[
         str,
         Field(
@@ -127,7 +127,7 @@ async def calculate(
     },
 )
 @validated_tool
-async def statistics(
+async def calc_statistics(
     numbers: Annotated[
         list[float],
         Field(
@@ -219,7 +219,7 @@ async def statistics(
     },
 )
 @validated_tool
-async def compound_interest(
+async def calc_interest(
     principal: Annotated[
         float,
         Field(gt=0, description="Initial investment amount in dollars (must be > 0), e.g. 1000.0"),
@@ -289,7 +289,7 @@ async def compound_interest(
     },
 )
 @validated_tool
-async def convert_units(
+async def calc_units(
     value: Annotated[float, Field(description="Numeric value to convert, e.g., 100.0")],
     from_unit: Annotated[
         str,

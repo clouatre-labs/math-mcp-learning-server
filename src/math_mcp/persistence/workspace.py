@@ -158,7 +158,7 @@ class WorkspaceManager:
             workspace = self._load_workspace()
 
             if not workspace.variables:
-                return "**Workspace is empty.** Use save_calculation() to store variables across sessions."
+                return "**Workspace is empty.** Use workspace_save() to store variables across sessions."
 
             summary = f"# Math Workspace ({len(workspace.variables)} variables)\n\n"
             summary += f"**Created:** {workspace.created}\n"

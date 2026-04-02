@@ -23,7 +23,7 @@ from math_mcp.persistence.storage import (
 )
 from math_mcp.persistence.workspace import _workspace_manager
 from math_mcp.resources import get_workspace
-from math_mcp.tools.persistence import load_variable, save_calculation
+from math_mcp.tools.persistence import workspace_load, workspace_save
 
 # === FIXTURES ===
 
@@ -303,9 +303,9 @@ def test_permission_error_handling(temp_workspace):
 @pytest.mark.asyncio
 async def test_save_calculation_tool(temp_workspace, mock_persistence_context):
     """Test save_calculation MCP tool."""
-    from math_mcp.tools.persistence import SaveCalculationResult
+    from math_mcp.tools.persistence import SaveCalculationResult, workspace_save
 
-    result = await save_calculation.raw_function(
+    result = await workspace_save.raw_function(
         "portfolio_return", "10000 * 1.07^5", 14025.52, mock_persistence_context
     )
 
@@ -329,7 +329,7 @@ async def test_load_variable_tool(temp_workspace, mock_persistence_context):
     _workspace_manager.save_variable("circle_area", "pi * 5^2", 78.54, {"topic": "geometry"})
 
     # Then load it using the MCP tool
-    result = await load_variable("circle_area", mock_persistence_context)
+    result = await workspace_load("circle_area", mock_persistence_context)
 
     assert isinstance(result, LoadVariableResult)
     assert result.success is True
@@ -345,7 +345,7 @@ async def test_load_variable_not_found(temp_workspace, mock_persistence_context)
     """Test load_variable tool with nonexistent variable."""
     from math_mcp.tools.persistence import LoadVariableResult
 
-    result = await load_variable("nonexistent_var", mock_persistence_context)
+    result = await workspace_load("nonexistent_var", mock_persistence_context)
 
     assert isinstance(result, LoadVariableResult)
     assert result.success is False
@@ -386,7 +386,7 @@ async def test_workspace_resource_empty(temp_workspace, mock_persistence_context
 
     assert isinstance(result, str)
     assert "Workspace is empty" in result
-    assert "save_calculation()" in result
+    assert "workspace_save()" in result
 
 
 # === INPUT VALIDATION TESTS ===
@@ -397,14 +397,14 @@ async def test_save_calculation_validation(temp_workspace, mock_persistence_cont
     """Test input validation for save_calculation tool."""
     # Empty name
     with pytest.raises(ValueError, match="Variable name cannot be empty"):
-        await save_calculation("", "2 + 2", 4.0, mock_persistence_context)
+        await workspace_save("", "2 + 2", 4.0, mock_persistence_context)
 
     # Invalid characters in name
     with pytest.raises(ValueError, match="Variable name must contain only"):
-        await save_calculation("invalid name!", "2 + 2", 4.0, mock_persistence_context)
+        await workspace_save("invalid name!", "2 + 2", 4.0, mock_persistence_context)
 
     # Valid names should work
-    result = await save_calculation.raw_function(
+    result = await workspace_save.raw_function(
         "valid_name-123", "2 + 2", 4.0, mock_persistence_context
     )
     assert result.success is True
@@ -437,7 +437,7 @@ async def test_session_id_is_valid_uuid(temp_workspace, mock_persistence_context
     """Test that session_id in saved metadata is a valid UUID string (happy path)."""
     import uuid
 
-    result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, mock_persistence_context)
+    result = await workspace_save.raw_function("test_var", "2 + 2", 4.0, mock_persistence_context)
 
     # Extract session_id directly from the result model
     session_id = result.session_id
@@ -453,7 +453,7 @@ async def test_session_id_is_valid_uuid(temp_workspace, mock_persistence_context
 @pytest.mark.asyncio
 async def test_session_id_none_when_ctx_is_none(temp_workspace):
     """Test that ctx=None produces None session_id (edge case)."""
-    result = await save_calculation.raw_function("test_var", "2 + 2", 4.0, None)
+    result = await workspace_save.raw_function("test_var", "2 + 2", 4.0, None)
 
     # Extract session_id directly from the result model
     session_id = result.session_id
@@ -466,11 +466,11 @@ async def test_session_id_none_when_ctx_is_none(temp_workspace):
 async def test_session_id_stability_same_context(temp_workspace, mock_persistence_context):
     """Test that two save_calculation calls on the same MockContext produce the same session_id."""
     # First save
-    result1 = await save_calculation.raw_function("var1", "2 + 2", 4.0, mock_persistence_context)
+    result1 = await workspace_save.raw_function("var1", "2 + 2", 4.0, mock_persistence_context)
     session_id_1 = result1.session_id
 
     # Second save on same context
-    result2 = await save_calculation.raw_function("var2", "3 + 3", 6.0, mock_persistence_context)
+    result2 = await workspace_save.raw_function("var2", "3 + 3", 6.0, mock_persistence_context)
     session_id_2 = result2.session_id
 
     # Both should be the same UUID (stable across calls on same context)
