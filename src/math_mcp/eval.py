@@ -9,6 +9,7 @@ serverless runtimes (e.g., AWS Lambda) where sys.executable may be invalid.
 import asyncio
 import logging
 import math
+import re
 
 from math_mcp.settings import (
     DANGEROUS_PATTERNS,
@@ -57,9 +58,8 @@ def _build_safe_expr(clean_expr: str) -> str:
     """Replace math functions with safe alternatives (prefix with math. module)."""
     safe_expr = clean_expr
     for func in MATH_FUNCTIONS_ALL:
-        if func in clean_expr:
-            if func != "abs":
-                safe_expr = safe_expr.replace(func, f"math.{func}")
+        if func != "abs":
+            safe_expr = re.sub(rf"\b{func}\b", f"math.{func}", safe_expr)
     return safe_expr
 
 
