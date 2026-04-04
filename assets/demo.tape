@@ -1,6 +1,6 @@
 Output assets/demo.gif
 
-Set FontSize 13
+Set FontSize 14
 Set Width 900
 Set Height 560
 Set Theme "Catppuccin Mocha"
