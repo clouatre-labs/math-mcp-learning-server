@@ -128,6 +128,15 @@ Reviewer checklist:
 - Maximum line length: 100 characters
 - Meaningful variable and function names
 
+**Cyclomatic complexity threshold.** `ruff` enforces McCabe cyclomatic complexity (rule C901) at a threshold of 10 (set in `pyproject.toml`); violations are hard errors in CI. When a function legitimately exceeds the threshold and splitting it would reduce clarity rather than improve it, suppress with a `noqa` comment and a mandatory explanation:
+
+```python
+def complex_dispatch(event: Event) -> None:  # noqa: C901 -- <why this function cannot be meaningfully split>
+    ...
+```
+
+Do not raise the global threshold to accommodate a single outlier. The explanation is required: it documents intent for reviewers and makes the suppression searchable.
+
 ### Documentation
 - All functions must have docstrings with examples
 - Include parameter descriptions and return types
