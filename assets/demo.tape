@@ -5,7 +5,6 @@ Set Width 900
 Set Height 560
 Set Theme "Catppuccin Mocha"
 Set Shell "bash"
-Set FontFamily "JetBrains Mono"
 Set Padding 16
 Set TypingSpeed 40ms
 Set PlaybackSpeed 1
