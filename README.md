@@ -18,7 +18,7 @@
 
 ## Demo
 
-![math-mcp Demo](https://raw.githubusercontent.com/clouatre-labs/math-mcp-learning-server/main/assets/demo.gif)
+![math-mcp Demo](https://raw.githubusercontent.com/clouatre-labs/math-mcp-learning-server/docs/readme-demo/assets/demo.gif)
 
 See [docs/DEMO.md](docs/DEMO.md) for instructions to record your own demo.
 
