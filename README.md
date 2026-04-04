@@ -10,24 +10,17 @@
   <a href="https://www.bestpractices.dev/projects/12334"><img alt="OpenSSF Best Practices" src="https://img.shields.io/cii/level/12334?style=for-the-badge" height="20"></a>
 </p>
 
-<p align="center">Educational MCP server with 17 tools, persistent workspace, and cloud hosting. Built with <a href="https://gofastmcp.com">FastMCP</a> and the official <a href="https://github.com/modelcontextprotocol/python-sdk">Model Context Protocol Python SDK</a>.</p>
+<p align="center"><strong>Educational MCP server with 17 tools, persistent workspace, and cloud hosting.</strong> Built with <a href="https://gofastmcp.com">FastMCP</a> and the official <a href="https://github.com/modelcontextprotocol/python-sdk">Model Context Protocol Python SDK</a>.</p>
 
-**Available on:**
+<p align="center">
+  Available on the <a href="https://registry.modelcontextprotocol.io/">MCP Registry</a> (<code>io.github.clouatre-labs/math-mcp-learning-server</code>) and <a href="https://pypi.org/project/math-mcp-learning-server/">PyPI</a>.
+</p>
 
-- [Official MCP Registry](https://registry.modelcontextprotocol.io/) - `io.github.clouatre-labs/math-mcp-learning-server`
-- [PyPI](https://pypi.org/project/math-mcp-learning-server/) - `math-mcp-learning-server`
+## Demo
 
-## Requirements
+![math-mcp Demo](https://raw.githubusercontent.com/clouatre-labs/math-mcp-learning-server/main/assets/demo.gif)
 
-Requires an MCP client:
-
-- **Claude Desktop** - Anthropic's desktop app
-- **Claude Code** - Command-line MCP client
-- **Goose** - Open-source AI agent framework
-- **OpenCode** - Open-source MCP client by SST
-- **Kiro** - AWS's AI assistant
-- **Gemini CLI** - Google's command-line tool
-- Any MCP-compatible client
+See [docs/DEMO.md](docs/DEMO.md) for instructions to record your own demo.
 
 ## Quick Start
 
@@ -50,34 +43,18 @@ Connect your MCP client to the hosted server:
 
 ### Local Installation
 
-**Automatic with uvx** (recommended):
-
 ```json
 {
   "mcpServers": {
     "math": {
       "command": "uvx",
-      "args": ["math-mcp-learning-server"]
+      "args": ["math-mcp-learning-server[scientific,plotting]"]
     }
   }
 }
 ```
 
-**Manual installation:**
-
-```bash
-# Basic installation
-uvx math-mcp-learning-server
-
-# With matrix operations support
-uvx --from 'math-mcp-learning-server[scientific]' math-mcp-learning-server
-
-# With visualization support
-uvx --from 'math-mcp-learning-server[plotting]' math-mcp-learning-server
-
-# All features
-uvx --from 'math-mcp-learning-server[scientific,plotting]' math-mcp-learning-server
-```
+For other installation options (basic, scientific-only, plotting-only), see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Tools
 
@@ -134,9 +111,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contr
 - **commitlint Enforcement** - Conventional commit validation in CI
 - **OpenSSF Scorecard** - Continuous open source security assessment
 
+<details>
+<summary><strong>calc_expression safety</strong></summary>
+
 The `calc_expression` tool uses restricted `eval()` with a whitelist of allowed characters and functions, restricted global scope (only `math` module and `abs`), and no access to dangerous built-ins or imports. All tool inputs are validated with Pydantic models. File operations are restricted to the designated workspace directory. Complete type hints and validation are enforced for all operations.
 
-## Links
+</details>
+
+## Documentation
 
 - [Architecture](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/ARCHITECTURE.md)
 - [Cloud Deployment Guide](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/docs/CLOUD_DEPLOYMENT.md)
