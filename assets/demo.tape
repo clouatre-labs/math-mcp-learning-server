@@ -10,6 +10,8 @@ Set TypingSpeed 40ms
 Set PlaybackSpeed 1
 
 Hide
+Type "cp assets/math_demo.py /tmp/math_demo.py"
+Enter
 Sleep 200ms
 Show
 

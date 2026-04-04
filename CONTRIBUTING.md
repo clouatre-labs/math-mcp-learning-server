@@ -229,13 +229,13 @@ Commit messages are validated by commitlint in CI to ensure they follow [Convent
 
 ## Demo GIF
 
-The README demo is generated with [VHS](https://github.com/charmbracelet/vhs). To regenerate after editing `assets/demo.tape`:
+The README demo is generated with [VHS](https://github.com/charmbracelet/vhs). To regenerate after editing `assets/demo.tape` or `assets/math_demo.py`:
 
 ```bash
-cd assets && vhs demo.tape
+vhs assets/demo.tape
 ```
 
-Commit both `demo.tape` and the updated `demo.gif`.
+Commit `demo.tape`, `math_demo.py`, and the updated `demo.gif` together.
 
 ## Resources
 

@@ -154,6 +154,7 @@ __marimo__/
 
 # Test/demo files
 *_demo.py
+!assets/math_demo.py
 *_test_report.md
 diagnostic_*.py
 final_test.py
