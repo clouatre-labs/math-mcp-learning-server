@@ -9,13 +9,7 @@ Set Padding 16
 Set TypingSpeed 40ms
 Set PlaybackSpeed 1
 
-Hide
-Type "cp assets/math_demo.py /tmp/math_demo.py"
-Enter
-Sleep 200ms
-Show
-
-Type "uv run python /tmp/math_demo.py"
+Type "uv run python assets/math_demo.py"
 Sleep 300ms
 Enter
 Sleep 5000ms
