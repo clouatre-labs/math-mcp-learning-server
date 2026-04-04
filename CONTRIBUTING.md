@@ -227,6 +227,16 @@ Commit messages are validated by commitlint in CI to ensure they follow [Convent
 - **Questions**: Open a discussion or issue
 - **Security Issues**: Report privately to maintainers
 
+## Demo GIF
+
+The README demo is generated with [VHS](https://github.com/charmbracelet/vhs). To regenerate after editing `assets/demo.tape` or `assets/math_demo.py`:
+
+```bash
+vhs assets/demo.tape
+```
+
+Commit `demo.tape`, `math_demo.py`, and the updated `demo.gif` together.
+
 ## Resources
 
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)

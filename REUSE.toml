@@ -130,6 +130,12 @@ SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "assets/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = "scripts/**"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 math-mcp-learning-server Contributors"
