@@ -10,8 +10,6 @@ Set TypingSpeed 40ms
 Set PlaybackSpeed 1
 
 Hide
-Type "cd math-mcp-learning-server"
-Enter
 Sleep 200ms
 Show
 
