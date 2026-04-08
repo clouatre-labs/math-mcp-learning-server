@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: 2024 Hugues Clouâtre
 # SPDX-License-Identifier: Apache-2.0
 """Demo script for math-mcp-learning-server. Used by assets/demo.tape only."""
+
 import asyncio
 import sys
 
