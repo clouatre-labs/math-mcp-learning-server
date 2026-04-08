@@ -2,13 +2,13 @@
 # SPDX-FileCopyrightText: 2024 Hugues Clouâtre
 # SPDX-License-Identifier: Apache-2.0
 """Demo script for math-mcp-learning-server. Used by assets/demo.tape only."""
-import sys
 import asyncio
+import sys
 
 sys.path.insert(0, "src")
 
-from math_mcp.tools.calculate import calc_expression, calc_statistics, calc_interest, calc_units
-from math_mcp.tools.persistence import workspace_save, workspace_load
+from math_mcp.tools.calculate import calc_expression, calc_interest, calc_statistics, calc_units
+from math_mcp.tools.persistence import workspace_load, workspace_save
 
 RESET = "\033[0m"
 BOLD = "\033[1m"
