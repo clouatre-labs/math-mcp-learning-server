@@ -18,9 +18,9 @@
 
 ## Demo
 
-![math-mcp Demo](https://raw.githubusercontent.com/clouatre-labs/math-mcp-learning-server/docs/readme-demo/assets/demo.gif)
+![math-mcp Demo](https://raw.githubusercontent.com/clouatre-labs/math-mcp-learning-server/main/assets/demo.gif)
 
-See [docs/DEMO.md](docs/DEMO.md) for instructions to record your own demo.
+See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md#demo-gif) for instructions to record your own demo.
 
 ## Quick Start
 
@@ -54,7 +54,7 @@ Connect your MCP client to the hosted server:
 }
 ```
 
-For other installation options (basic, scientific-only, plotting-only), see [CONTRIBUTING.md](CONTRIBUTING.md).
+For other installation options (basic, scientific-only, plotting-only), see [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md).
 
 ## Tools
 
@@ -97,7 +97,7 @@ See [Usage Examples](https://github.com/clouatre-labs/math-mcp-learning-server/b
 
 ## Development
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contribution guidelines.
+See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/blob/main/CONTRIBUTING.md) for development setup, testing, and contribution guidelines.
 
 ## Security
 
