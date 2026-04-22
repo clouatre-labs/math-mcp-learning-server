@@ -21,9 +21,9 @@ classifiers = [
     "Environment :: Console",
 ]
 dependencies = [
-    "fastmcp>=3.0.0",
-    "pydantic>=2.12.0",
-    "pydantic-settings>=2.0.0",
+    "fastmcp>=3.2.4",
+    "pydantic>=2.13.3",
+    "pydantic-settings>=2.14.0",
 ]
 
 [project.urls]
@@ -53,9 +53,10 @@ pythonpath = ["src"]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.4.2",
+    "pytest>=9.0.3",
     "pytest-asyncio>=0.25.2",
-    "pytest-cov>=4.0.0",
+    "pytest-cov>=7.1.0",
+    "pyright>=1.1.408",
     # Pin ruff >=0.15.1: formatting regression in 0.15.0 strips parentheses
     # from multi-exception except clauses when target-version = "py314" (invalid syntax).
     # Fixed in 0.15.1. See follow-up issue.
@@ -63,10 +64,10 @@ dev = [
 ]
 plotting = [
     "matplotlib>=3.10.6",
-    "numpy>=2.3.3",
+    "numpy>=2.4.4",
 ]
 scientific = [
-    "numpy>=2.3.3",
+    "numpy>=2.4.4",
 ]
 
 [tool.ruff]
@@ -121,5 +122,5 @@ exclude_lines = [
 
 [dependency-groups]
 dev = [
-    "pytest>=9.0.2",
+    "pytest>=9.0.3",
 ]

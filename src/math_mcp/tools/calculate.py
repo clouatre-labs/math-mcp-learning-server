@@ -6,6 +6,7 @@ FastMCP sub-server for mathematical calculations, statistics, and unit conversio
 from typing import Annotated
 
 from fastmcp import Context, FastMCP
+from mcp.types import ToolAnnotations
 from pydantic import BaseModel, Field, SkipValidation
 
 from math_mcp.eval import (
@@ -72,12 +73,11 @@ calculate_mcp = FastMCP(name="Calculate Tools")
 
 @calculate_mcp.tool(
     name="calc_expression",
-    annotations={
-        "title": "Mathematical Calculator",
-        "readOnlyHint": True,
-        "openWorldHint": False,
-        "idempotentHint": True,
-    },
+    annotations=ToolAnnotations(
+        title="Mathematical Calculator",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 async def calc_expression(
@@ -119,12 +119,11 @@ async def calc_expression(
 
 @calculate_mcp.tool(
     name="calc_statistics",
-    annotations={
-        "title": "Statistical Analysis",
-        "readOnlyHint": True,
-        "openWorldHint": False,
-        "idempotentHint": True,
-    },
+    annotations=ToolAnnotations(
+        title="Statistical Analysis",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 async def calc_statistics(
@@ -211,12 +210,11 @@ async def calc_statistics(
 
 @calculate_mcp.tool(
     name="calc_interest",
-    annotations={
-        "title": "Compound Interest Calculator",
-        "readOnlyHint": True,
-        "openWorldHint": False,
-        "idempotentHint": True,
-    },
+    annotations=ToolAnnotations(
+        title="Compound Interest Calculator",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 async def calc_interest(
@@ -281,12 +279,11 @@ async def calc_interest(
 
 @calculate_mcp.tool(
     name="calc_units",
-    annotations={
-        "title": "Unit Converter",
-        "readOnlyHint": True,
-        "openWorldHint": False,
-        "idempotentHint": True,
-    },
+    annotations=ToolAnnotations(
+        title="Unit Converter",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 async def calc_units(
