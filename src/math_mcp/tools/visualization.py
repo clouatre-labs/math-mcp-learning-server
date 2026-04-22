@@ -10,6 +10,7 @@ from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
 from fastmcp.utilities.types import Image
+from mcp.types import ToolAnnotations
 from pydantic import BaseModel, Field, SkipValidation
 
 from math_mcp import visualization
@@ -128,12 +129,11 @@ async def _evaluate_expression_points(
 
 @visualization_mcp.tool(
     name="plot_function",
-    annotations={
-        "title": "Function Plotter",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Function Plotter",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 @requires_matplotlib
@@ -201,12 +201,11 @@ async def plot_function(
 
 @visualization_mcp.tool(
     name="plot_histogram",
-    annotations={
-        "title": "Statistical Histogram",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Statistical Histogram",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 @requires_matplotlib
@@ -290,12 +289,11 @@ async def plot_histogram(  # noqa: C901
 
 @visualization_mcp.tool(
     name="plot_line_chart",
-    annotations={
-        "title": "Line Chart",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Line Chart",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 @requires_matplotlib
@@ -371,12 +369,11 @@ async def plot_line_chart(
 
 @visualization_mcp.tool(
     name="plot_scatter",
-    annotations={
-        "title": "Scatter Plot",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Scatter Plot",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 @requires_matplotlib
@@ -452,12 +449,11 @@ async def plot_scatter(
 
 @visualization_mcp.tool(
     name="plot_box_plot",
-    annotations={
-        "title": "Box Plot",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Box Plot",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 @requires_matplotlib
@@ -535,12 +531,11 @@ async def plot_box_plot(
 
 @visualization_mcp.tool(
     name="plot_financial_line",
-    annotations={
-        "title": "Financial Line Chart",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Financial Line Chart",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 @requires_matplotlib

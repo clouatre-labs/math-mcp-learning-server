@@ -6,6 +6,7 @@ FastMCP sub-server for saving and loading calculations from persistent workspace
 from typing import Annotated
 
 from fastmcp import Context, FastMCP
+from mcp.types import ToolAnnotations
 from pydantic import BaseModel, Field, SkipValidation
 
 from math_mcp.eval import (
@@ -58,12 +59,11 @@ persistence_mcp = FastMCP(name="Persistence Tools")
 
 @persistence_mcp.tool(
     name="workspace_save",
-    annotations={
-        "title": "Save Calculation to Workspace",
-        "readOnlyHint": False,
-        "openWorldHint": False,
-        "idempotentHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Save Calculation to Workspace",
+        readOnlyHint=False,
+        idempotentHint=False,
+    ),
 )
 @validated_tool
 async def workspace_save(
@@ -129,12 +129,11 @@ async def workspace_save(
 
 @persistence_mcp.tool(
     name="workspace_load",
-    annotations={
-        "title": "Load Variable",
-        "readOnlyHint": True,
-        "openWorldHint": False,
-        "idempotentHint": True,
-    },
+    annotations=ToolAnnotations(
+        title="Load Variable",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 async def workspace_load(
     name: Annotated[

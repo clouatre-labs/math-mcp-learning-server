@@ -8,6 +8,7 @@ and educational annotations.
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
+from mcp.types import ToolAnnotations
 from pydantic import BaseModel, Field, SkipValidation
 
 from math_mcp.settings import MAX_ARRAY_SIZE, validated_tool
@@ -130,12 +131,11 @@ matrix_mcp = FastMCP("matrix-operations")
 
 @matrix_mcp.tool(
     name="matrix_multiply",
-    annotations={
-        "title": "Matrix Multiplication",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Matrix Multiplication",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 async def matrix_multiply(
@@ -193,12 +193,11 @@ async def matrix_multiply(
 
 @matrix_mcp.tool(
     name="matrix_transpose",
-    annotations={
-        "title": "Matrix Transpose",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Matrix Transpose",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 async def matrix_transpose(
@@ -238,12 +237,11 @@ async def matrix_transpose(
 
 @matrix_mcp.tool(
     name="matrix_determinant",
-    annotations={
-        "title": "Matrix Determinant",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Matrix Determinant",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 async def matrix_determinant(
@@ -288,12 +286,11 @@ async def matrix_determinant(
 
 @matrix_mcp.tool(
     name="matrix_inverse",
-    annotations={
-        "title": "Matrix Inverse",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Matrix Inverse",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 async def matrix_inverse(
@@ -364,12 +361,11 @@ async def matrix_inverse(
 
 @matrix_mcp.tool(
     name="matrix_eigenvalues",
-    annotations={
-        "title": "Matrix Eigenvalues",
-        "readOnlyHint": True,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        title="Matrix Eigenvalues",
+        readOnlyHint=True,
+        idempotentHint=True,
+    ),
 )
 @validated_tool
 async def matrix_eigenvalues(
