@@ -17,7 +17,7 @@ jobs:
     steps:
     - name: Run Aptu
       continue-on-error: true
-      uses: clouatre-labs/aptu@9cdcf9ac5f62b88345a20f1f6748e622df7a9798 # v0.5.1
+      uses: clouatre-labs/aptu@dae823e8092698f9527aa96ce4f3e021de597b35 # v0.6.0
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
