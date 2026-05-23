@@ -25,7 +25,7 @@ permissions: {}
 jobs:
   verify-tag-signature:
     name: Verify GPG tag signature
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     if: github.event_name == 'push'
     permissions:
       contents: read
@@ -69,7 +69,7 @@ jobs:
   create-release:
     name: Create GitHub release
     needs: verify-tag-signature
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: write
     outputs:
@@ -123,7 +123,7 @@ jobs:
   build-and-attest:
     name: Build distributions and attest provenance
     needs: create-release
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     permissions:
       id-token: write
       contents: write
@@ -154,7 +154,7 @@ jobs:
   publish:
     name: Publish to PyPI
     needs: [create-release, build-and-attest]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     if: needs.create-release.outputs.dry_run != 'true'
     environment:
       name: pypi
@@ -177,7 +177,7 @@ jobs:
   mcp-registry:
     name: Publish to MCP Registry
     needs: [create-release, publish]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     if: needs.create-release.outputs.dry_run != 'true'
     permissions:
       id-token: write
