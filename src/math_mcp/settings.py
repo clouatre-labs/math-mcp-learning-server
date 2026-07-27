@@ -1,5 +1,6 @@
 """Configuration management for Math MCP Server."""
 
+from collections.abc import Callable
 from typing import Final
 
 from pydantic import Field, field_validator, validate_call
@@ -54,8 +55,20 @@ class MathMCPSettings(BaseSettings):
 # === CUSTOM DECORATOR FOR TOOL VALIDATION ===
 
 
-def validated_tool(func):
-    """Apply Pydantic validation to tool functions with Context support."""
+def validated_tool(func: Callable) -> Callable:
+    """Apply Pydantic validation to tool functions with Context support.
+
+    Wraps a tool function with ``validate_call`` so that all arguments are
+    validated by Pydantic before the function body executes.
+    ``arbitrary_types_allowed=True`` is required to accept FastMCP's
+    ``Context`` object, which is not a Pydantic model.
+
+    Usage::
+
+        @validated_tool
+        async def my_tool(x: int, ctx: Context | None = None) -> str:
+            ...
+    """
     return validate_call(config={"arbitrary_types_allowed": True})(func)
 
 
