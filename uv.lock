@@ -703,7 +703,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastmcp", specifier = ">=3.2.4" },
+    { name = "fastmcp", specifier = ">=3.2.4,<4.0.0" },
     { name = "matplotlib", marker = "extra == 'plotting'", specifier = ">=3.10.6" },
     { name = "numpy", marker = "extra == 'plotting'", specifier = ">=2.4.4" },
     { name = "numpy", marker = "extra == 'scientific'", specifier = ">=2.4.4" },

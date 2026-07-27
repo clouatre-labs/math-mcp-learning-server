@@ -20,6 +20,11 @@ async def _get_or_create_session_id(ctx: Context | None) -> str | None:
     if ctx is None:
         return None
 
+    # ctx.get_state / ctx.set_state is FastMCP application-level state stored in
+    # the per-connection Context object. It is unrelated to the MCP protocol-level
+    # Mcp-Session-Id header removed in the 2026-07-28 spec revision. Workspace
+    # data is persisted on the filesystem, so it survives across connections
+    # regardless of transport statefulness.
     session_id = await ctx.get_state("session_id")
     if session_id is None:
         session_id = str(uuid.uuid4())
