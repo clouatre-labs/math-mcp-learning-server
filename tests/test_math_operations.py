@@ -347,15 +347,26 @@ async def test_rate_limit_enforcement():
     # Create test server with limit high enough for test setup + tool calls
     test_mcp = FastMCP("test-rate-limit")
     test_mcp.add_middleware(ErrorHandlingMiddleware())
-    test_mcp.add_middleware(SlidingWindowRateLimitingMiddleware(max_requests=10, window_minutes=1))
+    rate_limiter = SlidingWindowRateLimitingMiddleware(max_requests=10, window_minutes=1)
+    test_mcp.add_middleware(rate_limiter)
 
     @test_mcp.tool()
     def test_tool() -> str:
         return "success"
 
     async with Client(transport=test_mcp) as client:
-        # Make 7 successful tool calls (Client init consumes 3 of 10 requests: initialize, notifications/initialized, tools/list)
-        for _ in range(7):
+        # Make one no-op call to measure the pre-tool request count from middleware state
+        await client.list_tools()
+
+        # Read the measured overhead from the middleware limiter state.
+        # rate_limiter.limiters is an internal attribute; the same access pattern is
+        # already used by the reset_rate_limit fixture in conftest.py (see line 63).
+        max_requests = rate_limiter.max_requests
+        used = len(rate_limiter.limiters["global"].requests)
+        remaining = max_requests - used
+
+        # Make all remaining calls successfully, filling the window to max_requests
+        for _ in range(remaining):
             result = await client.call_tool("test_tool", {})
             assert result.content[0].text == "success"
 

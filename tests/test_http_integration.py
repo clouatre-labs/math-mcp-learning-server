@@ -12,10 +12,10 @@ from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
 
-async def test_http_ping(http_client: Client) -> None:
-    """Test server responds to ping over HTTP."""
-    result = await http_client.ping()
-    assert result is True
+async def test_http_liveness(http_client: Client) -> None:
+    """Test server liveness over HTTP by listing tools."""
+    tools = await http_client.list_tools()
+    assert len(tools) > 0
 
 
 async def test_http_calculate_basic(http_client: Client) -> None:
