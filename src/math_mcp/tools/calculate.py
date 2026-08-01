@@ -3,6 +3,7 @@ Calculate Tools Sub-Server
 FastMCP sub-server for mathematical calculations, statistics, and unit conversions.
 """
 
+import logging
 from typing import Annotated
 
 from fastmcp import Context, FastMCP
@@ -20,6 +21,8 @@ from math_mcp.settings import (
     MAX_EXPRESSION_LENGTH,
     validated_tool,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CalculationResult(BaseModel):
@@ -103,8 +106,7 @@ async def calc_expression(
     - "sqrt(16)" → 4.0
     - "sin(3.14159/2)" → 1.0
     """
-    if ctx:
-        await ctx.info(f"Calculating expression: {expression}")
+    logger.info(f"Calculating expression: {expression}")
 
     result = await evaluate_with_timeout(expression)
     difficulty = _classify_expression_difficulty(expression)
@@ -155,8 +157,7 @@ async def calc_statistics(
         statistics([1.0, 2.5, 3.0, 4.5, 5.0], "std_dev")  # Returns ~1.58
     """
     if operation not in ALLOWED_OPERATIONS:
-        if ctx:
-            await ctx.warning(f"Invalid operation requested: {operation}")
+        logger.warning(f"Invalid operation requested: {operation}")
         raise ValueError(
             f"Invalid operation: {operation}. Allowed: {', '.join(sorted(ALLOWED_OPERATIONS))}"
         )
@@ -164,14 +165,12 @@ async def calc_statistics(
     if ctx:
         await ctx.report_progress(0, 2, "Validating input")
 
-    if ctx:
-        await ctx.info(f"Performing {operation} on {len(numbers)} data points")
+    logger.info(f"Performing {operation} on {len(numbers)} data points")
 
     import statistics as stats
 
     if not numbers:
-        if ctx:
-            await ctx.warning("Cannot calculate statistics on empty list")
+        logger.warning("Cannot calculate statistics on empty list")
         raise ValueError("Cannot calculate statistics on empty list")
 
     if ctx:
@@ -256,10 +255,9 @@ async def calc_interest(
         compound_interest(10000, 0.05, 5)  # $10,000 at 5% for 5 years → $12,762.82
         compound_interest(5000, 0.03, 10, 12)  # $5,000 at 3% compounded monthly → $6,744.25
     """
-    if ctx:
-        await ctx.info(
-            f"Calculating compound interest: ${principal:,.2f} @ {rate * 100}% for {time} years"
-        )
+    logger.info(
+        f"Calculating compound interest: ${principal:,.2f} @ {rate * 100}% for {time} years"
+    )
 
     final_amount = principal * (1 + rate / compounds_per_year) ** (compounds_per_year * time)
     total_interest = final_amount - principal
@@ -322,8 +320,7 @@ async def calc_units(
         convert_units(5, "km", "mi", "length")  # 5 kilometers → 3.11 miles
         convert_units(150, "lb", "kg", "weight")  # 150 pounds → 68.04 kilograms
     """
-    if ctx:
-        await ctx.info(f"Converting {value} {from_unit} to {to_unit} ({unit_type})")
+    logger.info(f"Converting {value} {from_unit} to {to_unit} ({unit_type})")
 
     conversions = {
         "length": {
@@ -349,8 +346,7 @@ async def calc_units(
     else:
         conversion_table = conversions.get(unit_type)
         if not conversion_table:
-            if ctx:
-                await ctx.warning(f"Unknown unit type requested: {unit_type}")
+            logger.warning(f"Unknown unit type requested: {unit_type}")
             raise ValueError(
                 f"Unknown unit type '{unit_type}'. Available: length, weight, temperature"
             )
@@ -359,12 +355,10 @@ async def calc_units(
         to_factor = conversion_table.get(to_unit.lower())
 
         if from_factor is None:
-            if ctx:
-                await ctx.warning(f"Unknown {unit_type} unit: {from_unit}")
+            logger.warning(f"Unknown {unit_type} unit: {from_unit}")
             raise ValueError(f"Unknown {unit_type} unit '{from_unit}'")
         if to_factor is None:
-            if ctx:
-                await ctx.warning(f"Unknown {unit_type} unit: {to_unit}")
+            logger.warning(f"Unknown {unit_type} unit: {to_unit}")
             raise ValueError(f"Unknown {unit_type} unit '{to_unit}'")
 
         base_value = value * from_factor

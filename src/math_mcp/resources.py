@@ -3,9 +3,12 @@ Resources and Prompts Sub-Server
 FastMCP sub-server for mathematical resources, constants, and prompt templates.
 """
 
+import logging
 import math
 
 from fastmcp import Context, FastMCP
+
+logger = logging.getLogger(__name__)
 
 # Create sub-server for resources and prompts
 resources_mcp = FastMCP(name="Resources and Prompts")
@@ -36,7 +39,7 @@ def get_math_constant(constant: str) -> str:
 @resources_mcp.resource("math://functions")
 async def list_available_functions(ctx: Context) -> str:
     """List all available mathematical functions with examples and syntax help."""
-    await ctx.info("Accessing function reference documentation")
+    logger.info("Accessing function reference documentation")
     return """# Available Mathematical Functions
 
 ## Basic Functions
@@ -75,7 +78,7 @@ async def list_available_functions(ctx: Context) -> str:
 @resources_mcp.resource("math://history")
 async def get_calculation_history(ctx: Context) -> str:
     """Get the history of calculations performed across sessions."""
-    await ctx.info("Accessing calculation history")
+    logger.info("Accessing calculation history")
     from math_mcp.persistence.workspace import _workspace_manager
 
     workspace_data = _workspace_manager._load_workspace()
@@ -107,7 +110,7 @@ async def get_workspace(ctx: Context) -> str:
     including all saved calculations, metadata, and statistics. The workspace
     survives server restarts and is accessible across different transport modes.
     """
-    await ctx.info("Accessing persistent workspace")
+    logger.info("Accessing persistent workspace")
     from math_mcp.persistence.workspace import _workspace_manager
 
     summary = _workspace_manager.get_workspace_summary()
@@ -125,7 +128,7 @@ async def get_workspace(ctx: Context) -> str:
 @resources_mcp.resource("math://catalog/tools")
 async def list_tools_catalog(ctx: Context) -> str:
     """Catalog of all available tools with category, description, and example."""
-    await ctx.info("Accessing tools catalog")
+    logger.info("Accessing tools catalog")
     catalog = [
         {
             "name": "calculate",
@@ -279,7 +282,7 @@ Make your explanation clear and educational, suitable for someone learning about
 @resources_mcp.resource("math://variables")
 async def list_variable_names(ctx: Context) -> str:
     """List all variable names saved in the workspace (lightweight alternative to math://workspace)."""
-    await ctx.info("Listing workspace variable names")
+    logger.info("Listing workspace variable names")
     from math_mcp.persistence.workspace import _workspace_manager
 
     result = _workspace_manager.list_variables()

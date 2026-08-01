@@ -4,6 +4,7 @@ Extracted from server.py as part of the monolith decomposition (#140c).
 Each tool generates PNG images using matplotlib and returns Image objects.
 """
 
+import logging
 import re
 from functools import wraps
 from typing import Annotated, Any
@@ -25,6 +26,8 @@ from math_mcp.settings import (
     MAX_STRING_PARAM_LENGTH,
     validated_tool,
 )
+
+logger = logging.getLogger(__name__)
 
 # --- Sub-server instance ---
 visualization_mcp = FastMCP("visualization-tools")
@@ -165,8 +168,7 @@ async def plot_function(
         plot_function("sin(x)", (-3.14, 3.14))
     """
 
-    if ctx:
-        await ctx.info(f"Plotting function: {expression} over range {x_range}")
+    logger.info(f"Plotting function: {expression} over range {x_range}")
 
     try:
         import numpy as np
@@ -184,15 +186,13 @@ async def plot_function(
         return Image(data=image_bytes, format="png")
 
     except ValueError as e:
-        if ctx:
-            await ctx.error(f"Plot function error: {e}")
+        logger.error(f"Plot function error: {e}")
         return VisualizationError(
             message=f"**Plot Error:** {str(e)}\n\nPlease check your expression and x_range values.",
             error_type="plot_error",
         )
     except Exception as e:
-        if ctx:
-            await ctx.error(f"Plot function unexpected error: {e}")
+        logger.error(f"Plot function unexpected error: {e}")
         return VisualizationError(
             message=f"**Unexpected Error:** {str(e)}",
             error_type="unexpected_error",
@@ -240,8 +240,7 @@ async def plot_histogram(  # noqa: C901
             error_type="validation_error",
         )
 
-    if ctx:
-        await ctx.info(f"Creating histogram with {len(data)} data points and {bins} bins")
+    logger.info(f"Creating histogram with {len(data)} data points and {bins} bins")
 
     try:
         if not data:
@@ -272,15 +271,13 @@ async def plot_histogram(  # noqa: C901
         return Image(data=image_bytes, format="png")
 
     except ValueError as e:
-        if ctx:
-            await ctx.error(f"Histogram error: {e}")
+        logger.error(f"Histogram error: {e}")
         return VisualizationError(
             message=f"**Histogram Error:** {str(e)}\n\nPlease check your data and parameters.",
             error_type="histogram_error",
         )
     except Exception as e:
-        if ctx:
-            await ctx.error(f"Histogram unexpected error: {e}")
+        logger.error(f"Histogram unexpected error: {e}")
         return VisualizationError(
             message=f"**Unexpected Error:** {str(e)}",
             error_type="unexpected_error",
@@ -339,8 +336,7 @@ async def plot_line_chart(
     """
 
     # Matplotlib is guaranteed to be available (decorator handles ImportError)
-    if ctx:
-        await ctx.info(f"Creating line chart with {len(x_data)} data points")
+    logger.info(f"Creating line chart with {len(x_data)} data points")
 
     try:
         image_bytes = visualization.create_line_chart(
@@ -419,8 +415,7 @@ async def plot_scatter(
     """
 
     # Matplotlib is guaranteed to be available (decorator handles ImportError)
-    if ctx:
-        await ctx.info(f"Creating scatter plot with {len(x_data)} data points")
+    logger.info(f"Creating scatter plot with {len(x_data)} data points")
 
     try:
         image_bytes = visualization.create_scatter_plot(
@@ -503,8 +498,7 @@ async def plot_box_plot(
         return err
 
     # Matplotlib is guaranteed to be available (decorator handles ImportError)
-    if ctx:
-        await ctx.info(f"Creating box plot with {len(data_groups)} groups")
+    logger.info(f"Creating box plot with {len(data_groups)} groups")
 
     try:
         image_bytes = visualization.create_box_plot(
@@ -577,8 +571,7 @@ async def plot_financial_line(
         )
 
     # Matplotlib is guaranteed to be available (decorator handles ImportError)
-    if ctx:
-        await ctx.info(f"Generating synthetic {trend} price data for {days} days")
+    logger.info(f"Generating synthetic {trend} price data for {days} days")
 
     try:
         # Stage 0: Start
