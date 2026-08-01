@@ -51,7 +51,7 @@ def _check_expression_security(clean_expr: str, expression: str) -> None:
 
     if not all(c in allowed_chars or c.isalpha() for c in clean_expr):
         raise ValueError(
-            "Expression contains invalid characters. Use only numbers, +, -, *, /, (), and math functions."
+            "Expression contains invalid characters. Use only numbers, +, -, *, /, %, //, (), and math functions."
         )
 
 
