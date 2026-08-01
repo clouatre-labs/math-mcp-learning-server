@@ -3,10 +3,36 @@
 Known testing gaps and planned improvements for math-mcp-learning-server.
 
 **Last Updated:** March 31, 2026
-**Current Version:** v0.11.5
-**Test Success Rate:** 126/126 (100%)
+**Current Version:** v0.12.2
+**Test Success Rate:** 201/201 (100%)
 
 ---
+
+## Coverage Gate Scope
+
+The 90% coverage gate (`fail_under = 90` in `[tool.coverage.report]`) applies to
+the following modules:
+
+- `calculate` tools
+- `matrix` tools
+- `persistence` (models, storage, workspace)
+- `eval.py`
+- `visualization.py` and `tools/visualization.py`
+
+`visualization.py` and `tools/visualization.py` were previously excluded from
+the `[tool.coverage.run]` omit list; they are now included in measurement.
+Measured coverage with visualization included is approximately 91.76%,
+above the 90% gate.
+
+`server.py` and `resources.py` remain intentionally omitted from coverage
+measurement because:
+
+- `server.py`'s `main()` entrypoint and lifespan startup paths are not
+  exercisable in unit tests (the server deploys to FastMCP Cloud/Lambda,
+  where these paths run only under the managed runtime).
+- `resources.py` contains large MCP runtime handler blocks that are only
+  reachable via the MCP protocol runtime and cannot be invoked directly
+  in unit tests.
 
 ## Overview
 
@@ -111,7 +137,7 @@ async def test_mcp_prompt_formula_explainer():
 
 ### Gap 2.1: End-to-End Workflow Tests
 
-**Status:** ⚠️ Missing
+**Status:** ✅ Resolved
 **Impact:** High
 **Complexity:** Medium
 
@@ -165,7 +191,7 @@ async def test_workflow_statistical_analysis():
 
 ### Gap 2.2: Performance Benchmarks
 
-**Status:** ⚠️ Missing
+**Status:** ✅ Resolved
 **Impact:** Medium
 **Complexity:** Low
 
@@ -292,9 +318,9 @@ async def test_fuzz_calculate_random_expressions():
 - [x] MCP Prompts (2 prompts) ✅ **Completed PR #286**
 - [x] Code coverage >90% ✅ **Enforced in CI (PR #303)**
 
-### v0.12.0 (Target: Q2 2025)
-- [ ] Integration workflows (3-5 tests) 🟡 **P2**
-- [ ] Performance benchmarks (5-7 tests) 🟡 **P2**
+### v0.12.0 (Resolved)
+- [x] Integration workflows (3-5 tests) ✅ **Resolved**
+- [x] Performance benchmarks (5-7 tests) ✅ **Resolved**
 - **Estimated Total:** 7-10 hours
 
 ### v0.13.0+ (Future)
