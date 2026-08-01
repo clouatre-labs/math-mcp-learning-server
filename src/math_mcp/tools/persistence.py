@@ -3,6 +3,7 @@ Persistence Tools Sub-Server
 FastMCP sub-server for saving and loading calculations from persistent workspace.
 """
 
+import logging
 from typing import Annotated
 
 from fastmcp import Context, FastMCP
@@ -20,6 +21,8 @@ from math_mcp.settings import (
     validated_tool,
 )
 from math_mcp.tools._session import _get_or_create_session_id
+
+logger = logging.getLogger(__name__)
 
 
 class SaveCalculationResult(BaseModel):
@@ -94,8 +97,7 @@ async def workspace_save(
     """
     validate_variable_name(name)
 
-    if ctx:
-        await ctx.info(f"Saving calculation '{name}' = {result}")
+    logger.info(f"Saving calculation '{name}' = {result}")
 
     difficulty = _classify_expression_difficulty(expression)
     topic = _classify_expression_topic(expression)
@@ -147,15 +149,13 @@ async def workspace_load(
         load_variable("portfolio_return")  # Returns saved calculation
         load_variable("circle_area")       # Access across sessions
     """
-    if ctx:
-        await ctx.info(f"Loading variable '{name}'")
+    logger.info(f"Loading variable '{name}'")
     from math_mcp.persistence.workspace import _workspace_manager
 
     result_data = _workspace_manager.load_variable(name)
 
     if not result_data["success"]:
-        if ctx:
-            await ctx.warning(f"Variable '{name}' not found in workspace")
+        logger.warning(f"Variable '{name}' not found in workspace")
         return LoadVariableResult(
             success=False,
             name=name,

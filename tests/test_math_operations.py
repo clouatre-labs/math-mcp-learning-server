@@ -858,14 +858,15 @@ def test_ensure_workspace_directory_oserror():
 
 
 @pytest.mark.asyncio
-async def test_calculate_with_context():
+async def test_calculate_with_context(caplog):
     """calculate() logs info via context."""
-    from unittest.mock import AsyncMock, MagicMock
+    import logging
 
-    mock_ctx = AsyncMock()
-    result = await calc_expression("2 + 2", ctx=mock_ctx)
+    caplog.set_level(logging.INFO)
+    result = await calc_expression("2 + 2", ctx=None)
     assert result is not None
-    mock_ctx.info.assert_called_once()
+    assert any(r.levelno == logging.INFO for r in caplog.records)
+    assert any("Calculating expression" in r.message for r in caplog.records)
 
 
 @pytest.mark.asyncio
@@ -877,14 +878,15 @@ async def test_calculate_without_context():
 
 
 @pytest.mark.asyncio
-async def test_convert_units_with_context():
+async def test_convert_units_with_context(caplog):
     """convert_units() logs info via context."""
-    from unittest.mock import AsyncMock
+    import logging
 
-    mock_ctx = AsyncMock()
-    result = await calc_units(100.0, "m", "ft", "length", ctx=mock_ctx)
+    caplog.set_level(logging.INFO)
+    result = await calc_units(100.0, "m", "ft", "length", ctx=None)
     assert result is not None
-    mock_ctx.info.assert_called_once()
+    assert any(r.levelno == logging.INFO for r in caplog.records)
+    assert any("Converting" in r.message for r in caplog.records)
 
 
 # === RESOURCES.PY ===
@@ -923,16 +925,17 @@ async def test_statistics_with_progress_ctx() -> None:
 
 
 @pytest.mark.asyncio
-async def test_statistics_invalid_op_with_ctx() -> None:
+async def test_statistics_invalid_op_with_ctx(caplog) -> None:
     """statistics() covers ctx warning branch when operation is invalid."""
-    from unittest.mock import AsyncMock
+    import logging
 
     from math_mcp.tools.calculate import calc_statistics
 
-    mock_ctx = AsyncMock()
+    caplog.set_level(logging.WARNING)
     with pytest.raises(ValueError, match="Invalid operation"):
-        await calc_statistics.raw_function([1.0, 2.0], "invalid_op", mock_ctx)
-    mock_ctx.warning.assert_called()
+        await calc_statistics.raw_function([1.0, 2.0], "invalid_op", None)
+    assert any(r.levelno == logging.WARNING for r in caplog.records)
+    assert any("Invalid operation" in r.message for r in caplog.records)
 
 
 @pytest.mark.asyncio

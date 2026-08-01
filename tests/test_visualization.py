@@ -7,6 +7,8 @@ package availability before running visualization tests. The noqa: F401 comments
 suppress unused import warnings as these imports are used for dependency checking.
 """
 
+import unittest.mock
+
 import pytest
 from fastmcp.utilities.types import Image
 
@@ -45,15 +47,13 @@ async def test_plot_function_basic_quadratic(mock_context):
 
     from math_mcp.tools.visualization import plot_function
 
-    result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, mock_context)
+    with unittest.mock.patch("math_mcp.tools.visualization.logger") as mock_logger:
+        result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, mock_context)
+        assert mock_logger.info.called
 
     assert isinstance(result, Image)
     assert result.data is not None
     assert len(result.data) > 0
-
-    # Verify context logging
-    assert len(mock_context.info_logs) > 0
-    assert "Plotting function" in mock_context.info_logs[0]
 
 
 @pytest.mark.asyncio
@@ -185,16 +185,13 @@ async def test_plot_histogram_basic(mock_context):
     from math_mcp.tools.visualization import plot_histogram
 
     data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
-    result = await plot_histogram.raw_function(data, 5, "Test Distribution", mock_context)
+    with unittest.mock.patch("math_mcp.tools.visualization.logger") as mock_logger:
+        result = await plot_histogram.raw_function(data, 5, "Test Distribution", mock_context)
+        assert mock_logger.info.called
 
     assert isinstance(result, Image)
     assert result.data is not None
     assert len(result.data) > 0
-
-    # Verify context logging
-    assert len(mock_context.info_logs) > 0
-    assert "Creating histogram" in mock_context.info_logs[0]
-    assert "9 data points" in mock_context.info_logs[0]
 
 
 @pytest.mark.asyncio

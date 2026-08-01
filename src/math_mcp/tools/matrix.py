@@ -5,6 +5,7 @@ calculations using NumPy. All tools include input validation, error handling,
 and educational annotations.
 """
 
+import logging
 from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
@@ -12,6 +13,8 @@ from mcp.types import ToolAnnotations
 from pydantic import BaseModel, Field, SkipValidation
 
 from math_mcp.settings import MAX_ARRAY_SIZE, validated_tool
+
+logger = logging.getLogger(__name__)
 
 # Try importing numpy for matrix operations
 try:
@@ -164,8 +167,7 @@ async def matrix_multiply(
         matrix_multiply([[1, 2], [3, 4]], [[5, 6], [7, 8]])
         matrix_multiply([[1, 2, 3]], [[1], [2], [3]])
     """
-    if ctx:
-        await ctx.info("Performing matrix multiplication")
+    logger.info("Performing matrix multiplication")
 
     mat_a = _validate_matrix(matrix_a)
     mat_b = _validate_matrix(matrix_b)
@@ -219,8 +221,7 @@ async def matrix_transpose(
         matrix_transpose([[1, 2, 3], [4, 5, 6]])
         matrix_transpose([[1], [2], [3]])
     """
-    if ctx:
-        await ctx.info("Transposing matrix")
+    logger.info("Transposing matrix")
 
     mat = _validate_matrix(matrix)
     result = mat.T  # type: ignore
@@ -263,8 +264,7 @@ async def matrix_determinant(
         matrix_determinant([[1, 2], [3, 4]])
         matrix_determinant([[1, 0, 0], [0, 1, 0], [0, 0, 1]])  # Identity matrix
     """
-    if ctx:
-        await ctx.info("Calculating matrix determinant")
+    logger.info("Calculating matrix determinant")
 
     mat = _validate_matrix(matrix)
 
@@ -312,8 +312,7 @@ async def matrix_inverse(
         matrix_inverse([[1, 2], [3, 4]])
         matrix_inverse([[2, 0], [0, 2]])  # Diagonal matrix
     """
-    if ctx:
-        await ctx.info("Calculating matrix inverse")
+    logger.info("Calculating matrix inverse")
 
     if ctx:
         await ctx.report_progress(0, 3, "Validating matrix")
@@ -331,8 +330,7 @@ async def matrix_inverse(
 
     det = la.det(mat)  # type: ignore
     if abs(det) < 1e-10:
-        if ctx:
-            await ctx.warning("Matrix is singular (determinant near 0); inverse does not exist")
+        logger.warning("Matrix is singular (determinant near 0); inverse does not exist")
         return MatrixInverseResult(
             size=int(mat.shape[0]),
             success=False,
@@ -387,8 +385,7 @@ async def matrix_eigenvalues(
         matrix_eigenvalues([[4, 2], [1, 3]])
         matrix_eigenvalues([[3, 0, 0], [0, 5, 0], [0, 0, 7]])  # Diagonal matrix
     """
-    if ctx:
-        await ctx.info("Calculating matrix eigenvalues")
+    logger.info("Calculating matrix eigenvalues")
 
     if ctx:
         await ctx.report_progress(0, 2, "Validating matrix")
@@ -396,10 +393,7 @@ async def matrix_eigenvalues(
     mat = _validate_matrix(matrix)
 
     if mat.shape[0] != mat.shape[1]:
-        if ctx:
-            await ctx.warning(
-                f"Eigenvalues require square matrix; got {mat.shape[0]}x{mat.shape[1]}"
-            )
+        logger.warning(f"Eigenvalues require square matrix; got {mat.shape[0]}x{mat.shape[1]}")
         return MatrixEigenvaluesResult(
             size=int(mat.shape[0]),
             success=False,
@@ -416,10 +410,9 @@ async def matrix_eigenvalues(
     # Detect complex eigenvalues (imaginary part exceeds floating-point noise threshold)
     has_complex = any(abs(val.imag) > 1e-10 for val in eigenvalues)
     if has_complex:
-        if ctx:
-            await ctx.warning(
-                "Matrix has complex eigenvalues; imaginary parts truncated to real in eigenvalues field"
-            )
+        logger.warning(
+            "Matrix has complex eigenvalues; imaginary parts truncated to real in eigenvalues field"
+        )
 
     # Convert eigenvalues to list of floats (real parts only, for backward compat)
     eigenval_list = [float(val.real) for val in eigenvalues]  # type: ignore
