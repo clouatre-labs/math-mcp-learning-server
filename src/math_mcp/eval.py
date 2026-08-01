@@ -6,6 +6,7 @@ it triggers fork_exec(sys.executable) at construction, which fails on
 serverless runtimes (e.g., AWS Lambda) where sys.executable may be invalid.
 """
 
+import ast
 import asyncio
 import logging
 import math
@@ -40,7 +41,7 @@ def _validate_expression_syntax(expression: str) -> None:
 
 def _check_expression_security(clean_expr: str, expression: str) -> None:
     """Check for dangerous patterns and unsafe characters in expression."""
-    allowed_chars = set("0123456789+-*/.(),e")
+    allowed_chars = set("0123456789+-*/.(),e%")
 
     if any(pattern in clean_expr.lower() for pattern in DANGEROUS_PATTERNS):
         logging.warning(f"Security: Blocked unsafe expression attempt: {expression[:50]}...")
@@ -50,7 +51,7 @@ def _check_expression_security(clean_expr: str, expression: str) -> None:
 
     if not all(c in allowed_chars or c.isalpha() for c in clean_expr):
         raise ValueError(
-            "Expression contains invalid characters. Use only numbers, +, -, *, /, (), and math functions."
+            "Expression contains invalid characters. Use only numbers, +, -, *, /, %, //, (), and math functions."
         )
 
 
@@ -85,11 +86,85 @@ def _eval_in_restricted_scope(safe_expr: str) -> float:
         raise ValueError(f"Expression evaluation failed: {str(e)}")
 
 
+class _ASTValidator(ast.NodeVisitor):
+    """AST visitor that rejects any node type outside the explicit allowlist.
+
+    This is the first defense layer: before eval() is reached, the parsed AST
+    is walked to ensure every node type is in the allowlist.  Non-whitelisted
+    node types (Attribute, Subscript, Compare, BoolOp, IfExp, Lambda, etc.)
+    raise ValueError immediately.
+    """
+
+    _ALLOWED_NODES: frozenset[type[ast.AST]] = frozenset(
+        {
+            ast.Expression,
+            ast.BinOp,
+            ast.UnaryOp,
+            ast.Call,
+            ast.Constant,
+            ast.Name,
+            ast.Load,
+            ast.Add,
+            ast.Sub,
+            ast.Mult,
+            ast.Div,
+            ast.Pow,
+            ast.Mod,
+            ast.FloorDiv,
+            ast.USub,
+            ast.UAdd,
+        }
+    )
+
+    def visit_Constant(self, node: ast.Constant) -> None:
+        """Reject non-numeric constants; allow only int or float."""
+        if isinstance(node.value, bool):
+            raise ValueError("Expression contains disallowed construct: boolean constant")
+        if not isinstance(node.value, (int, float)):
+            raise ValueError("Expression contains disallowed construct: non-numeric constant")
+
+    def visit_Name(self, node: ast.Name) -> None:
+        """Reject non-whitelisted identifiers or non-Load contexts."""
+        if not isinstance(node.ctx, ast.Load):
+            raise ValueError("Expression contains disallowed construct: non-load name context")
+        if node.id not in MATH_FUNCTIONS_ALL | {"abs"}:
+            raise ValueError(f"Expression contains disallowed construct: identifier '{node.id}'")
+
+    def visit_Call(self, node: ast.Call) -> None:
+        """Reject calls where the callee is not a whitelisted name."""
+        if not isinstance(node.func, ast.Name):
+            raise ValueError("Expression contains disallowed construct: non-name function call")
+        if node.func.id not in MATH_FUNCTIONS_ALL | {"abs"}:
+            raise ValueError(f"Expression contains disallowed construct: function '{node.func.id}'")
+        self.generic_visit(node)
+
+    def visit_Load(self, node: ast.Load) -> None:
+        """Explicitly allow Load context (no-op)."""
+
+    def generic_visit(self, node: ast.AST) -> None:
+        """Reject any node type not in the explicit allowlist."""
+        if type(node) not in self._ALLOWED_NODES:
+            raise ValueError("Expression contains disallowed construct")
+        super().generic_visit(node)
+
+
+def _validate_ast(expression: str) -> None:
+    """Parse and validate the expression AST against the node allowlist.
+
+    Raises:
+        SyntaxError: If the expression cannot be parsed (propagated to caller).
+        ValueError: If any AST node type is outside the allowlist.
+    """
+    tree = ast.parse(expression, mode="eval")
+    _ASTValidator().visit(tree)
+
+
 def safe_eval_expression(expression: str) -> float:
     """Safely evaluate mathematical expressions with restricted scope."""
     _validate_expression_syntax(expression)
     clean_expr = expression.replace(" ", "")
     _check_expression_security(clean_expr, expression)
+    _validate_ast(expression)
     safe_expr = _build_safe_expr(clean_expr)
     return _eval_in_restricted_scope(safe_expr)
 
