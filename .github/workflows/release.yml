@@ -192,10 +192,26 @@ jobs:
           jq --arg v "$VERSION" '.version = $v | .packages[0].version = $v' server.json > tmp.json && mv tmp.json server.json
           cat server.json
 
-      - name: Install MCP Publisher
+      - name: Download MCP Publisher
+        env:
+          # mcp-publisher is an external tool; update this pin when bumping the tool version
+          MCP_PUBLISHER_VERSION: v1.8.0
         run: |
-          gh release download --repo modelcontextprotocol/registry --pattern 'mcp-publisher_linux_arm64.tar.gz' -O - | tar xz mcp-publisher
-          ./mcp-publisher --version
+          gh release download "$MCP_PUBLISHER_VERSION" \
+            --repo modelcontextprotocol/registry \
+            --pattern 'mcp-publisher_linux_arm64.tar.gz' \
+            --pattern "registry_${MCP_PUBLISHER_VERSION#v}_checksums.txt" \
+            --dir .
+
+      - name: Verify mcp-publisher checksum
+        env:
+          MCP_PUBLISHER_VERSION: v1.8.0
+        run: |
+          grep 'mcp-publisher_linux_arm64.tar.gz$' \
+            "registry_${MCP_PUBLISHER_VERSION#v}_checksums.txt" | sha256sum -c -
+
+      - name: Extract MCP Publisher
+        run: tar -xzf mcp-publisher_linux_arm64.tar.gz
 
       - name: Login to MCP Registry
         run: ./mcp-publisher login github-oidc
