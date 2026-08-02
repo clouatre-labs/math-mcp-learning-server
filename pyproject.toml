@@ -106,7 +106,6 @@ omit = [
     "*/test_*.py",
     "*/server.py",
     "*/resources.py",
-    "*/visualization.py",
 ]
 
 [tool.coverage.report]
