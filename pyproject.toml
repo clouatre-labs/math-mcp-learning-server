@@ -123,3 +123,8 @@ exclude_lines = [
 dev = [
     "pytest>=9.0.3",
 ]
+
+[tool.pyright]
+pythonVersion = "3.14"
+typeCheckingMode = "standard"
+reportMissingImports = true
