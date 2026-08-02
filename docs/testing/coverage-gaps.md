@@ -2,7 +2,7 @@
 
 Known testing gaps and planned improvements for math-mcp-learning-server.
 
-**Last Updated:** March 31, 2026
+**Last Updated:** 2026-07-27
 **Current Version:** v0.12.2
 **Test Success Rate:** 201/201 (100%)
 
