@@ -182,6 +182,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      # mcp-publisher is an external tool; update this pin when bumping the tool version
+      MCP_PUBLISHER_VERSION: v1.8.0
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -193,9 +196,6 @@ jobs:
           cat server.json
 
       - name: Download MCP Publisher
-        env:
-          # mcp-publisher is an external tool; update this pin when bumping the tool version
-          MCP_PUBLISHER_VERSION: v1.8.0
         run: |
           gh release download "$MCP_PUBLISHER_VERSION" \
             --repo modelcontextprotocol/registry \
@@ -204,8 +204,6 @@ jobs:
             --dir .
 
       - name: Verify mcp-publisher checksum
-        env:
-          MCP_PUBLISHER_VERSION: v1.8.0
         run: |
           grep 'mcp-publisher_linux_arm64.tar.gz$' \
             "registry_${MCP_PUBLISHER_VERSION#v}_checksums.txt" | sha256sum -c -
