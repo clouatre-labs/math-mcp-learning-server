@@ -102,6 +102,8 @@ jobs:
   test-http-integration:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
     steps:
     - name: Checkout repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -172,7 +174,7 @@ jobs:
     name: CI Result
     runs-on: ubuntu-24.04-arm
     if: always()
-    needs: [lint, security, test, zizmor, commitlint]
+    needs: [lint, security, test, test-http-integration, zizmor, commitlint]
     permissions: {}
     steps:
       - name: Verify all jobs passed or were skipped
