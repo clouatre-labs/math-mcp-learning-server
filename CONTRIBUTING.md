@@ -96,6 +96,7 @@ All pull requests run automated checks in parallel:
 - **lint** - Ruff code quality and formatting checks
 - **security** - gitleaks secret scanning and pip-audit CVE scanning
 - **test** - pytest functionality validation on Python 3.14 with >=90% coverage
+- **typecheck** - pyright static type checking
 - **zizmor** - GitHub Actions workflow security scanning
 - **commitlint** - Conventional commit message validation
 - **reuse** - SPDX license header compliance

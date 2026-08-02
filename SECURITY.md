@@ -95,10 +95,11 @@ Automated dependency updates via Renovate, including GitHub Actions pins.
 This project implements several security measures:
 
 ### Safe Expression Evaluation
-- Restricted `eval()` with whitelisted functions only
-- No access to dangerous built-ins or imports
+- Three-layer defense-in-depth model (see [ADR-001](docs/adr/001-eval-sandbox.md)):
+  - **Layer 1 (AST allowlist):** `_ASTValidator` (ast.NodeVisitor subclass) rejects non-whitelisted AST node types before evaluation
+  - **Layer 2 (Character whitelist + regex):** `_check_expression_security` rejects dangerous patterns (`import`, `exec`, `__`, `eval`, `open`, `file`) and invalid characters
+  - **Layer 3 (Restricted globals + timeout):** `_eval_in_restricted_scope` limits `eval()` to `math` module + `abs` only; 5-second execution timeout via `asyncio.wait_for`
 - Security logging for suspicious attempts
-- Controlled execution environment
 
 ### Input Validation
 - All tool inputs validated with Pydantic models
@@ -120,8 +121,9 @@ This project implements several security measures:
 A security review of this project was conducted in March 2026.
 
 **Scope:**
-- `src/math_mcp/eval.py`: restricted `eval()` implementation -- character whitelist,
-  dangerous-pattern blocklist, globals locked to `{abs, math}` only
+- `src/math_mcp/eval.py`: restricted `eval()` implementation -- three-layer defense:
+  AST NodeVisitor allowlist (`_ASTValidator`), character whitelist and dangerous-pattern
+  blocklist, globals locked to `{abs, math}` only
 - Input validation: Pydantic `validate_call` on all tool inputs
 - Workspace path restriction in `src/math_mcp/persistence/`
 

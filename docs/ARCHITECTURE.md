@@ -113,6 +113,7 @@ FastMCP's `@mcp.prompt()` decorator registers reusable prompt templates that Cla
 | [ADR-005](adr/005-pydantic-validation.md) | Pydantic + @validated_tool for Input Validation | Accepted |
 | [ADR-006](adr/006-matplotlib-agg.md) | Matplotlib + Agg Backend for Visualization | Accepted |
 | [ADR-007](adr/007-json-workspace-persistence.md) | JSON Files for Workspace Persistence | Accepted |
+| [ADR-008](adr/008-annotation-quality-tests.md) | Annotation Quality Enforcement via Introspection Tests | Accepted |
 
 ## Development Workflow
 
