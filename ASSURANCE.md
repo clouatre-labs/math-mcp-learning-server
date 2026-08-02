@@ -21,7 +21,7 @@ The server makes no outbound calls beyond FastMCP Cloud infrastructure. It holds
 
 The primary attack surfaces are:
 
-1. **eval() injection**: The `calculate` tool accepts math expressions evaluated with `eval()`. This is mitigated by a strict character and function allowlist in `eval.py` -- only math module functions and `abs` are permitted; all other identifiers and characters are rejected before evaluation.
+1. **eval() injection**: The `calculate` tool accepts math expressions evaluated with `eval()`. This is mitigated by a three-layer defense-in-depth model (see [ADR-001](docs/adr/001-eval-sandbox.md)): character/pattern blocklist, restricted globals (`math` + `abs` only), and an AST NodeVisitor allowlist (`_ASTValidator`) that rejects non-whitelisted AST node types before evaluation.
 
 2. **Workspace path traversal**: The `persistence` tools write and read files in a workspace directory. This is mitigated by path restriction in `storage.py`, which rejects any path that escapes the workspace root.
 
@@ -33,7 +33,7 @@ The primary attack surfaces are:
 
 | Weakness | Status |
 |----------|--------|
-| Injection (eval) | Mitigated -- character and function allowlist in eval.py; no arbitrary code execution |
+| Injection (eval) | Mitigated -- three-layer defense (character blocklist, restricted globals, AST NodeVisitor allowlist); no arbitrary code execution |
 | Path traversal | Mitigated -- workspace path restriction in storage.py rejects escaping paths |
 | Supply chain | Mitigated -- SLSA provenance attestation, pip-audit CVE scanning, SHA-pinned Actions, Renovate |
 | Secret leakage | Mitigated -- gitleaks secret scanning runs on every PR as a required CI check |
