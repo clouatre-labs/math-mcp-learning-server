@@ -13,20 +13,20 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   changes:
     name: Detect Changes
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     permissions:
       contents: read
     outputs:
       code: ${{ steps.filter.outputs.code }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.0
         id: filter
         with:
           filters: |
@@ -37,55 +37,116 @@ jobs:
               - 'uv.lock'
               - '.github/workflows/**'
 
+  check-base:
+    name: Check Branch Base
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Verify branch is up-to-date with main
+        run: |
+          git fetch origin main
+          base_commit=$(git merge-base origin/main HEAD)
+          main_head=$(git rev-parse origin/main)
+          if [ "$base_commit" != "$main_head" ]; then
+            behind=$(git rev-list --count "$base_commit".."$main_head")
+            echo "::error::Branch is $behind commit(s) behind main. Rebase before merging."
+            exit 1
+          fi
+
   lint:
     needs: changes
     if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     steps:
     - name: Checkout repository
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Ruff check
-      uses: astral-sh/ruff-action@0ce1b0bf8b818ef400413f810f8a11cdbda0034b # v4
+      uses: astral-sh/ruff-action@0ce1b0bf8b818ef400413f810f8a11cdbda0034b # v4.0.0
       with:
-        version: '>=0.14.0,<0.15.0'
+        version: '>=0.16.0,<0.17.0'
         args: 'check'
 
     - name: Ruff format
-      uses: astral-sh/ruff-action@0ce1b0bf8b818ef400413f810f8a11cdbda0034b # v4
+      uses: astral-sh/ruff-action@0ce1b0bf8b818ef400413f810f8a11cdbda0034b # v4.0.0
       with:
-        version: '>=0.14.0,<0.15.0'
+        version: '>=0.16.0,<0.17.0'
         args: 'format --check'
 
   security:
     needs: changes
     if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
 
     - name: Secret scanning
-      uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
+      uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
     - name: Set up uv
       uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      with:
+        enable-cache: true
 
     - name: Scan dependencies for CVEs
       run: uv tool run pip-audit
+
+    - name: Download aptu (arm64)
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        APTU_VERSION=$(gh api repos/clouatre-labs/aptu/releases \
+          --jq '[.[] | select(.tag_name | startswith("v0."))] | first | .tag_name' \
+          | sed 's/^v//')
+        ARCHIVE="aptu-cli-${APTU_VERSION}-aarch64-unknown-linux-musl.tar.gz"
+        gh release download "v${APTU_VERSION}" -R clouatre-labs/aptu \
+          --pattern "${ARCHIVE}" --pattern "${ARCHIVE%.tar.gz}.sha256"
+        sha256sum -c "${ARCHIVE%.tar.gz}.sha256"
+        tar -xzf "${ARCHIVE}"
+        install -m 0755 aptu "$HOME/.local/bin/aptu"
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Run aptu scan-security
+      continue-on-error: true
+      run: |
+        aptu scan-security src/ \
+          --output github-annotations \
+          --sarif-output findings.sarif \
+          --fail-on critical,high
+
+    - name: Upload SARIF report
+      if: always()
+      uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+      with:
+        sarif_file: findings.sarif
+        category: aptu-scan-security
 
   test:
     # Single-version CI: version pinned in env.PYTHON_VERSION above
     needs: changes
     if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
     steps:
     - name: Checkout repository
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Set up uv
       uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -102,13 +163,14 @@ jobs:
   typecheck:
     name: Type Check
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
@@ -122,11 +184,12 @@ jobs:
   test-http-integration:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
     - name: Checkout repository
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Set up uv
       uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -145,11 +208,12 @@ jobs:
     needs: changes
     if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     permissions:
       contents: read
       actions: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
         with:
           advanced-security: false
@@ -157,19 +221,34 @@ jobs:
           min-severity: high
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  poutine:
+    name: Workflow Audit
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: boostsecurityio/poutine-action@e240ebd3eff8b2db5a8e5f6b28f58739d7db2247 # v1.1.4
+        with:
+          action: analyze_local
+
   commitlint:
     name: commitlint
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
       - name: Cache npm
@@ -181,8 +260,8 @@ jobs:
       - name: Install commitlint
         run: |
           npm install --no-save \
-            @commitlint/cli@20.5.3 \
-            @commitlint/config-conventional@20.5.3
+            @commitlint/cli@21.2.1 \
+            @commitlint/config-conventional@21.2.0
       - name: Validate commit messages
         run: |
           npx commitlint \
@@ -193,8 +272,9 @@ jobs:
   ci-result:
     name: CI Result
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 2
     if: always()
-    needs: [lint, security, test, typecheck, test-http-integration, zizmor, commitlint]
+    needs: [check-base, lint, security, test, typecheck, test-http-integration, zizmor, poutine, commitlint]
     permissions: {}
     steps:
       - name: Verify all jobs passed or were skipped
