@@ -113,8 +113,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         APTU_VERSION=$(gh api repos/clouatre-labs/aptu/releases \
-          --jq '[.[] | select(.tag_name | startswith("v0."))] | first | .tag_name' \
-          | sed 's/^v//')
+          --jq '[.[] | select(.tag_name | startswith("v0."))] | first | .tag_name | ltrimstr("v")')
         if [[ -z "$APTU_VERSION" ]]; then
           echo "::error::Could not resolve latest aptu v0.x release"
           exit 1
@@ -136,7 +135,7 @@ jobs:
           --fail-on critical,high
 
     - name: Upload SARIF report
-      if: always()
+      if: always() && hashFiles('findings.sarif') != ''
       uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
       with:
         sarif_file: findings.sarif
