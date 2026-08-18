@@ -124,7 +124,6 @@ jobs:
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
     - name: Run aptu scan-security
-      continue-on-error: true
       run: |
         aptu scan-security src/ \
           --output github-annotations \
