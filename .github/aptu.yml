@@ -3,7 +3,16 @@ triage:
   enabled: true
 review:
   enabled: true
+  skip-labeled: true
   instructions-file: .github/instructions/pr-review.md
+  paths:
+    - "src/**"
+    - "tests/**"
+    - "!**/*.md"
+scan:
+  enabled: true
+  fail-on: critical,high
+  path: src/
 ai:
   provider: openrouter
   model: google/gemma-4-26b-a4b-it
