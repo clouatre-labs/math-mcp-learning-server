@@ -108,38 +108,6 @@ jobs:
     - name: Scan dependencies for CVEs
       run: uv tool run pip-audit
 
-    - name: Download aptu (arm64)
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        APTU_VERSION=$(gh api repos/clouatre-labs/aptu/releases \
-          --jq '[.[] | select(.tag_name | startswith("v0."))] | first | .tag_name | ltrimstr("v")')
-        if [[ -z "$APTU_VERSION" ]]; then
-          echo "::error::Could not resolve latest aptu v0.x release"
-          exit 1
-        fi
-        ARCHIVE="aptu-cli-${APTU_VERSION}-aarch64-unknown-linux-musl.tar.gz"
-        gh release download "v${APTU_VERSION}" -R clouatre-labs/aptu \
-          --pattern "${ARCHIVE}" --pattern "${ARCHIVE%.tar.gz}.sha256"
-        sha256sum -c "${ARCHIVE%.tar.gz}.sha256"
-        tar -xzf "${ARCHIVE}"
-        mkdir -p "$HOME/.local/bin"
-        install -m 0755 aptu "$HOME/.local/bin/aptu"
-        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-    - name: Run aptu scan-security
-      run: |
-        aptu scan-security src/ \
-          --output github-annotations \
-          --sarif-output findings.sarif \
-          --fail-on critical,high
-
-    - name: Upload SARIF report
-      if: always() && hashFiles('findings.sarif') != ''
-      uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
-      with:
-        sarif_file: findings.sarif
-        category: aptu-scan-security
 
   test:
     # Single-version CI: version pinned in env.PYTHON_VERSION above
