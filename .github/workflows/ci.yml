@@ -115,11 +115,16 @@ jobs:
         APTU_VERSION=$(gh api repos/clouatre-labs/aptu/releases \
           --jq '[.[] | select(.tag_name | startswith("v0."))] | first | .tag_name' \
           | sed 's/^v//')
+        if [[ -z "$APTU_VERSION" ]]; then
+          echo "::error::Could not resolve latest aptu v0.x release"
+          exit 1
+        fi
         ARCHIVE="aptu-cli-${APTU_VERSION}-aarch64-unknown-linux-musl.tar.gz"
         gh release download "v${APTU_VERSION}" -R clouatre-labs/aptu \
           --pattern "${ARCHIVE}" --pattern "${ARCHIVE%.tar.gz}.sha256"
         sha256sum -c "${ARCHIVE%.tar.gz}.sha256"
         tar -xzf "${ARCHIVE}"
+        mkdir -p "$HOME/.local/bin"
         install -m 0755 aptu "$HOME/.local/bin/aptu"
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
