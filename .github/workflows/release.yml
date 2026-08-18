@@ -26,6 +26,7 @@ jobs:
   verify-tag-signature:
     name: Verify GPG tag signature
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     if: github.event_name == 'push'
     permissions:
       contents: read
@@ -70,6 +71,7 @@ jobs:
     name: Create GitHub release
     needs: verify-tag-signature
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     permissions:
       contents: write
     outputs:
@@ -77,7 +79,7 @@ jobs:
       dry_run: ${{ steps.dry_run.outputs.dry_run }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -116,7 +118,7 @@ jobs:
 
       - name: Create GitHub release
         if: steps.dry_run.outputs.dry_run != 'true'
-        uses: taiki-e/create-gh-release-action@eba8ea96c86cca8a37f1b56e94b4d13301fba651 # v1
+        uses: taiki-e/create-gh-release-action@eba8ea96c86cca8a37f1b56e94b4d13301fba651 # v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -124,13 +126,14 @@ jobs:
     name: Build distributions and attest provenance
     needs: create-release
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
     permissions:
       id-token: write
       contents: write
       attestations: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -141,12 +144,12 @@ jobs:
         run: uv build
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.0.0
         with:
           subject-path: dist/
 
       - name: Upload distributions
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
           name: release-dists
           path: dist/
@@ -154,7 +157,8 @@ jobs:
   publish:
     name: Publish to PyPI
     needs: [create-release, build-and-attest]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
     if: needs.create-release.outputs.dry_run != 'true'
     environment:
       name: pypi
@@ -164,7 +168,7 @@ jobs:
       contents: read
     steps:
       - name: Download distributions
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.0
         with:
           name: release-dists
           path: dist/
@@ -178,6 +182,7 @@ jobs:
     name: Publish to MCP Registry
     needs: [create-release, publish]
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
     if: needs.create-release.outputs.dry_run != 'true'
     permissions:
       id-token: write
@@ -187,7 +192,7 @@ jobs:
       MCP_PUBLISHER_VERSION: v1.8.0
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Sync version from release tag to server.json
         run: |

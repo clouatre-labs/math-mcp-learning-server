@@ -106,10 +106,12 @@ async def test_calculate_expression_too_long():
     expression = "1+" * 300  # >500 chars
     # Expect: ValidationError
 
+
 # Array size limits
 async def test_statistics_array_too_large():
     data = list(range(20000))  # >10,000 elements
     # Expect: ValidationError
+
 
 # Matrix size limits
 async def test_matrix_multiply_too_large():
@@ -140,6 +142,7 @@ async def test_calculate_blocked_keywords():
 @pytest.fixture
 async def client():
     """MCP client for HTTP integration tests"""
+
 
 @pytest.fixture
 def temp_workspace(tmp_path):
