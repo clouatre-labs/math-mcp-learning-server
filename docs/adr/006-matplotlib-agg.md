@@ -23,6 +23,7 @@ Use Matplotlib with the Agg backend, explicitly set before any other import:
 ```python
 # visualization.py
 import matplotlib
+
 matplotlib.use("Agg")  # Must precede pyplot import; no display server on Lambda
 import matplotlib.pyplot as plt
 ```
