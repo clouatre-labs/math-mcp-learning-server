@@ -189,7 +189,7 @@ jobs:
         with:
           advanced-security: false
           annotations: true
-          min-severity: high
+          min-severity: medium
           token: ${{ secrets.GITHUB_TOKEN }}
 
   poutine:
