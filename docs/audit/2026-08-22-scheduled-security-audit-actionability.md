@@ -86,7 +86,7 @@ Practically: `pip-audit` costs one `uv tool run pip-audit` invocation on a weekl
 
 **Yes.** Renovate's GitHub Actions support (confirmed via Context7 against `docs.renovatebot.com/modules/manager/github-actions`) is limited to version and digest pin bumping. It performs no static analysis of workflow YAML for injection risk, excessive permissions, or supply-chain issues -- that is exactly what `zizmor` and `poutine` do, and nothing else in this repo's toolchain covers it. The `pip-audit` leg has partial conceptual overlap with Dependabot alerts (S05) but is not made redundant by them. The unrelated `typecheck` gating fix in #462 is an orthogonal, correct bug fix.
 
-**Recommendation: merge #462 as-is.** The actionability gaps (S01, S02) predate #462 in `ci.yml` and were simply copied into the new scheduled workflow; they are not a reason to hold #462, only a reason for this follow-up.
+**Recommendation: merge #462 as-is.** The actionability gaps (S01, S02) predate #462 in `ci.yml` and were simply copied into the new scheduled workflow; they are not a reason to hold #462, only a reason for the follow-up in [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463).
 
 ## Summary
 
@@ -94,9 +94,9 @@ Practically: `pip-audit` costs one `uv tool run pip-audit` invocation on a weekl
 
 | ID | Severity | Finding | Status |
 |----|----------|---------|--------|
-| S01 | High | `zizmor` findings not persisted to Code Scanning | Fixed in this PR |
-| S02 | High | `poutine` produces no signal (dead input, no fail threshold, SARIF discarded) | Fixed in this PR |
-| S03 | Medium | Renovate not wired to native GitHub vulnerability alerts | Fixed in this PR |
+| S01 | High | `zizmor` findings not persisted to Code Scanning | Fixed -- [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463) |
+| S02 | High | `poutine` produces no signal (dead input, no fail threshold, SARIF discarded) | Fixed -- [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463) |
+| S03 | Medium | Renovate not wired to native GitHub vulnerability alerts | Fixed -- [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463) |
 | S04 | Info | `aptu-github-app` cannot ingest external SARIF or run on a schedule | Backlog candidate, not implemented |
 | S05 | Info | `pip-audit` schedule redundancy with Dependabot alerts | No action; confirmed non-redundant |
 
@@ -105,5 +105,5 @@ Practically: `pip-audit` costs one `uv tool run pip-audit` invocation on a weekl
 ## Recommended Action Order
 
 1. **Merge #462** as originally written.
-2. **Merge this follow-up** (S01-S03 fixes) on top of it. Both are CI-configuration-only changes with no effect on application code, verified locally with `zizmor` before push.
+2. **Merge [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463)** (S01-S03 fixes) on top of it. Both are CI-configuration-only changes with no effect on application code, verified locally with `zizmor` before push.
 3. **S04** -- optional: file a feature-request issue against `aptu-github-app` for scheduled-dispatch + external-SARIF-ingestion if cross-tool AI-summarized triage becomes valuable later. Not blocking.
