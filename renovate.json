@@ -3,6 +3,9 @@
   "extends": [
     "config:best-practices"
   ],
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
   "platformAutomerge": true,
   "labels": [
     "dependencies"
