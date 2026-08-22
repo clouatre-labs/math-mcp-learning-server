@@ -182,13 +182,12 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
-      actions: read
-      security-events: write
+      security-events: write # needed for SARIF upload on public repos
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
         with:
-          advanced-security: true
+          advanced-security: ${{ github.event.repository.visibility == 'public' }}
           min-severity: medium
           token: ${{ secrets.GITHUB_TOKEN }}
 
