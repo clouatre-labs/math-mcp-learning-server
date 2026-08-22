@@ -14,6 +14,9 @@ permissions: {}
 jobs:
   analyze:
     name: Scorecard analysis
+    # OpenSSF Scorecard only supports public repositories.
+    # Skip on private/internal repos to avoid GITHUB_TOKEN GraphQL access errors.
+    if: github.event.repository.visibility == 'public'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 15
     permissions:
