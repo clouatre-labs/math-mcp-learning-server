@@ -15,11 +15,35 @@ This audit answers three questions raised before merging #462:
 2. **Given Renovate is already running in this repo, is #462 redundant?**
 3. **Can remediation be automated safely through Renovate or the org's own `aptu` / `aptu-github-app`, without adding a maintenance burden or risking breakage?**
 
-Scope: `.github/workflows/ci.yml`, `.github/workflows/scheduled-security-audit.yml`, `renovate.json`, and the `zizmorcore/zizmor-action`, `boostsecurityio/poutine-action`, and Renovate feature surfaces those workflows depend on. No application source was touched.
-
 ## Methodology
 
-Four independent research delegates (Claude Haiku 4.5) ran in parallel via Workflow, each verifying one claim against primary sources (action READMEs/`action.yml` via WebFetch and `gh api`, Renovate docs via Context7, web search for corroboration), followed by an adversarial pass that read all four reports back and flagged unsourced or speculative claims. Findings below are stated only where corroborated by an action's own `action.yml`/README or by official Renovate documentation; the two areas where sourcing was weaker (pip-audit vs. Dependabot coverage overlap) are flagged as such rather than asserted. The `poutine` finding (S02) was confirmed directly by reading `boostsecurityio/poutine-action`'s `action.yml` and `boostsecurityio/poutine`'s CLI `--help` output, not by the research delegates.
+Four independent research delegates (Claude Haiku 4.5) ran in parallel via Workflow, each verifying one claim against primary sources (action READMEs/`action.yml` via WebFetch and `gh api`, Renovate docs via Context7, web search for corroboration), followed by an adversarial pass that read all four reports back and flagged unsourced or speculative claims. Findings below are stated only where corroborated by an action's own `action.yml`/README or by official Renovate documentation; the two areas where sourcing was weaker (pip-audit vs. Dependabot coverage overlap) are flagged as such rather than asserted. The `poutine` finding (S02) was confirmed directly by reading `boostsecurityio/poutine-action`'s `action.yml` and `boostsecurityio/poutine`'s CLI `--help` output, not by the research delegates. The addendum (below) was confirmed by reading `aptu-github-app`'s worker source (`worker/src/config.ts`, `worker/src/index.ts`) and `aptu`'s CLI source (`crates/aptu-cli/src/cli.rs`, `src/commands/scan_security.rs`) directly, not from README prose alone.
+
+## Scope
+
+| Area | Files / surfaces examined |
+|------|---------------------------|
+| CI workflows | `.github/workflows/ci.yml`, `.github/workflows/scheduled-security-audit.yml` |
+| Dependency automation | `renovate.json`, GitHub Dependabot alerts (`vulnerability-alerts` API) |
+| aptu integration | `.github/aptu.yml`, `aptu-github-app` worker source, `aptu` CLI source |
+| External action internals | `zizmorcore/zizmor-action`, `boostsecurityio/poutine-action`, `github/codeql-action/upload-sarif` |
+
+No application source (`src/math_mcp/**`) was touched or in scope.
+
+## Summary
+
+*Table 1: Findings and resolution.*
+
+| ID | Severity | Finding | Status |
+|----|----------|---------|--------|
+| S01 | High | `zizmor` findings not persisted to Code Scanning | Fixed -- [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463) |
+| S02 | High | `poutine` produces no signal (dead input, no fail threshold, SARIF discarded) | Fixed -- [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463) |
+| S03 | Medium | Renovate not wired to native GitHub vulnerability alerts | Fixed -- [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463) |
+| S04 | Info | `aptu-github-app` cannot ingest external SARIF or run on a schedule | Backlog candidate, not implemented |
+| S05 | Info | `pip-audit` schedule redundancy with Dependabot alerts | No action; confirmed non-redundant |
+| A01 | Info | Fix wired entirely through free, public-repo GitHub features -- no GHAS | Confirmed, no action needed |
+| A02 | Info | `.github/aptu.yml`'s `scan.enabled` layer is complementary, not conflicting | Confirmed, no action needed |
+| A03 | Low | `aptu`'s own `src/**` scan has the same schedule gap S01/S02 had | Backlog candidate, not implemented |
 
 ## Findings
 
@@ -88,22 +112,34 @@ Practically: `pip-audit` costs one `uv tool run pip-audit` invocation on a weekl
 
 **Recommendation: merge #462 as-is.** The actionability gaps (S01, S02) predate #462 in `ci.yml` and were simply copied into the new scheduled workflow; they are not a reason to hold #462, only a reason for the follow-up in [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463).
 
-## Summary
+**Update (2026-08-22):** #462 has merged. #463 has auto-merge enabled, pending its CI run against `main`.
 
-*Table 1: Findings and resolution.*
+---
 
-| ID | Severity | Finding | Status |
-|----|----------|---------|--------|
-| S01 | High | `zizmor` findings not persisted to Code Scanning | Fixed -- [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463) |
-| S02 | High | `poutine` produces no signal (dead input, no fail threshold, SARIF discarded) | Fixed -- [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463) |
-| S03 | Medium | Renovate not wired to native GitHub vulnerability alerts | Fixed -- [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463) |
-| S04 | Info | `aptu-github-app` cannot ingest external SARIF or run on a schedule | Backlog candidate, not implemented |
-| S05 | Info | `pip-audit` schedule redundancy with Dependabot alerts | No action; confirmed non-redundant |
+## Addendum: `aptu.yml` interaction, cost, and format alignment
 
-**Traceability model going forward:** zizmor and poutine findings land in the repository's Security tab (Code Scanning), where GitHub's own watch/notification settings surface new alerts to maintainers, and each alert carries its own dismiss/fix/reopen history -- no bespoke issue-creation automation was added, since it would duplicate what Code Scanning already provides. CVE findings from Dependabot alerts now flow into Renovate PRs, which carry the existing `dependencies` label and automerge rules. No new service, credential, or scheduled job was introduced beyond what #462 already added.
+Three questions came up after the initial findings above: does this fix interact with the repo's existing `.github/aptu.yml`, does it stay entirely within GitHub's free tier, and does this document's own format line up with `aptu-coder`'s `docs/audit/` convention. Answered by reading source directly rather than README prose, per the Methodology note above.
+
+### A01 -- INFO -- Everything here runs on GitHub's free tier
+
+`math-mcp-learning-server` is a public repository. Every mechanism S01-S03 rely on is free for public repos with no GitHub Advanced Security (GHAS) license: GitHub Code Scanning (SARIF upload/storage, used by `advanced-security: true` in S01 and the `upload-sarif` step in S02) is GHAS-gated only on private repositories; GitHub Actions minutes are unmetered on public repos; and Dependabot alerts (the vulnerability-alerts API checked in S03) have been a free, native feature on all repositories, public or private, since 2022 -- no GHAS involved at all. Renovate's own hosted GitHub App is free for public/open-source repositories; `vulnerabilityAlerts.enabled: true` is a config flag, not a paid feature toggle. Nothing in #462 or #463 introduces a paid GitHub feature.
+
+### A02 -- INFO -- `.github/aptu.yml`'s scan layer is complementary, not conflicting
+
+This repo's `.github/aptu.yml` already has `scan.enabled: true` with `path: src/`, dispatching `aptu scan-security` (local pattern matching, no AI required) on every PR push and uploading its own SARIF to Code Scanning. That is a third, independent SARIF producer alongside zizmor (workflow injection/permission risk) and poutine (workflow supply-chain risk) -- three tools, three non-overlapping scopes (`src/**` app-code patterns vs. `.github/workflows/**` vs. dependency CVEs), all landing in the same Security tab under distinct tool names with no collision. Nothing in S01-S03 changes what aptu scans or how; the two systems were never coupled and stay that way.
+
+One correction to the initial finding write-up: the publicly documented `scan.fail-on` values (`none`/`warning`/`error`) do not match either the actual worker code or the actual CLI. `aptu-github-app`'s `worker/src/config.ts` passes `scan['fail-on']` through as an opaque string with no enum validation, and `aptu`'s own CLI (`crates/aptu-cli/src/cli.rs`, `src/commands/scan_security.rs`) takes `--fail-on` as a comma-separated list of severities (e.g. `critical,high`) matched against `aptu-core`'s severity types. This repo's `fail-on: critical,high` matches the real implementation exactly -- it is not a misconfiguration, the README is just stale relative to the shipped code.
+
+### A03 -- LOW -- `aptu`'s own scan has the same schedule gap S01/S02 had
+
+`scan.enabled` only dispatches on `pull_request` push events (confirmed in `worker/src/index.ts`), same as the S04 finding already noted. That means `aptu scan-security`'s coverage of `src/**` goes stale between touches to that path, for the same reason `pip-audit`/`zizmor`/`poutine` did before #462 -- nobody has to touch `src/**` for the pattern scan to go unexercised for weeks. Unlike S04's ingestion gap, this one has a direct, no-new-code fix available: `aptu scan-security` ships as a standalone CLI/Action (`aptu scan-security . --sarif-output findings.sarif`, local pattern matching only, no `ai` block or API key required per its own docs), so it could be added as a fourth job in `scheduled-security-audit.yml` alongside `pip-audit`/`zizmor`/`poutine` with an `upload-sarif` step, matching the pattern S01/S02 established.
+
+**Not implemented here** -- this audit was scoped to #462's own three checks, and adding a fourth scanner is a new capability rather than a fix to what #462 shipped. Flagged for a decision on whether to extend the schedule.
+
+---
 
 ## Recommended Action Order
 
-1. **Merge #462** as originally written.
-2. **Merge [#463](https://github.com/clouatre-labs/math-mcp-learning-server/pull/463)** (S01-S03 fixes) on top of it. Both are CI-configuration-only changes with no effect on application code, verified locally with `zizmor` before push.
-3. **S04** -- optional: file a feature-request issue against `aptu-github-app` for scheduled-dispatch + external-SARIF-ingestion if cross-tool AI-summarized triage becomes valuable later. Not blocking.
+1. ~~Merge #462 as originally written.~~ **Done, 2026-08-22.**
+2. Merge #463 (S01-S03 fixes) on top of it. **Auto-merge enabled, 2026-08-22; pending CI.**
+3. **S04/A03** -- optional, same shape: extend `scheduled-security-audit.yml` with a fourth `aptu scan-security` job (A03), and/or file a feature-request issue against `aptu-github-app` for native scheduled-dispatch + external-SARIF-ingestion (S04) if cross-tool AI-summarized triage becomes valuable later. Neither is blocking; both are additive.
