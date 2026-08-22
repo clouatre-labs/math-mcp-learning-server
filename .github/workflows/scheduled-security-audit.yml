@@ -1,0 +1,70 @@
+name: Scheduled Security Audit
+
+# CVE data and Actions security advisories change independent of code commits.
+# ci.yml's pip-audit/zizmor/poutine jobs are gated behind a path-filter (only run
+# when src/**, tests/**, pyproject.toml, uv.lock, or .github/workflows/** change in
+# a PR), so a dependency or workflow could go newly vulnerable and stay unvetted
+# for weeks if nobody touches those paths. This workflow re-runs the same three
+# checks on a weekly schedule, independent of any diff.
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  pip-audit:
+    name: CVE scan
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+
+      - name: Scan dependencies for CVEs
+        run: uv tool run pip-audit
+
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
+        with:
+          advanced-security: false
+          annotations: true
+          min-severity: medium
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  poutine:
+    name: Workflow Audit
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run poutine
+        uses: boostsecurityio/poutine-action@e240ebd3eff8b2db5a8e5f6b28f58739d7db2247 # v1.1.4
+        with:
+          action: analyze_local
