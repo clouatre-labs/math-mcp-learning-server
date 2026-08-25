@@ -1,10 +1,10 @@
 name: Scheduled Security Audit
 
 # CVE data and Actions security advisories change independent of code commits.
-# ci.yml's pip-audit/zizmor/poutine jobs are gated behind a path-filter (only run
+# ci.yml's pip-audit/zizmor jobs are gated behind a path-filter (only run
 # when src/**, tests/**, pyproject.toml, uv.lock, or .github/workflows/** change in
 # a PR), so a dependency or workflow could go newly vulnerable and stay unvetted
-# for weeks if nobody touches those paths. This workflow re-runs the same three
+# for weeks if nobody touches those paths. This workflow re-runs the same two
 # checks on a weekly schedule, independent of any diff.
 
 on:
@@ -54,20 +54,3 @@ jobs:
           min-severity: medium
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  poutine:
-    name: Workflow Audit
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Run poutine
-        uses: boostsecurityio/poutine-action@e240ebd3eff8b2db5a8e5f6b28f58739d7db2247 # v1.1.4
-      - name: Upload poutine SARIF results
-        uses: github/codeql-action/upload-sarif@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
-        with:
-          sarif_file: results.sarif
-        continue-on-error: true
