@@ -130,7 +130,7 @@ class AgentCard(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     protocol_version: str = Field(
-        default="1.0",
+        default="0.3.0",
         alias="protocolVersion",
         description="A2A protocol version",
     )

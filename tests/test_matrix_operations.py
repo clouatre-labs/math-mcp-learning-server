@@ -1,7 +1,4 @@
-"""
-Test specifications for matrix operations (TDD - RED phase).
-
-Tests define API contracts before implementation and are skipped until GREEN phase.
+"""Tests for matrix operations.
 
 Tools tested:
 - matrix_multiply: Multiply two matrices

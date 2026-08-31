@@ -135,7 +135,7 @@ async def build_agent_card() -> AgentCard:
     # Build agent card with server metadata
     agent_card = AgentCard.model_validate(
         {
-            "protocolVersion": "1.0",
+            "protocolVersion": "0.3.0",
             "name": "Math Learning Server",
             "description": "Educational MCP server demonstrating FastMCP best practices for math operations, visualization, and persistent workspaces.",
             "version": version,

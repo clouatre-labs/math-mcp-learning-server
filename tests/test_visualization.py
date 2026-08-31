@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 """
 Test cases for visualization tools (plot_function and plot_histogram)
-
-Note: The import matplotlib/numpy pattern in tests is intentional for checking
-package availability before running visualization tests. The noqa: F401 comments
-suppress unused import warnings as these imports are used for dependency checking.
 """
 
 import unittest.mock
@@ -14,37 +10,14 @@ from fastmcp.utilities.types import Image
 
 from math_mcp.tools.visualization import VisualizationError
 
+pytest.importorskip("matplotlib")
+
 # === PLOT FUNCTION TESTS ===
-
-
-@pytest.mark.asyncio
-async def test_plot_function_graceful_degradation_structure(mock_context):
-    """Test plot_function has graceful degradation for missing matplotlib.
-
-    Note: The requires_matplotlib decorator returns VisualizationError when
-    matplotlib is not available. Manual testing confirms this path works.
-    """
-    # This test documents the expected error structure
-    expected_error = VisualizationError(
-        message="**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-        error_type="missing_dependency",
-    )
-
-    # Verify the expected structure is correct
-    assert isinstance(expected_error, VisualizationError)
-    assert "Matplotlib not available" in expected_error.message
-    assert expected_error.error_type == "missing_dependency"
 
 
 @pytest.mark.asyncio
 async def test_plot_function_basic_quadratic(mock_context):
     """Test plotting a basic quadratic function."""
-    try:
-        import matplotlib  # noqa: F401
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_function
 
     with unittest.mock.patch("math_mcp.tools.visualization.logger") as mock_logger:
@@ -59,12 +32,6 @@ async def test_plot_function_basic_quadratic(mock_context):
 @pytest.mark.asyncio
 async def test_plot_function_trigonometric(mock_context):
     """Test plotting trigonometric functions (happy path)."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_function
 
     result = await plot_function.raw_function("sin(x)", (-3.14159, 3.14159), 100, mock_context)
@@ -77,12 +44,6 @@ async def test_plot_function_trigonometric(mock_context):
 @pytest.mark.asyncio
 async def test_plot_function_invalid_range(mock_context):
     """Test plot_function with invalid x_range (edge case)."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_function
 
     # x_min >= x_max
@@ -95,12 +56,6 @@ async def test_plot_function_invalid_range(mock_context):
 @pytest.mark.asyncio
 async def test_plot_function_invalid_num_points(mock_context):
     """Test plot_function with invalid num_points (edge case)."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_function
 
     # raw_function bypasses validate_call; the manual guard returns VisualizationError
@@ -113,12 +68,6 @@ async def test_plot_function_invalid_num_points(mock_context):
 @pytest.mark.asyncio
 async def test_plot_function_with_domain_error(mock_context):
     """Test plot_function with expression that has domain errors (happy path)."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_function
 
     # sqrt of negative numbers will cause domain errors for negative x
@@ -133,12 +82,6 @@ async def test_plot_function_with_domain_error(mock_context):
 @pytest.mark.asyncio
 async def test_plot_function_without_context():
     """Test plot_function works without context parameter (happy path)."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_function
 
     result = await plot_function.raw_function("x**2", (-5.0, 5.0), 50, None)
@@ -152,36 +95,8 @@ async def test_plot_function_without_context():
 
 
 @pytest.mark.asyncio
-async def test_plot_histogram_graceful_degradation_structure(mock_context):
-    """Test plot_histogram has graceful degradation for missing matplotlib.
-
-    Note: This test verifies the error message structure that would be returned
-    if matplotlib were not available. The actual ImportError path is tested
-    by manual testing without matplotlib installed.
-    """
-    # This test documents the expected behavior when matplotlib is missing
-    # The actual graceful degradation logic is in the tool implementation
-
-    expected_error_structure = VisualizationError(
-        message="**Matplotlib not available**\n\nInstall with: `pip install math-mcp-learning-server[plotting]`\n\nOr for development: `uv sync --extra plotting`",
-        error_type="missing_dependency",
-    )
-
-    # Verify the expected structure is correct
-    assert isinstance(expected_error_structure, VisualizationError)
-    assert "Matplotlib not available" in expected_error_structure.message
-    assert expected_error_structure.error_type == "missing_dependency"
-
-
-@pytest.mark.asyncio
 async def test_plot_histogram_basic(mock_context):
     """Test creating a basic histogram."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_histogram
 
     data = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 5.0]
@@ -197,12 +112,6 @@ async def test_plot_histogram_basic(mock_context):
 @pytest.mark.asyncio
 async def test_plot_histogram_empty_data(mock_context):
     """Test plot_histogram with empty data."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_histogram
 
     result = await plot_histogram.raw_function([], 10, "Test", mock_context)
@@ -216,12 +125,6 @@ async def test_plot_histogram_empty_data(mock_context):
 @pytest.mark.asyncio
 async def test_plot_histogram_single_value(mock_context):
     """Test plot_histogram with single data point."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_histogram
 
     result = await plot_histogram.raw_function([42.0], 10, "Test", mock_context)
@@ -234,12 +137,6 @@ async def test_plot_histogram_single_value(mock_context):
 @pytest.mark.asyncio
 async def test_plot_histogram_invalid_bins(mock_context):
     """Test plot_histogram with invalid bins parameter."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_histogram
 
     result = await plot_histogram.raw_function([1.0, 2.0, 3.0], 0, "Test", mock_context)
@@ -249,12 +146,6 @@ async def test_plot_histogram_invalid_bins(mock_context):
 @pytest.mark.asyncio
 async def test_plot_histogram_large_dataset(mock_context):
     """Test plot_histogram with larger dataset."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_histogram
 
     # Generate normally distributed data
@@ -269,12 +160,6 @@ async def test_plot_histogram_large_dataset(mock_context):
 @pytest.mark.asyncio
 async def test_plot_histogram_custom_title(mock_context):
     """Test plot_histogram with custom title."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_histogram
 
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -288,12 +173,6 @@ async def test_plot_histogram_custom_title(mock_context):
 @pytest.mark.asyncio
 async def test_plot_histogram_without_context():
     """Test plot_histogram works without context parameter."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_histogram
 
     data = [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -310,12 +189,6 @@ async def test_plot_histogram_without_context():
 @pytest.mark.asyncio
 async def test_visualization_tools_return_proper_structure(mock_context):
     """Test that both visualization tools return properly structured output."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_function, plot_histogram
 
     # Test plot_function
@@ -334,12 +207,6 @@ async def test_visualization_tools_return_proper_structure(mock_context):
 @pytest.mark.asyncio
 async def test_visualization_educational_annotations():
     """Test that visualization tools return Image objects."""
-    try:
-        import matplotlib
-        import numpy as np
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_function, plot_histogram
 
     # Test plot_function returns Image
@@ -383,11 +250,6 @@ class TestVisualizationModule:
 
     def test_create_line_chart_success(self):
         """Test line chart generation."""
-        try:
-            import matplotlib
-        except ImportError:
-            pytest.skip("matplotlib not available")
-
         from math_mcp import visualization
 
         result = visualization.create_line_chart(x_data=[1, 2, 3, 4], y_data=[1, 4, 9, 16])
@@ -396,11 +258,6 @@ class TestVisualizationModule:
 
     def test_create_scatter_plot_success(self):
         """Test scatter plot generation."""
-        try:
-            import matplotlib
-        except ImportError:
-            pytest.skip("matplotlib not available")
-
         from math_mcp import visualization
 
         result = visualization.create_scatter_plot(x_data=[1, 2, 3], y_data=[2, 4, 6])
@@ -408,11 +265,6 @@ class TestVisualizationModule:
 
     def test_create_box_plot_success(self):
         """Test box plot generation."""
-        try:
-            import matplotlib
-        except ImportError:
-            pytest.skip("matplotlib not available")
-
         from math_mcp import visualization
 
         result = visualization.create_box_plot(data_groups=[[1, 2, 3], [4, 5, 6]])
@@ -431,11 +283,6 @@ class TestVisualizationModule:
 
     def test_create_financial_line_chart_success(self):
         """Test financial chart generation."""
-        try:
-            import matplotlib
-        except ImportError:
-            pytest.skip("matplotlib not available")
-
         from math_mcp import visualization
 
         dates, prices = visualization.generate_synthetic_price_data(days=20)
@@ -449,11 +296,6 @@ class TestVisualizationModule:
 @pytest.mark.asyncio
 async def test_plot_line_chart_basic(mock_context):
     """Test plot_line_chart tool."""
-    try:
-        import matplotlib
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_line_chart
 
     result = await plot_line_chart.raw_function(
@@ -475,11 +317,6 @@ async def test_plot_line_chart_basic(mock_context):
 @pytest.mark.asyncio
 async def test_plot_scatter_basic(mock_context):
     """Test plot_scatter tool."""
-    try:
-        import matplotlib
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_scatter
 
     result = await plot_scatter.raw_function(
@@ -494,11 +331,6 @@ async def test_plot_scatter_basic(mock_context):
 @pytest.mark.asyncio
 async def test_plot_box_plot_basic(mock_context):
     """Test plot_box_plot tool."""
-    try:
-        import matplotlib
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_box_plot
 
     result = await plot_box_plot.raw_function(
@@ -518,11 +350,6 @@ async def test_plot_box_plot_basic(mock_context):
 @pytest.mark.asyncio
 async def test_plot_financial_line_basic(mock_context):
     """Test plot_financial_line tool."""
-    try:
-        import matplotlib
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_financial_line
 
     result = await plot_financial_line.raw_function(30, "bullish", 100.0, None, mock_context)
@@ -535,11 +362,6 @@ async def test_plot_financial_line_basic(mock_context):
 @pytest.mark.asyncio
 async def test_plot_line_chart_error_mismatched_length(mock_context):
     """Test plot_line_chart with mismatched data lengths."""
-    try:
-        import matplotlib
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_line_chart
 
     result = await plot_line_chart.raw_function(
@@ -553,15 +375,28 @@ async def test_plot_line_chart_error_mismatched_length(mock_context):
 @pytest.mark.asyncio
 async def test_plot_financial_line_invalid_trend(mock_context):
     """Test plot_financial_line with invalid trend."""
-    try:
-        import matplotlib
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_financial_line
 
     result = await plot_financial_line.raw_function(30, "invalid_trend", 100.0, None, mock_context)
     assert isinstance(result, VisualizationError)
+
+
+@pytest.mark.asyncio
+async def test_plot_line_chart_unexpected_error(mock_context):
+    """Test plot_line_chart returns unexpected_error for a non-ValueError exception (edge case)."""
+    from math_mcp.tools.visualization import plot_line_chart
+
+    with unittest.mock.patch(
+        "math_mcp.tools.visualization.visualization.create_line_chart",
+        side_effect=RuntimeError("downstream failure"),
+    ):
+        result = await plot_line_chart.raw_function(
+            [1.0, 2.0, 3.0], [1.0, 2.0, 3.0], "Test", "X", "Y", None, True, mock_context
+        )
+
+    assert isinstance(result, VisualizationError)
+    assert result.error_type == "unexpected_error"
+    assert len(result.message) > 0
 
 
 def test_regex_substitution_preserves_function_names_with_x():
@@ -662,12 +497,6 @@ def test_create_function_plot_basic():
     Act: Call create_function_plot with valid inputs
     Assert: Returns base64-encoded PNG bytes
     """
-    try:
-        import matplotlib  # noqa: F401
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.visualization import create_function_plot
 
     # Arrange: Simple linear function data
@@ -690,12 +519,6 @@ def test_create_function_plot_with_nan():
     Act: Call create_function_plot with NaN in y_values
     Assert: Returns valid PNG despite NaN (matplotlib handles gracefully)
     """
-    try:
-        import matplotlib  # noqa: F401
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     import math
 
     from math_mcp.visualization import create_function_plot
@@ -720,12 +543,6 @@ def test_create_histogram_chart_basic():
     Act: Call create_histogram_chart with valid inputs
     Assert: Returns base64-encoded PNG bytes
     """
-    try:
-        import matplotlib  # noqa: F401
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.visualization import create_histogram_chart
 
     # Arrange: Sample data with pre-computed statistics
@@ -751,12 +568,6 @@ def test_create_histogram_chart_bins_exceeds_data():
     Act: Call create_histogram_chart with bins > len(data)
     Assert: Returns valid PNG (matplotlib handles gracefully)
     """
-    try:
-        import matplotlib  # noqa: F401
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.visualization import create_histogram_chart
 
     # Arrange: Only 3 data points but 10 bins requested
@@ -786,12 +597,6 @@ async def test_plot_function_progress_reporting(mock_context):
     Act: Call plot_function with mock context
     Assert: progress_reports contains 3-tuples with messages, starts with (0, num_points, message), ends with (num_points, num_points, message)
     """
-    try:
-        import matplotlib  # noqa: F401
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_function
 
     # Arrange: Simple linear function
@@ -827,12 +632,6 @@ async def test_plot_histogram_progress_reporting(mock_context):
     Act: Call plot_histogram with mock context
     Assert: progress_reports contains 4 stages with 3-tuples (current, total, message)
     """
-    try:
-        import matplotlib  # noqa: F401
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pytest.skip("matplotlib not available")
-
     from math_mcp.tools.visualization import plot_histogram
 
     # Arrange: Sample data
