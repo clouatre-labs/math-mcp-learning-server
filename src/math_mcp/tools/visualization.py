@@ -52,6 +52,21 @@ class VisualizationError(BaseModel):
 # --- Helpers ---
 
 
+def _unexpected_error(exc: Exception, context: str | None = None) -> VisualizationError:
+    """Build a VisualizationError for an unhandled exception.
+
+    When context is provided, logs the error with that context first,
+    preserving the tool-specific logger.error calls that previously lived
+    in each except Exception block.
+    """
+    if context:
+        logger.error(f"{context}: {exc}")
+    return VisualizationError(
+        message=f"**Unexpected Error:** {exc!s}",
+        error_type="unexpected_error",
+    )
+
+
 def requires_matplotlib(func: Any) -> Any:
     """Decorator ensuring matplotlib is available before running visualization tools.
 
@@ -192,11 +207,7 @@ async def plot_function(
             error_type="plot_error",
         )
     except Exception as e:
-        logger.error(f"Plot function unexpected error: {e}")
-        return VisualizationError(
-            message=f"**Unexpected Error:** {str(e)}",
-            error_type="unexpected_error",
-        )
+        return _unexpected_error(e, "Plot function unexpected error")
 
 
 @visualization_mcp.tool(
@@ -277,11 +288,7 @@ async def plot_histogram(  # noqa: C901
             error_type="histogram_error",
         )
     except Exception as e:
-        logger.error(f"Histogram unexpected error: {e}")
-        return VisualizationError(
-            message=f"**Unexpected Error:** {str(e)}",
-            error_type="unexpected_error",
-        )
+        return _unexpected_error(e, "Histogram unexpected error")
 
 
 @visualization_mcp.tool(
@@ -357,10 +364,7 @@ async def plot_line_chart(
             error_type="line_chart_error",
         )
     except Exception as e:
-        return VisualizationError(
-            message=f"**Unexpected Error:** {str(e)}",
-            error_type="unexpected_error",
-        )
+        return _unexpected_error(e)
 
 
 @visualization_mcp.tool(
@@ -436,10 +440,7 @@ async def plot_scatter(
             error_type="scatter_chart_error",
         )
     except Exception as e:
-        return VisualizationError(
-            message=f"**Unexpected Error:** {str(e)}",
-            error_type="unexpected_error",
-        )
+        return _unexpected_error(e)
 
 
 @visualization_mcp.tool(
@@ -517,10 +518,7 @@ async def plot_box_plot(
             error_type="box_plot_error",
         )
     except Exception as e:
-        return VisualizationError(
-            message=f"**Unexpected Error:** {str(e)}",
-            error_type="unexpected_error",
-        )
+        return _unexpected_error(e)
 
 
 @visualization_mcp.tool(
@@ -614,7 +612,4 @@ async def plot_financial_line(
             error_type="financial_chart_error",
         )
     except Exception as e:
-        return VisualizationError(
-            message=f"**Unexpected Error:** {str(e)}",
-            error_type="unexpected_error",
-        )
+        return _unexpected_error(e)

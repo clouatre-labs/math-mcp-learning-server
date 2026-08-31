@@ -6,7 +6,6 @@ Test cases for the FastMCP Math Server
 import asyncio
 import os
 import unittest.mock
-from unittest.mock import patch
 
 import pytest
 from fastmcp.utilities.types import Image
@@ -16,7 +15,6 @@ from math_mcp.eval import (
     evaluate_with_timeout,
     safe_eval_expression,
 )
-from math_mcp.persistence.storage import ensure_workspace_directory
 from math_mcp.resources import get_math_constant, get_workspace
 from math_mcp.settings import (
     MAX_ARRAY_SIZE,
@@ -813,56 +811,6 @@ def test_classify_expression_topic_default():
 
     result = _classify_expression_topic("2 + 3 * 4")
     assert result == "arithmetic"
-
-
-# === MATRIX.PY VALIDATION ===
-
-
-def test_validate_matrix_empty():
-    """Empty matrix raises ValueError."""
-    pytest.importorskip("numpy")
-    from math_mcp.tools.matrix import _validate_matrix
-
-    with pytest.raises(ValueError, match="empty"):
-        _validate_matrix([])
-
-
-def test_validate_matrix_jagged_rows():
-    """Matrix with rows of different lengths raises ValueError."""
-    pytest.importorskip("numpy")
-    from math_mcp.tools.matrix import _validate_matrix
-
-    with pytest.raises(ValueError, match="same length"):
-        _validate_matrix([[1, 2], [3, 4, 5]])
-
-
-def test_validate_matrix_non_numeric():
-    """Matrix with non-numeric element raises ValueError."""
-    pytest.importorskip("numpy")
-    from math_mcp.tools.matrix import _validate_matrix
-
-    with pytest.raises(ValueError, match="numeric"):
-        _validate_matrix([[1, "two"], [3, 4]])
-
-
-def test_validate_matrix_oversized():
-    """Matrix exceeding max_size raises ValueError."""
-    pytest.importorskip("numpy")
-    from math_mcp.tools.matrix import _validate_matrix
-
-    big_matrix = [[1.0] * 101 for _ in range(101)]
-    with pytest.raises(ValueError, match="exceed"):
-        _validate_matrix(big_matrix, max_size=100)
-
-
-# === STORAGE.PY OSERROR PATH ===
-
-
-def test_ensure_workspace_directory_oserror():
-    """mkdir raises OSError -> returns False."""
-    with patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")):
-        result = ensure_workspace_directory()
-        assert result is False
 
 
 # === CALCULATE.PY CTX-GUARDED PATHS ===

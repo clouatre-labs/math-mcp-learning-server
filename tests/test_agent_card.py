@@ -34,7 +34,7 @@ async def test_agent_card_has_required_fields(http_server: str) -> None:
 
         # Required fields per A2A v0.3 spec
         assert "protocolVersion" in card
-        assert card["protocolVersion"] == "1.0"
+        assert card["protocolVersion"] == "0.3.0"
         assert "name" in card
         assert card["name"] == "Math Learning Server"
         assert "description" in card
