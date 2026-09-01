@@ -70,6 +70,7 @@ jobs:
   create-release:
     name: Create GitHub release
     needs: verify-tag-signature
+    if: ${{ !failure() && !cancelled() }}
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 5
     permissions:
