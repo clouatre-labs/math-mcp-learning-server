@@ -157,7 +157,7 @@ jobs:
   publish:
     name: Publish to PyPI
     needs: [create-release, build-and-attest]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     if: needs.create-release.outputs.dry_run != 'true'
     environment:
