@@ -21,11 +21,12 @@ Example: "Extract duplicate validation logic from `calculate.py` and `matrix.py`
 <!-- Show the problem with file paths and line ranges. -->
 
 File: `src/math_mcp/...` (lines N-N)
+
 ```python
 <code snippet showing current pattern>
 ```
 
-Problem: <describe what makes this a problem>
+Problem: `<describe what makes this a problem>`
 
 ## Proposed Changes
 <!-- What to change and how. Reference existing patterns. -->
@@ -33,6 +34,7 @@ Problem: <describe what makes this a problem>
 1.
 
 ### Integration Notes
+
 - No public API changes; refactoring is internal only
 - Behavior must be identical: same results, same error handling
 

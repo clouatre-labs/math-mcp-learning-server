@@ -46,9 +46,10 @@ Please do not report security vulnerabilities through public GitHub issues.
 
 ### 2. Email Us Directly
 
-Send details to: **hugues+mcp-security@linux.com**
+Send details to: **<hugues+mcp-security@linux.com>**
 
 Include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
@@ -95,6 +96,7 @@ Automated dependency updates via Renovate, including GitHub Actions pins.
 This project implements several security measures:
 
 ### Safe Expression Evaluation
+
 - Three-layer defense-in-depth model (see [ADR-001](docs/adr/001-eval-sandbox.md)):
   - **Layer 1 (AST allowlist):** `_ASTValidator` (ast.NodeVisitor subclass) rejects non-whitelisted AST node types before evaluation
   - **Layer 2 (Character whitelist + regex):** `_check_expression_security` rejects dangerous patterns (`import`, `exec`, `__`, `eval`, `open`, `file`) and invalid characters
@@ -102,16 +104,19 @@ This project implements several security measures:
 - Security logging for suspicious attempts
 
 ### Input Validation
+
 - All tool inputs validated with Pydantic models
 - Type checking enforced
 - Structured error handling without exposing sensitive information
 
 ### File Operations
+
 - Workspace operations restricted to designated directory
 - Cross-platform path handling
 - Atomic file operations with proper locking
 
 ### Dependencies
+
 - Regular dependency updates via Renovate
 - Minimal dependency footprint (core uses stdlib only)
 - Security scanning in CI/CD pipeline
@@ -121,6 +126,7 @@ This project implements several security measures:
 A security review of this project was conducted in March 2026.
 
 **Scope:**
+
 - `src/math_mcp/eval.py`: restricted `eval()` implementation -- three-layer defense:
   AST NodeVisitor allowlist (`_ASTValidator`), character whitelist and dangerous-pattern
   blocklist, globals locked to `{abs, math}` only
@@ -135,6 +141,7 @@ validation layer.
 ## Scope
 
 ### In Scope
+
 - Server code vulnerabilities
 - Expression evaluation bypass
 - File system access violations
@@ -142,6 +149,7 @@ validation layer.
 - Authentication/authorization issues (if applicable)
 
 ### Out of Scope
+
 - Issues in third-party MCP clients
 - User configuration errors
 - Network security (users are responsible for their deployment)
@@ -150,6 +158,7 @@ validation layer.
 ## Security Updates
 
 Security updates will be released as:
+
 - Patch versions for non-breaking security fixes (0.11.x)
 - Minor versions if breaking changes are necessary (0.12.0)
 
@@ -158,6 +167,7 @@ Subscribe to releases on GitHub to receive security notifications.
 ## Educational Note
 
 This project is designed for educational purposes and demonstrates security best practices:
+
 - Safe expression evaluation patterns
 - Input validation with Pydantic
 - Secure file operations
@@ -167,5 +177,5 @@ Students and learners should study the security implementations as examples of d
 
 ## Contact
 
-For security concerns: hugues+mcp-security@linux.com
+For security concerns: <hugues+mcp-security@linux.com>
 For general questions: Open a GitHub issue or discussion

@@ -1,20 +1,16 @@
 <!-- mcp-name: io.github.clouatre-labs/math-mcp-learning-server -->
 
-<h1 align="center">math-mcp-learning-server</h1>
+# math-mcp-learning-server
 
-<p align="center">
-  <a href="https://pypi.org/project/math-mcp-learning-server/"><img alt="PyPI" src="https://img.shields.io/pypi/v/math-mcp-learning-server?style=for-the-badge&color=3b82f6" height="20"></a>
-  <a href="https://pypi.org/project/math-mcp-learning-server/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/math-mcp-learning-server?style=for-the-badge" height="20"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=for-the-badge" height="20"></a>
-  <a href="https://api.reuse.software/info/github.com/clouatre-labs/math-mcp-learning-server"><img alt="REUSE" src="https://img.shields.io/reuse/compliance/github.com/clouatre-labs/math-mcp-learning-server?style=for-the-badge" height="20"></a>
-  <a href="https://www.bestpractices.dev/projects/12334"><img alt="OpenSSF Best Practices" src="https://img.shields.io/cii/level/12334?style=for-the-badge" height="20"></a>
-</p>
+[![PyPI](https://img.shields.io/pypi/v/math-mcp-learning-server?style=for-the-badge&color=3b82f6)](https://pypi.org/project/math-mcp-learning-server/)
+[![Python](https://img.shields.io/pypi/pyversions/math-mcp-learning-server?style=for-the-badge)](https://pypi.org/project/math-mcp-learning-server/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=for-the-badge)](LICENSE)
+[![REUSE](https://img.shields.io/reuse/compliance/github.com/clouatre-labs/math-mcp-learning-server?style=for-the-badge)](https://api.reuse.software/info/github.com/clouatre-labs/math-mcp-learning-server)
+[![OpenSSF Best Practices](https://img.shields.io/cii/level/12334?style=for-the-badge)](https://www.bestpractices.dev/projects/12334)
 
-<p align="center"><strong>Educational MCP server with 17 tools, persistent workspace, and cloud hosting.</strong> Built with <a href="https://gofastmcp.com">FastMCP</a> and the official <a href="https://github.com/modelcontextprotocol/python-sdk">Model Context Protocol Python SDK</a>.</p>
+**Educational MCP server with 17 tools, persistent workspace, and cloud hosting.** Built with [FastMCP](https://gofastmcp.com) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
 
-<p align="center">
-  Available on the <a href="https://registry.modelcontextprotocol.io/">MCP Registry</a> (<code>io.github.clouatre-labs/math-mcp-learning-server</code>) and <a href="https://pypi.org/project/math-mcp-learning-server/">PyPI</a>.
-</p>
+Available on the [MCP Registry](https://registry.modelcontextprotocol.io/) (`io.github.clouatre-labs/math-mcp-learning-server`) and [PyPI](https://pypi.org/project/math-mcp-learning-server/).
 
 ## Demo
 
@@ -111,12 +107,14 @@ See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/
 - **commitlint Enforcement** - Conventional commit validation in CI
 - **OpenSSF Scorecard** - Continuous open source security assessment
 
+<!-- markdownlint-disable MD033 -->
 <details>
 <summary><strong>calc_expression safety</strong></summary>
 
 The `calc_expression` tool uses restricted `eval()` with a whitelist of allowed characters and functions, restricted global scope (only `math` module and `abs`), and no access to dangerous built-ins or imports. All tool inputs are validated with Pydantic models. File operations are restricted to the designated workspace directory. Complete type hints and validation are enforced for all operations.
 
 </details>
+<!-- markdownlint-enable MD033 -->
 
 ## Documentation
 

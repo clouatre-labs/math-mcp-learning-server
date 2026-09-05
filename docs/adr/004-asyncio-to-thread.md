@@ -1,9 +1,11 @@
 # ADR-004: asyncio.to_thread() over ProcessPoolExecutor for Expression Evaluation
 
 ## Status
+
 Accepted
 
 ## Context
+
 `evaluate_with_timeout()` in `eval.py` runs `safe_eval_expression()`, a synchronous, CPU-bound
 `eval()` call, inside an async server. Two execution strategies were considered and one was
 attempted in production:
@@ -14,7 +16,8 @@ enforcement (OS-level process kill) and GIL-free CPU isolation. It was reverted 
 FastMCP Cloud runs on AWS Lambda, where `sys.executable` is invalid and process spawning is
 forbidden. The pool failed at import time on the deployment target.
 
-**Current approach: asyncio.to_thread()**
+### Current approach: asyncio.to_thread()
+
 ```python
 # eval.py
 return await asyncio.wait_for(
@@ -28,6 +31,7 @@ return await asyncio.wait_for(
 underlying thread continues until the `eval()` call returns naturally.
 
 ## Decision
+
 Use `asyncio.to_thread()`. The deployment constraint (Lambda) is non-negotiable. The timeout
 limitation is acceptable because:
 
@@ -43,11 +47,13 @@ The whitelist is the security layer. The timeout is the safety net.
 ## Consequences
 
 **Gained:**
+
 - Compatible with Lambda and any serverless runtime (no process spawning)
 - No module-level state; no shutdown handler required
 - Clean async integration; no `concurrent.futures` imports
 
 **Accepted:**
+
 - `asyncio.wait_for()` does not kill the thread on timeout; the thread runs to completion
   after the caller receives `TimeoutError`. This is a known Python limitation with threads.
 - True CPU isolation (separate memory space) is not achieved; the whitelist compensates.

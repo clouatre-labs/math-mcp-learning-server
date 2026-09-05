@@ -10,7 +10,7 @@ Python 3.14 + FastMCP 3.0 + Pydantic + uv + Ruff + Pyright
 
 ## Structure
 
-```
+```text
 src/math_mcp/
   server.py          # composition root, middleware, lifespan
   tools/             # calculate, matrix, persistence, visualization
@@ -26,7 +26,7 @@ docs/adr/            # ADRs (NNN-title.md)
 
 ## Commands
 
-```
+```bash
 uv run pytest -v
 uv run pyright src/
 uv run ruff check src/ tests/

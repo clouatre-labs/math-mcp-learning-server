@@ -1,9 +1,11 @@
 # ADR-005: Pydantic + @validated_tool for Input Validation
 
 ## Status
+
 Accepted
 
 ## Context
+
 Every MCP tool receives user-provided input that must be validated before use. Options considered:
 
 - **Manual validation**: explicit `if` checks per parameter, per tool. Verbose, inconsistent,
@@ -13,6 +15,7 @@ Every MCP tool receives user-provided input that must be validated before use. O
   enforcement, and structured error messages. Already a FastMCP dependency; zero added weight.
 
 ## Decision
+
 Wrap all tool functions with `@validated_tool`, a thin decorator defined in `settings.py`:
 
 ```python
@@ -41,12 +44,14 @@ keeping it in the signature for FastMCP's dependency injection.
 ## Consequences
 
 **Gained:**
+
 - Uniform validation across all tools from a single decorator; no per-tool boilerplate
 - Pydantic error messages are structured and descriptive; invalid input surfaces cleanly to callers
 - Type coercion handles minor client-side type mismatches automatically
 - `Field` constraints (`max_length`, `ge`, `le`) are co-located with the parameter they guard
 
 **Accepted:**
+
 - `validate_call` adds a thin call overhead; negligible for tool-level invocations
 - `arbitrary_types_allowed=True` disables Pydantic's strict type checking for `Context`;
   this is intentional and safe because FastMCP controls context injection

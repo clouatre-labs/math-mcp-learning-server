@@ -5,6 +5,7 @@ Quick reference for running tests and understanding the test suite for math-mcp-
 ## Quick Start
 
 ### Run All Tests
+
 ```bash
 # Basic test run
 uv run pytest tests/ -v
@@ -20,6 +21,7 @@ uv run pytest tests/ -k "matrix" -v
 ```
 
 ### Run Code Quality Checks
+
 ```bash
 # Linting
 uv run ruff check
@@ -53,7 +55,7 @@ Run `uv run pytest --co -q` for current test count.
 
 ## Test Structure
 
-```
+```text
 tests/
 ├── conftest.py                    # Shared fixtures
 ├── test_http_integration.py       # MCP protocol tests
@@ -66,6 +68,7 @@ tests/
 ## Common Test Commands
 
 ### Run Specific Category
+
 ```bash
 # HTTP/MCP protocol tests
 uv run pytest tests/test_http_integration.py -v
@@ -78,6 +81,7 @@ uv run pytest tests/test_visualization.py -v
 ```
 
 ### Debug Failed Tests
+
 ```bash
 # Stop on first failure
 uv run pytest tests/ -x
@@ -90,6 +94,7 @@ uv run pytest tests/ --lf
 ```
 
 ### Performance Testing
+
 ```bash
 # Show slowest tests
 uv run pytest tests/ --durations=10
@@ -101,6 +106,7 @@ uv run pytest tests/ --benchmark-only
 ## CI/CD Integration
 
 Tests run automatically on:
+
 - Every push to main branch
 - Pull request creation/updates
 - Pre-release validation
@@ -116,6 +122,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`
 ## Security Testing
 
 The test suite validates:
+
 - ✅ DoS prevention (expression length limits, array size limits, matrix size limits)
 - ✅ Input validation (type checking, range validation)
 - ✅ Injection protection (no eval/exec/import in calc_expression tool)

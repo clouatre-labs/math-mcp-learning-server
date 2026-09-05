@@ -36,6 +36,7 @@ Example: "Add a `statistics` tool exposing mean, median, and standard deviation.
 ```
 
 ### Integration Notes
+
 - Tool registration: `src/math_mcp/server.py`
 - Follow existing tool pattern: `src/math_mcp/tools/calculate.py`
 - Error handling: raise `ValueError` with descriptive message

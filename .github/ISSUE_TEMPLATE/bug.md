@@ -19,6 +19,7 @@ Example: "Tool `calculate` crashes when dividing by zero. Expected a descriptive
 3.
 
 Example:
+
 1. Connect to the server with Claude Desktop
 2. Call tool `calculate` with expression `"1/0"`
 3. Observe: unhandled exception instead of error message
@@ -29,7 +30,7 @@ Example:
 ## Actual Behavior
 <!-- What actually happens? Include error messages or stack traces. -->
 
-```
+```text
 <paste full error output or stack trace here>
 ```
 
@@ -43,7 +44,7 @@ Example:
 
 ## Logs / Error Output
 
-```
+```text
 <paste full error output here>
 ```
 
