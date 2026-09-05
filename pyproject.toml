@@ -21,7 +21,7 @@ classifiers = [
     "Environment :: Console",
 ]
 dependencies = [
-    "fastmcp>=3.2.4,<4.0.0",
+    "fastmcp>=4.0.1,<4.1.0",
     "pydantic>=2.13.3",
     "pydantic-settings>=2.14.0",
 ]
