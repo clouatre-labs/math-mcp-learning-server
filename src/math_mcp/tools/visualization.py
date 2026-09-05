@@ -149,8 +149,8 @@ async def _evaluate_expression_points(
     name="plot_function",
     annotations=ToolAnnotations(
         title="Function Plotter",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -214,8 +214,8 @@ async def plot_function(
     name="plot_histogram",
     annotations=ToolAnnotations(
         title="Statistical Histogram",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -295,8 +295,8 @@ async def plot_histogram(  # noqa: C901
     name="plot_line_chart",
     annotations=ToolAnnotations(
         title="Line Chart",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -371,8 +371,8 @@ async def plot_line_chart(
     name="plot_scatter",
     annotations=ToolAnnotations(
         title="Scatter Plot",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -447,8 +447,8 @@ async def plot_scatter(
     name="plot_box_plot",
     annotations=ToolAnnotations(
         title="Box Plot",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -525,8 +525,8 @@ async def plot_box_plot(
     name="plot_financial_line",
     annotations=ToolAnnotations(
         title="Financial Line Chart",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool

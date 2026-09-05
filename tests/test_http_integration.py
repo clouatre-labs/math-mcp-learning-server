@@ -9,7 +9,7 @@ import json
 
 import pytest
 from fastmcp import Client
-from fastmcp.exceptions import ToolError
+from mcp import MCPError
 
 
 async def test_http_liveness(http_client: Client) -> None:
@@ -39,7 +39,7 @@ async def test_http_calculate_complex(http_client: Client) -> None:
 
 async def test_http_calculate_invalid_expression(http_client: Client) -> None:
     """Test error handling for invalid expression over HTTP."""
-    with pytest.raises(ToolError):
+    with pytest.raises(MCPError):
         await http_client.call_tool("calc_expression", {"expression": "invalid syntax"})
 
 
@@ -93,7 +93,7 @@ async def test_http_convert_units_length(http_client: Client) -> None:
 
 async def test_http_convert_units_invalid(http_client: Client) -> None:
     """Test error handling for invalid unit conversion over HTTP."""
-    with pytest.raises(ToolError):
+    with pytest.raises(MCPError):
         await http_client.call_tool(
             "calc_units",
             {"value": 1, "from_unit": "invalid", "to_unit": "m", "unit_type": "length"},

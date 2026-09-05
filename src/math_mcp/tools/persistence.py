@@ -64,8 +64,8 @@ persistence_mcp = FastMCP(name="Persistence Tools")
     name="workspace_save",
     annotations=ToolAnnotations(
         title="Save Calculation to Workspace",
-        readOnlyHint=False,
-        idempotentHint=False,
+        read_only_hint=False,
+        idempotent_hint=False,
     ),
 )
 @validated_tool
@@ -133,8 +133,8 @@ async def workspace_save(
     name="workspace_load",
     annotations=ToolAnnotations(
         title="Load Variable",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 async def workspace_load(
