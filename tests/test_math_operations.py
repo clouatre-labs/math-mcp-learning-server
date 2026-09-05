@@ -338,9 +338,9 @@ async def test_rate_limit_enforcement():
     """Test that rate limiting blocks excessive requests."""
     from fastmcp import FastMCP
     from fastmcp.client import Client
-    from fastmcp.exceptions import ToolError
     from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
     from fastmcp.server.middleware.rate_limiting import SlidingWindowRateLimitingMiddleware
+    from mcp import MCPError
 
     # Create test server with limit high enough for test setup + tool calls
     test_mcp = FastMCP("test-rate-limit")
@@ -369,7 +369,7 @@ async def test_rate_limit_enforcement():
             assert result.content[0].text == "success"
 
         # Next request should exceed limit (10 total including setup calls)
-        with pytest.raises(ToolError, match="Rate limit exceeded"):
+        with pytest.raises(MCPError, match="Rate limit exceeded"):
             await client.call_tool("test_tool", {})
 
 

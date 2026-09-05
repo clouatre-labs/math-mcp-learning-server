@@ -136,8 +136,8 @@ matrix_mcp = FastMCP("matrix-operations")
     name="matrix_multiply",
     annotations=ToolAnnotations(
         title="Matrix Multiplication",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -197,8 +197,8 @@ async def matrix_multiply(
     name="matrix_transpose",
     annotations=ToolAnnotations(
         title="Matrix Transpose",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -240,8 +240,8 @@ async def matrix_transpose(
     name="matrix_determinant",
     annotations=ToolAnnotations(
         title="Matrix Determinant",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -288,8 +288,8 @@ async def matrix_determinant(
     name="matrix_inverse",
     annotations=ToolAnnotations(
         title="Matrix Inverse",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -361,8 +361,8 @@ async def matrix_inverse(
     name="matrix_eigenvalues",
     annotations=ToolAnnotations(
         title="Matrix Eigenvalues",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool

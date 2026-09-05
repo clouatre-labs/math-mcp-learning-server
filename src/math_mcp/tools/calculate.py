@@ -78,8 +78,8 @@ calculate_mcp = FastMCP(name="Calculate Tools")
     name="calc_expression",
     annotations=ToolAnnotations(
         title="Mathematical Calculator",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -123,8 +123,8 @@ async def calc_expression(
     name="calc_statistics",
     annotations=ToolAnnotations(
         title="Statistical Analysis",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -211,8 +211,8 @@ async def calc_statistics(
     name="calc_interest",
     annotations=ToolAnnotations(
         title="Compound Interest Calculator",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool
@@ -279,8 +279,8 @@ async def calc_interest(
     name="calc_units",
     annotations=ToolAnnotations(
         title="Unit Converter",
-        readOnlyHint=True,
-        idempotentHint=True,
+        read_only_hint=True,
+        idempotent_hint=True,
     ),
 )
 @validated_tool

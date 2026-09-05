@@ -9,7 +9,7 @@ Tools tested:
 """
 
 import pytest
-from fastmcp.exceptions import ToolError
+from mcp import MCPError
 
 pytest.importorskip("numpy")
 
@@ -77,9 +77,7 @@ class TestMatrixMultiply:
     @pytest.mark.asyncio
     async def test_multiply_incompatible_dimensions(self, http_client):
         """Test error handling for incompatible matrix dimensions."""
-        from fastmcp.exceptions import ToolError
-
-        with pytest.raises(ToolError) as exc_info:
+        with pytest.raises(MCPError) as exc_info:
             await http_client.call_tool(
                 "matrix_multiply",
                 arguments={
@@ -320,7 +318,7 @@ class TestMatrixEigenvalues:
 )
 async def test_non_square_error(http_client, tool_name):
     """Test non-square matrix error."""
-    with pytest.raises(ToolError) as exc_info:
+    with pytest.raises(MCPError) as exc_info:
         await http_client.call_tool(
             tool_name,
             arguments={"matrix": [[1, 2, 3], [4, 5, 6]]},

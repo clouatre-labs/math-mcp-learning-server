@@ -78,7 +78,7 @@ if RATE_LIMIT_PER_MINUTE > 0:
 _CONSTANTS = ["pi", "e", "golden_ratio", "euler_gamma", "sqrt2", "sqrt3"]
 
 
-@mcp._mcp_server.completion()
+@mcp.completion
 async def handle_completion(
     ref: object,
     argument: object,
