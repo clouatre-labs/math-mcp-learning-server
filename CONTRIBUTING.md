@@ -3,11 +3,13 @@
 ## Quick Start
 
 ### Prerequisites
+
 - Python 3.14+
 - [uv](https://docs.astral.sh/uv/) package manager
 - Git
 
 ### Development Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/clouatre-labs/math-mcp-learning-server.git
@@ -22,6 +24,7 @@ uv run pytest -v
 ```
 
 ### Run the Server
+
 ```bash
 # Start the MCP server
 uv run python -m math_mcp.server
@@ -48,7 +51,7 @@ git push -u origin feature/your-feature-name
 
 Use [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 <type>: <description>
 
 [optional body]
@@ -58,7 +61,8 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 **Types:** `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `chore`
 
 **Examples:**
-```
+
+```text
 feat: add matrix multiplication operations
 fix: resolve division by zero error handling
 docs: update installation instructions
@@ -84,6 +88,7 @@ uv run pytest -v && uv run pyright src/ && uv run ruff check src/ tests/
 ```
 
 **Required standards:**
+
 - All tests pass (100% pass rate)
 - Type checking passes with no errors
 - Linting passes with no warnings
@@ -124,6 +129,7 @@ Reviewer checklist:
 ## Code Standards
 
 ### Python Style
+
 - Follow PEP 8 (enforced by ruff)
 - Use type hints throughout
 - Maximum line length: 100 characters
@@ -139,16 +145,19 @@ def complex_dispatch(event: Event) -> None:  # noqa: C901 -- <why this function 
 Do not raise the global threshold to accommodate a single outlier. The explanation is required: it documents intent for reviewers and makes the suppression searchable.
 
 ### Documentation
+
 - All functions must have docstrings with examples
 - Include parameter descriptions and return types
 - Update README.md for user-facing changes
 
 ### Security
+
 - Never use `eval()` without proper sandboxing
 - Validate all user input
 - Log security-relevant events
 
 ### MCP Standards
+
 - Use FastMCP framework patterns
 - Implement proper error handling
 - Include educational annotations where appropriate
@@ -156,7 +165,8 @@ Do not raise the global threshold to accommodate a single outlier. The explanati
 ## Code Organization
 
 Modular architecture with composition root and specialized modules:
-```
+
+```text
 src/math_mcp/
   server.py              # Composition root, middleware, lifespan
   tools/                 # Tool implementations
@@ -180,6 +190,7 @@ ROADMAP.md               # Ideas for later consideration
 ### Adding New Features
 
 **New Mathematical Operations:**
+
 1. Add tool function using `@mcp.tool()` decorator
 2. Include comprehensive docstring with examples
 3. Add input validation and error handling
@@ -187,9 +198,11 @@ ROADMAP.md               # Ideas for later consideration
 5. Add corresponding tests
 
 **New Files:**
+
 - All new source files require SPDX license headers for REUSE compliance (enforced by reuse.yml in CI)
 
 **Educational Features:**
+
 1. Ensure it serves mathematical learning
 2. Keep implementation minimal
 3. Add appropriate difficulty classification
@@ -245,4 +258,4 @@ Commit `demo.tape`, `math_demo.py`, and the updated `demo.gif` together.
 
 ## Code of Conduct
 
-This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to hugues+mcp-coc@linux.com.
+This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to <hugues+mcp-coc@linux.com>.

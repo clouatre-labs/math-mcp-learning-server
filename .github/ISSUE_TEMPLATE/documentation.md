@@ -15,13 +15,14 @@ Example: "Add usage examples for the `matrix` tool to `README.md`. Current docs 
 <!-- File path, section in existing doc, or new file. -->
 
 Example:
+
 - Update section "Tools" in `README.md`
 - Or: New file `docs/tools/matrix.md`
 
 ## Current State
 <!-- What exists today and what is missing or incomplete. -->
 
-Gap: <specific missing information>
+Gap: `<specific missing information>`
 
 ## Proposed Changes
 <!-- What to add or update. Include content structure and key topics. -->

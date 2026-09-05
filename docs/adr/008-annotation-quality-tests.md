@@ -1,9 +1,11 @@
 # ADR-008: Annotation Quality Enforcement via Introspection Tests
 
 ## Status
+
 Accepted
 
 ## Context
+
 MCP tool and parameter descriptions are the primary routing and usage signal for the LLM
 calling the server. A parameter defined as `name: str` with no `Field(description=...)` produces
 `{"type": "string"}` in the JSON Schema -- no guidance for the model. No MCP ecosystem linter
@@ -16,6 +18,7 @@ time. The same pattern was identified and addressed in
 [code-analyze-mcp PR #590](https://github.com/clouatre-labs/code-analyze-mcp/pull/590).
 
 ## Decision
+
 Add `tests/test_annotations.py` that introspects the live MCP schema via
 `async with Client(mcp) as client: tools = await client.list_tools()` and asserts:
 
@@ -31,6 +34,7 @@ Fix all 17 missing descriptions and 5 missing examples in the same PR so the tes
 immediately and serve as a regression guard going forward.
 
 ## Consequences
+
 - Any parameter added without `Field(description=...)` fails CI.
 - New enum-like parameters must be added to the `enum_like_params` dict in the test; this
   is a manual step documented in the test's docstring.

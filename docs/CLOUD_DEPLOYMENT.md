@@ -43,11 +43,13 @@ This server includes a `fastmcp.json` configuration file for seamless cloud depl
 ### Cloud Storage Considerations
 
 **Persistent Workspace Behavior in Cloud:**
+
 - The persistent workspace (`workspace_save`, `workspace_load`) uses ephemeral storage in cloud deployments
 - Saved calculations persist during active sessions but reset on container restart
 - This is standard cloud/serverless behavior and suitable for educational/demonstration purposes
 
 **For production use cases requiring true persistence:**
+
 - Integrate external storage (S3, database, Redis)
 - Use environment variables for cloud credentials
 - Modify `src/math_mcp/persistence/storage.py` accordingly

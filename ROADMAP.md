@@ -21,6 +21,7 @@ Build capabilities LLMs lack natively: **persistent state**, **visual output**, 
 ### FastMCP Features
 
 New capabilities available with the 3.0 upgrade:
+
 - ResponseLimitingMiddleware for output size control
 - `ctx.transport` for transport-aware tool behavior
 - Lifespan composition for modular startup/shutdown
@@ -55,11 +56,13 @@ New capabilities available with the 3.0 upgrade:
 ## Decision Framework
 
 **Include a feature if it:**
+
 - Provides capability LLMs can't achieve natively
 - Works identically across all transports
 - Uses optional dependencies (not core)
 
 **Skip a feature if it:**
+
 - Duplicates existing LLM capabilities
 - Only works with specific transports
 - Adds complexity without unique value

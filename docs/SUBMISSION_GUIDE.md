@@ -8,8 +8,8 @@ Educational MCP server with 17 tools, persistent workspace, and cloud hosting. D
 
 ## Official MCP Registry
 
-**URL:** https://registry.modelcontextprotocol.io/  
-**Docs:** https://github.com/modelcontextprotocol/registry/tree/main/docs
+**URL:** <https://registry.modelcontextprotocol.io/>  
+**Docs:** <https://github.com/modelcontextprotocol/registry/tree/main/docs>
 
 ```bash
 # Install CLI
@@ -26,6 +26,7 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.clo
 ```
 
 **Requirements:**
+
 - PyPI package published
 - `<!-- mcp-name: io.github.clouatre-labs/math-mcp-learning-server -->` in README.md
 - `server.json` in repository root (see repo for template)
@@ -34,9 +35,9 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.clo
 
 ## Smithery
 
-**URL:** https://smithery.ai/servers/clouatre-labs/math-mcp  
-**Docs:** https://smithery.ai/docs/build/project-config/smithery-yaml  
-**API:** https://registry.smithery.ai (Bearer token auth via `SMITHERY_API_TOKEN`)
+**URL:** <https://smithery.ai/servers/clouatre-labs/math-mcp>  
+**Docs:** <https://smithery.ai/docs/build/project-config/smithery-yaml>  
+**API:** <https://registry.smithery.ai> (Bearer token auth via `SMITHERY_API_TOKEN`)
 
 ### Scoring
 
@@ -113,7 +114,8 @@ Note: the registry API is cached by Cloudflare (TTL ~14 400 s). Score changes fr
 ## Community Registries
 
 ### modelcontextprotocol/servers
-**URL:** https://github.com/modelcontextprotocol/servers  
+
+**URL:** <https://github.com/modelcontextprotocol/servers>  
 **Method:** Pull Request to README
 
 ```markdown
@@ -121,19 +123,23 @@ Note: the registry API is cached by Cloudflare (TTL ~14 400 s). Score changes fr
 ```
 
 ### Awesome MCP Servers
-**URL:** https://github.com/mctrinh/awesome-mcp-servers  
+
+**URL:** <https://github.com/mctrinh/awesome-mcp-servers>  
 **Method:** Pull Request
 
 ### Awesome Remote MCP Servers
-**URL:** https://github.com/sylviangth/awesome-remote-mcp-servers  
+
+**URL:** <https://github.com/sylviangth/awesome-remote-mcp-servers>  
 **Method:** Pull Request (cloud-focused)
 
 ### FastMCP Showcase
-**URL:** https://github.com/jlowin/fastmcp/blob/main/docs/community/showcase.mdx  
+
+**URL:** <https://github.com/jlowin/fastmcp/blob/main/docs/community/showcase.mdx>  
 **Method:** Pull Request to `docs/community/showcase.mdx`
 
 ### ToolSDK MCP Registry
-**URL:** https://github.com/toolsdk-ai/toolsdk-mcp-registry  
+
+**URL:** <https://github.com/toolsdk-ai/toolsdk-mcp-registry>  
 **Method:** Check repository for submission process
 
 ---

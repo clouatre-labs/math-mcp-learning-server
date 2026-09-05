@@ -7,6 +7,7 @@ This document explains how to configure PyPI Trusted Publishing for automatic pa
 Trusted Publishing uses OpenID Connect (OIDC) to allow GitHub Actions to publish packages to PyPI without storing long-lived API tokens. Instead, PyPI cryptographically verifies the workflow's identity and issues short-lived tokens on-demand.
 
 **Benefits:**
+
 - No secrets to manage or rotate
 - More secure than API tokens
 - Automatic token expiration
@@ -26,11 +27,11 @@ These steps have already been completed for this repository:
 
 ### Step 1: Log into PyPI
 
-Go to https://pypi.org and log in with your account.
+Go to <https://pypi.org> and log in with your account.
 
 ### Step 2: Navigate to Publishing Settings
 
-1. Go to your project page: https://pypi.org/project/math-mcp-learning-server/
+1. Go to your project page: <https://pypi.org/project/math-mcp-learning-server/>
 2. Click "Manage" → "Publishing"
 3. Scroll to "Trusted Publishers" section
 
@@ -38,7 +39,7 @@ Go to https://pypi.org and log in with your account.
 
 Click "Add a new publisher" and fill in:
 
-```
+```text
 Publisher: GitHub
 Repository owner: clouatre
 Repository name: math-mcp-learning-server
@@ -47,6 +48,7 @@ Environment name: pypi
 ```
 
 **Important:**
+
 - Workflow name must exactly match: `release.yml`
 - Environment name must exactly match: `pypi`
 
@@ -71,7 +73,7 @@ Click "Add" to save the configuration.
 
 ### Security Flow
 
-```
+```text
 GitHub Actions Workflow
   ↓ (requests OIDC token with audience "pypi")
 GitHub Identity Provider
@@ -91,7 +93,8 @@ PyPI Package Index
 **Cause:** PyPI Trusted Publisher not configured or misconfigured.
 
 **Solution:**
-1. Verify configuration at https://pypi.org/manage/project/math-mcp-learning-server/settings/publishing/
+
+1. Verify configuration at <https://pypi.org/manage/project/math-mcp-learning-server/settings/publishing/>
 2. Check that workflow name and environment name exactly match
 3. Ensure you have maintainer permissions on PyPI project
 
@@ -100,6 +103,7 @@ PyPI Package Index
 **Cause:** OIDC token signature invalid or expired.
 
 **Solution:**
+
 - Re-run the workflow
 - Check GitHub Actions logs for detailed error
 - Verify the workflow has `id-token: write` permission
@@ -109,7 +113,8 @@ PyPI Package Index
 **Cause:** GitHub environment `pypi` not configured.
 
 **Solution:**
-- Verify environment exists: https://github.com/clouatre-labs/math-mcp-learning-server/settings/environments
+
+- Verify environment exists: <https://github.com/clouatre-labs/math-mcp-learning-server/settings/environments>
 - Check workflow references correct environment name
 
 ## References
@@ -122,7 +127,7 @@ PyPI Package Index
 
 To test the workflow without publishing to production PyPI:
 
-1. Configure TestPyPI Trusted Publisher at https://test.pypi.org
+1. Configure TestPyPI Trusted Publisher at <https://test.pypi.org>
 2. Modify workflow to add `repository-url: https://test.pypi.org/legacy/`
 3. Create a pre-release: `gh release create v0.x.x-rc1 --prerelease`
 
