@@ -54,7 +54,8 @@ jobs:
           ENABLE_SARIF=1 ./scorecard \
             --repo=github.com/clouatre-labs/math-mcp-learning-server \
             --format=sarif \
-            --show-details > results.sarif
+            --show-details \
+            --policy=.github/scorecard-policy.yml > results.sarif
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
