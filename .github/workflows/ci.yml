@@ -94,6 +94,9 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Install cosign
+      uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
     - name: Secret scanning
       run: |
         ARCH=$(echo "$RUNNER_ARCH" | tr 'A-Z' 'a-z')
@@ -103,6 +106,10 @@ jobs:
           arm64) SHA256=bbb578b12a2f65d7082ab436abf37724232bc71d8a078e3c41336574420f1b48 ;;
           *) echo "unsupported runner arch: $ARCH"; exit 1 ;;
         esac
+        curl -sSfL -o "$RUNNER_TEMP/checksums.txt" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/checksums.txt"
+        curl -sSfL -o "$RUNNER_TEMP/checksums.txt.sigstore.json" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/checksums.txt.sigstore.json"
+        cosign verify-blob --bundle "$RUNNER_TEMP/checksums.txt.sigstore.json" --certificate-identity 'https://github.com/betterleaks/betterleaks/.github/workflows/release.yml@refs/tags/v1.8.1' --certificate-oidc-issuer https://token.actions.githubusercontent.com "$RUNNER_TEMP/checksums.txt"
+        grep -q "^${SHA256}  betterleaks_1.8.1_linux_${ARCH}.tar.gz$" "$RUNNER_TEMP/checksums.txt" || { echo "pinned sha256 not found in verified checksums.txt"; exit 1; }
         curl -sSfL -o "$RUNNER_TEMP/betterleaks.tar.gz" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/betterleaks_1.8.1_linux_${ARCH}.tar.gz"
         echo "${SHA256}  $RUNNER_TEMP/betterleaks.tar.gz" | sha256sum -c -
         tar -xzf "$RUNNER_TEMP/betterleaks.tar.gz" -C "$RUNNER_TEMP" betterleaks
