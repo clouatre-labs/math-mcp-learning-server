@@ -95,10 +95,21 @@ jobs:
         fetch-depth: 0
 
     - name: Secret scanning
-      uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+      run: |
+        ARCH=$(echo "$RUNNER_ARCH" | tr 'A-Z' 'a-z')
+        # Pinned SHA-256 from the official v1.8.1 checksums.txt (github.com/betterleaks/betterleaks/releases/tag/v1.8.1)
+        case "$ARCH" in
+          x64)   SHA256=efa407244e1ea8e35f582b8a42becdeac08bdead04f68eb752adda722d583c2a ;;
+          arm64) SHA256=bbb578b12a2f65d7082ab436abf37724232bc71d8a078e3c41336574420f1b48 ;;
+          *) echo "unsupported runner arch: $ARCH"; exit 1 ;;
+        esac
+        curl -sSfL -o "$RUNNER_TEMP/betterleaks.tar.gz" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/betterleaks_1.8.1_linux_${ARCH}.tar.gz"
+        echo "${SHA256}  $RUNNER_TEMP/betterleaks.tar.gz" | sha256sum -c -
+        tar -xzf "$RUNNER_TEMP/betterleaks.tar.gz" -C "$RUNNER_TEMP" betterleaks
+        VERSION=$($RUNNER_TEMP/betterleaks version)
+        [ "$VERSION" = "1.8.1" ] || { echo "unexpected betterleaks version: $VERSION"; exit 1; }
+        echo "betterleaks $VERSION"
+        "$RUNNER_TEMP/betterleaks" git . -v --redact
 
     - name: Set up uv
       uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
