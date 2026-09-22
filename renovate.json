@@ -40,7 +40,7 @@
       ],
       "depNameTemplate": "betterleaks/betterleaks",
       "datasourceTemplate": "github-releases",
-      "extractVersionTemplate": "^v(.*)$"
+      "extractVersionTemplate": "^v(?<version>.*)$"
     }
   ]
 }
