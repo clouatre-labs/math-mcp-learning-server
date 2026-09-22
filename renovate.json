@@ -27,5 +27,20 @@
       ],
       "automerge": true
     }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Bump betterleaks version used by the CI secret-scanning step (Sigstore-verified release). Refs: https://github.com/betterleaks/betterleaks/releases",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/ci\\.yml$/"
+      ],
+      "matchStrings": [
+        "BL_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "betterleaks/betterleaks",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(.*)$"
+    }
   ]
 }
