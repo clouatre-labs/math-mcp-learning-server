@@ -99,22 +99,25 @@ jobs:
 
     - name: Secret scanning
       run: |
+        BL_VERSION=1.8.1
         ARCH=$(echo "$RUNNER_ARCH" | tr 'A-Z' 'a-z')
-        # Pinned SHA-256 from the official v1.8.1 checksums.txt (github.com/betterleaks/betterleaks/releases/tag/v1.8.1)
         case "$ARCH" in
-          x64)   SHA256=efa407244e1ea8e35f582b8a42becdeac08bdead04f68eb752adda722d583c2a ;;
-          arm64) SHA256=bbb578b12a2f65d7082ab436abf37724232bc71d8a078e3c41336574420f1b48 ;;
+          x64|arm64) ;;
           *) echo "unsupported runner arch: $ARCH"; exit 1 ;;
         esac
-        curl -sSfL -o "$RUNNER_TEMP/checksums.txt" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/checksums.txt"
-        curl -sSfL -o "$RUNNER_TEMP/checksums.txt.sigstore.json" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/checksums.txt.sigstore.json"
-        cosign verify-blob --bundle "$RUNNER_TEMP/checksums.txt.sigstore.json" --certificate-identity 'https://github.com/betterleaks/betterleaks/.github/workflows/release.yml@refs/tags/v1.8.1' --certificate-oidc-issuer https://token.actions.githubusercontent.com "$RUNNER_TEMP/checksums.txt"
-        grep -q "^${SHA256}  betterleaks_1.8.1_linux_${ARCH}.tar.gz$" "$RUNNER_TEMP/checksums.txt" || { echo "pinned sha256 not found in verified checksums.txt"; exit 1; }
-        curl -sSfL -o "$RUNNER_TEMP/betterleaks.tar.gz" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/betterleaks_1.8.1_linux_${ARCH}.tar.gz"
+        curl -sSfL -o "$RUNNER_TEMP/checksums.txt" "https://github.com/betterleaks/betterleaks/releases/download/v${BL_VERSION}/checksums.txt"
+        curl -sSfL -o "$RUNNER_TEMP/checksums.txt.sigstore.json" "https://github.com/betterleaks/betterleaks/releases/download/v${BL_VERSION}/checksums.txt.sigstore.json"
+        cosign verify-blob --bundle "$RUNNER_TEMP/checksums.txt.sigstore.json" --certificate-identity "https://github.com/betterleaks/betterleaks/.github/workflows/release.yml@refs/tags/v${BL_VERSION}" --certificate-oidc-issuer https://token.actions.githubusercontent.com "$RUNNER_TEMP/checksums.txt"
+        SHA256=$(awk -v f="betterleaks_${BL_VERSION}_linux_${ARCH}.tar.gz" '$2 == f { print $1 }' "$RUNNER_TEMP/checksums.txt")
+        if [ -z "$SHA256" ] || [ "$(printf '%s\n' "$SHA256" | wc -l)" -ne 1 ]; then
+          echo "expected exactly one sha256 for betterleaks_${BL_VERSION}_linux_${ARCH}.tar.gz in verified checksums.txt"
+          exit 1
+        fi
+        curl -sSfL -o "$RUNNER_TEMP/betterleaks.tar.gz" "https://github.com/betterleaks/betterleaks/releases/download/v${BL_VERSION}/betterleaks_${BL_VERSION}_linux_${ARCH}.tar.gz"
         echo "${SHA256}  $RUNNER_TEMP/betterleaks.tar.gz" | sha256sum -c -
         tar -xzf "$RUNNER_TEMP/betterleaks.tar.gz" -C "$RUNNER_TEMP" betterleaks
         VERSION=$($RUNNER_TEMP/betterleaks version)
-        [ "$VERSION" = "1.8.1" ] || { echo "unexpected betterleaks version: $VERSION"; exit 1; }
+        [ "$VERSION" = "$BL_VERSION" ] || { echo "unexpected betterleaks version: $VERSION"; exit 1; }
         echo "betterleaks $VERSION"
         "$RUNNER_TEMP/betterleaks" git . -v --redact
 
