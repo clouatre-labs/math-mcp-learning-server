@@ -1,30 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices"
-  ],
+  "extends": ["config:best-practices"],
   "vulnerabilityAlerts": {
     "enabled": true
   },
   "platformAutomerge": true,
-  "labels": [
-    "dependencies"
-  ],
+  "labels": ["dependencies"],
   "minimumReleaseAge": "3 days",
   "packageRules": [
     {
-      "matchUpdateTypes": [
-        "patch",
-        "minor",
-        "digest",
-        "pin"
-      ],
+      "matchUpdateTypes": ["patch", "minor", "digest", "pin"],
       "automerge": true
     },
     {
-      "matchManagers": [
-        "github-actions"
-      ],
+      "matchManagers": ["github-actions"],
       "automerge": true
     }
   ],
@@ -32,12 +21,8 @@
     {
       "customType": "regex",
       "description": "Bump betterleaks version used by the CI secret-scanning step (Sigstore-verified release). Refs: https://github.com/betterleaks/betterleaks/releases",
-      "managerFilePatterns": [
-        "/^\\.github/workflows/ci\\.yml$/"
-      ],
-      "matchStrings": [
-        "BL_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
+      "managerFilePatterns": ["/^\\.github/workflows/ci\\.yml$/"],
+      "matchStrings": ["BL_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "depNameTemplate": "betterleaks/betterleaks",
       "datasourceTemplate": "github-releases",
       "extractVersionTemplate": "^v(?<version>.*)$"
