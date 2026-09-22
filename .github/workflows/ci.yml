@@ -108,7 +108,8 @@ jobs:
         esac
         curl -sSfL -o "$RUNNER_TEMP/checksums.txt" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/checksums.txt"
         curl -sSfL -o "$RUNNER_TEMP/checksums.txt.sigstore.json" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/checksums.txt.sigstore.json"
-        cosign verify-blob --bundle "$RUNNER_TEMP/checksums.txt.sigstore.json" --certificate-identity-regexp '^https://github.com/betterleaks/betterleaks/\.github/workflows/release\.yml@refs/tags/v1\.8\.1$' --certificate-oidc-issuer https://token.actions.githubusercontent.com "$RUNNER_TEMP/checksums.txt"
+        cosign verify-blob --bundle "$RUNNER_TEMP/checksums.txt.sigstore.json" --certificate-identity 'https://github.com/betterleaks/betterleaks/.github/workflows/release.yml@refs/tags/v1.8.1' --certificate-oidc-issuer https://token.actions.githubusercontent.com "$RUNNER_TEMP/checksums.txt"
+        grep -q "^${SHA256}  betterleaks_1.8.1_linux_${ARCH}.tar.gz$" "$RUNNER_TEMP/checksums.txt" || { echo "pinned sha256 not found in verified checksums.txt"; exit 1; }
         curl -sSfL -o "$RUNNER_TEMP/betterleaks.tar.gz" "https://github.com/betterleaks/betterleaks/releases/download/v1.8.1/betterleaks_1.8.1_linux_${ARCH}.tar.gz"
         echo "${SHA256}  $RUNNER_TEMP/betterleaks.tar.gz" | sha256sum -c -
         tar -xzf "$RUNNER_TEMP/betterleaks.tar.gz" -C "$RUNNER_TEMP" betterleaks
