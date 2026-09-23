@@ -6,7 +6,7 @@ name: Scorecard Publish
 # scorecard.dev is implemented inside that action's binary with no CLI equivalent, so
 # it can't be reproduced by the native scorecard CLI used in scorecard.yml. Scoped to a
 # monthly cron to minimize non-ARM runner usage; scorecard.yml still runs the actual
-# security analysis weekly on ubuntu-24.04-arm and uploads SARIF to the Security tab.
+# security analysis weekly on ubuntu-26.04-arm and uploads SARIF to the Security tab.
 
 on:
   schedule:
@@ -22,7 +22,7 @@ permissions: {}
 jobs:
   publish:
     name: Publish score to scorecard.dev
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     permissions:
       id-token: write # required for cosign/Fulcio OIDC signing of the published result

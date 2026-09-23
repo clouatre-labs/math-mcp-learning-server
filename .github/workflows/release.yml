@@ -25,7 +25,7 @@ permissions: {}
 jobs:
   verify-tag-signature:
     name: Verify GPG tag signature
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     timeout-minutes: 5
     if: github.event_name == 'push'
     permissions:
@@ -71,7 +71,7 @@ jobs:
     name: Create GitHub release
     needs: verify-tag-signature
     if: ${{ !failure() && !cancelled() }}
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     timeout-minutes: 5
     permissions:
       contents: write
@@ -126,7 +126,7 @@ jobs:
   build-and-attest:
     name: Build distributions and attest provenance
     needs: create-release
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     timeout-minutes: 10
     permissions:
       id-token: write
@@ -158,7 +158,7 @@ jobs:
   publish:
     name: Publish to PyPI
     needs: [create-release, build-and-attest]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     if: needs.create-release.outputs.dry_run != 'true'
     environment:
@@ -182,7 +182,7 @@ jobs:
   mcp-registry:
     name: Publish to MCP Registry
     needs: [create-release, publish]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     timeout-minutes: 10
     if: needs.create-release.outputs.dry_run != 'true'
     permissions:
