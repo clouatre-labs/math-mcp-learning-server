@@ -25,8 +25,10 @@ jobs:
     outputs:
       code: ${{ steps.filter.outputs.code }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Detect path changes
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           filters: |
@@ -46,7 +48,8 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Verify branch is up-to-date with main
@@ -90,7 +93,8 @@ jobs:
       contents: read
       security-events: write
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Checkout repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
 
@@ -100,7 +104,7 @@ jobs:
     - name: Secret scanning
       run: |
         BL_VERSION=1.8.1
-        ARCH=$(echo "$RUNNER_ARCH" | tr 'A-Z' 'a-z')
+        ARCH=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')
         case "$ARCH" in
           x64|arm64) ;;
           *) echo "unsupported runner arch: $ARCH"; exit 1 ;;
@@ -116,7 +120,7 @@ jobs:
         curl -sSfL -o "$RUNNER_TEMP/betterleaks.tar.gz" "https://github.com/betterleaks/betterleaks/releases/download/v${BL_VERSION}/betterleaks_${BL_VERSION}_linux_${ARCH}.tar.gz"
         echo "${SHA256}  $RUNNER_TEMP/betterleaks.tar.gz" | sha256sum -c -
         tar -xzf "$RUNNER_TEMP/betterleaks.tar.gz" -C "$RUNNER_TEMP" betterleaks
-        VERSION=$($RUNNER_TEMP/betterleaks version)
+        VERSION=$("$RUNNER_TEMP/betterleaks" version)
         [ "$VERSION" = "$BL_VERSION" ] || { echo "unexpected betterleaks version: $VERSION"; exit 1; }
         echo "betterleaks $VERSION"
         "$RUNNER_TEMP/betterleaks" git . -v --redact
@@ -205,8 +209,10 @@ jobs:
       contents: read
       security-events: write # needed for SARIF upload on public repos
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
         with:
           advanced-security: ${{ github.event.repository.visibility == 'public' }}
           min-severity: medium
