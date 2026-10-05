@@ -103,7 +103,7 @@ jobs:
 
     - name: Secret scanning
       run: |
-        BL_VERSION=1.8.1
+        BL_VERSION=1.9.0
         ARCH=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')
         case "$ARCH" in
           x64|arm64) ;;
