@@ -8,6 +8,10 @@ on:
     types:
       - aptu-triage
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.client_payload.issue_number || github.event.client_payload.pull_number || github.ref }}
+  cancel-in-progress: false
+
 jobs:
   triage:
     name: Triage Issue
