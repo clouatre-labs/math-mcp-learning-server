@@ -131,28 +131,28 @@ async def list_tools_catalog(ctx: Context) -> str:
     logger.info("Accessing tools catalog")
     catalog = [
         {
-            "name": "calculate",
+            "name": "calc_expression",
             "category": "calculate",
             "readOnly": True,
-            "example": "calculate('2 + 2')",
+            "example": "calc_expression('2 + 2')",
         },
         {
-            "name": "statistics",
+            "name": "calc_statistics",
             "category": "calculate",
             "readOnly": True,
-            "example": "statistics([1,2,3,4,5], 'mean')",
+            "example": "calc_statistics([1,2,3,4,5], 'mean')",
         },
         {
-            "name": "compound_interest",
+            "name": "calc_interest",
             "category": "calculate",
             "readOnly": True,
-            "example": "compound_interest(1000, 0.05, 10)",
+            "example": "calc_interest(1000, 0.05, 10, 12)",
         },
         {
-            "name": "convert_units",
+            "name": "calc_units",
             "category": "calculate",
             "readOnly": True,
-            "example": "convert_units(100, 'cm', 'm', 'length')",
+            "example": "calc_units(100, 'cm', 'm', 'length')",
         },
         {
             "name": "matrix_multiply",
@@ -203,16 +203,34 @@ async def list_tools_catalog(ctx: Context) -> str:
             "example": "plot_scatter([1,2,3], [4,5,6])",
         },
         {
-            "name": "save_calculation",
-            "category": "workspace",
-            "readOnly": False,
-            "example": "save_calculation('result', 42.0, 'my_calc')",
+            "name": "plot_line_chart",
+            "category": "visualize",
+            "readOnly": True,
+            "example": "plot_line_chart([1,2,3], [1,4,9])",
         },
         {
-            "name": "load_variable",
+            "name": "plot_box_plot",
+            "category": "visualize",
+            "readOnly": True,
+            "example": "plot_box_plot([[1,2,3], [4,5,6]], ['Group A', 'Group B'])",
+        },
+        {
+            "name": "plot_financial_line",
+            "category": "visualize",
+            "readOnly": True,
+            "example": "plot_financial_line(30, 'bullish')",
+        },
+        {
+            "name": "workspace_save",
+            "category": "workspace",
+            "readOnly": False,
+            "example": "workspace_save('result', '2 + 2', 4.0)",
+        },
+        {
+            "name": "workspace_load",
             "category": "workspace",
             "readOnly": True,
-            "example": "load_variable('result')",
+            "example": "workspace_load('result')",
         },
     ]
     import json

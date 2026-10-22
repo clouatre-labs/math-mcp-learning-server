@@ -92,8 +92,8 @@ async def workspace_save(
     """Save calculation to persistent workspace (survives restarts).
 
     Examples:
-        save_calculation("portfolio_return", "10000 * 1.07^5", 14025.52)
-        save_calculation("circle_area", "pi * 5^2", 78.54)
+        workspace_save("portfolio_return", "10000 * 1.07**5", 14025.52)
+        workspace_save("circle_area", "pi * 5**2", 78.54)
     """
     validate_variable_name(name)
 

@@ -15,6 +15,7 @@ import re
 from math_mcp.settings import (
     DANGEROUS_PATTERNS,
     EXPRESSION_TIMEOUT_SECONDS,
+    MATH_CONSTANT_VALUES,
     MATH_CONSTANTS,
     MATH_FUNCTIONS_ALL,
     MATH_FUNCTIONS_SINGLE,
@@ -42,7 +43,7 @@ def _validate_expression_syntax(expression: str) -> None:
 
 def _check_expression_security(clean_expr: str, expression: str) -> None:
     """Check for dangerous patterns and unsafe characters in expression."""
-    allowed_chars = set("0123456789+-*/.(),e%")
+    allowed_chars = set("0123456789+-*/.(),e%_")
 
     if any(pattern in clean_expr.lower() for pattern in DANGEROUS_PATTERNS):
         logging.warning(f"Security: Blocked unsafe expression attempt: {expression[:50]}...")
@@ -69,7 +70,10 @@ def _build_safe_expr(clean_expr: str) -> str:
     # literals intact: the exponent marker in "1e5" or "1.5e-2" is not a
     # standalone word.
     for const in MATH_CONSTANTS:
-        safe_expr = re.sub(rf"\b{const}\b", f"math.{const}", safe_expr)
+        if const in MATH_CONSTANT_VALUES:
+            safe_expr = re.sub(rf"\b{const}\b", repr(MATH_CONSTANT_VALUES[const]), safe_expr)
+        else:
+            safe_expr = re.sub(rf"\b{const}\b", f"math.{const}", safe_expr)
     return safe_expr
 
 
@@ -220,7 +224,7 @@ def _classify_expression_difficulty(expression: str) -> str:
     # Count complexity indicators
     has_functions = any(func in clean_expr for func in MATH_FUNCTIONS_ALL)
     has_parentheses = "(" in clean_expr
-    has_exponents = "**" in clean_expr or "^" in clean_expr
+    has_exponents = "**" in clean_expr
     operator_count = sum(clean_expr.count(op) for op in "+-*/")
 
     if has_functions or has_exponents:

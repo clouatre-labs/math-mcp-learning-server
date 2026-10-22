@@ -1,5 +1,6 @@
 """Configuration management for Math MCP Server."""
 
+import math
 from collections.abc import Callable
 from typing import Final
 
@@ -12,6 +13,7 @@ __all__ = [
     "MATH_FUNCTIONS_SINGLE",
     "MATH_FUNCTIONS_ALL",
     "MATH_CONSTANTS",
+    "MATH_CONSTANT_VALUES",
     "DANGEROUS_PATTERNS",
     "ALLOWED_OPERATIONS",
     "ALLOWED_TRENDS",
@@ -75,9 +77,16 @@ def validated_tool(func: Callable) -> Callable:
 
 # === CONSTANTS ===
 
-MATH_FUNCTIONS_SINGLE = ["sin", "cos", "tan", "log", "sqrt", "abs"]
+MATH_FUNCTIONS_SINGLE = ["sin", "cos", "tan", "log", "sqrt", "abs", "exp"]
 MATH_FUNCTIONS_ALL = {"sin", "cos", "tan", "log", "sqrt", "abs", "pow", "exp"}
-MATH_CONSTANTS = {"pi", "e", "tau"}
+MATH_CONSTANTS = {"pi", "e", "tau", "golden_ratio", "euler_gamma", "sqrt2"}
+
+# Values for constants not present on the math module (used by eval substitution).
+MATH_CONSTANT_VALUES = {
+    "golden_ratio": (1 + math.sqrt(5)) / 2,
+    "euler_gamma": 0.5772156649015329,
+    "sqrt2": math.sqrt(2),
+}
 DANGEROUS_PATTERNS = ["import", "exec", "__", "eval", "open", "file"]
 
 ALLOWED_OPERATIONS = {"mean", "median", "mode", "std_dev", "variance"}
@@ -87,7 +96,7 @@ TOPIC_KEYWORDS = {
     "finance": ["interest", "rate", "investment", "portfolio"],
     "geometry": ["pi", "radius", "area", "volume"],
     "trigonometry": ["sin", "cos", "tan"],
-    "logarithms": ["log", "ln", "exp"],
+    "logarithms": ["log", "exp"],
 }
 
 TEMP_CONVERSIONS = {
