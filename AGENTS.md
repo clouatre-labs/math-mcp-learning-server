@@ -6,7 +6,9 @@ Restricted `eval()` with character/function whitelist; Pydantic validation on al
 
 ## Stack
 
-Python 3.14 + FastMCP 3.0 + Pydantic + uv + Ruff + Pyright
+Python + FastMCP + Pydantic + uv + Ruff + Pyright
+
+See `pyproject.toml` for versions.
 
 ## Structure
 
