@@ -15,6 +15,7 @@ import re
 from math_mcp.settings import (
     DANGEROUS_PATTERNS,
     EXPRESSION_TIMEOUT_SECONDS,
+    MATH_CONSTANTS,
     MATH_FUNCTIONS_ALL,
     MATH_FUNCTIONS_SINGLE,
     TEMP_CONVERSIONS,
@@ -63,6 +64,12 @@ def _build_safe_expr(clean_expr: str) -> str:
             # Word-boundary anchors prevent partial matches: "logical" must not
             # become "math.logical" just because it contains "log".
             safe_expr = re.sub(rf"\b{func}\b", f"math.{func}", safe_expr)
+    # Constants are substituted after functions so the "e" in the already
+    # rewritten "math.exp" is never re-matched. Word boundaries keep float
+    # literals intact: the exponent marker in "1e5" or "1.5e-2" is not a
+    # standalone word.
+    for const in MATH_CONSTANTS:
+        safe_expr = re.sub(rf"\b{const}\b", f"math.{const}", safe_expr)
     return safe_expr
 
 
@@ -127,7 +134,7 @@ class _ASTValidator(ast.NodeVisitor):
         """Reject non-whitelisted identifiers or non-Load contexts."""
         if not isinstance(node.ctx, ast.Load):
             raise ValueError("Expression contains disallowed construct: non-load name context")
-        if node.id not in MATH_FUNCTIONS_ALL | {"abs"}:
+        if node.id not in MATH_FUNCTIONS_ALL | MATH_CONSTANTS | {"abs"}:
             raise ValueError(f"Expression contains disallowed construct: identifier '{node.id}'")
 
     def visit_Call(self, node: ast.Call) -> None:
