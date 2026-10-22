@@ -7,6 +7,8 @@ silent regressions when tools or parameters are added.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from fastmcp import Client
 
@@ -123,3 +125,18 @@ async def test_all_prompts_have_titles_and_descriptions() -> None:
         if not description:
             violations.append(f"{p.name}: missing description")
     assert violations == [], f"Prompt annotation violations: {violations}"
+
+
+@pytest.mark.asyncio
+async def test_catalog_names_match_registered_tools() -> None:
+    """Regression: every catalog entry name must match a registered tool name."""
+    tools = await _get_tools()
+    registered = {t.name for t in tools}
+    async with Client(mcp) as client:
+        resource = await client.read_resource("math://catalog/tools")
+    catalog = json.loads(resource[0].text)
+    catalog_names = {entry["name"] for entry in catalog["tools"]}
+    stale = catalog_names - registered
+    missing = registered - catalog_names
+    assert stale == set(), f"Catalog lists non-registered tools: {sorted(stale)}"
+    assert missing == set(), f"Registered tools missing from catalog: {sorted(missing)}"

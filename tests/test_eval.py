@@ -226,6 +226,9 @@ class TestEdgeCaseAST:
             ("pi", "pi constant", math.pi),
             ("e", "e constant", math.e),
             ("tau", "tau constant", math.tau),
+            ("golden_ratio", "golden ratio constant", (1 + math.sqrt(5)) / 2),
+            ("euler_gamma * 2", "Euler-Mascheroni constant", 0.5772156649015329 * 2),
+            ("sqrt2 * 2", "square root of 2 constant", math.sqrt(2) * 2),
             ("cos(pi)", "cosine of pi", -1.0),
             ("2 * sin(pi/4) + sqrt(16)", "tool docstring example", 2 * math.sin(math.pi / 4) + 4),
         ],
@@ -242,6 +245,8 @@ class TestEdgeCaseAST:
             ("tau2", "suffixed identifier"),
             ("PI", "case-sensitive identifier"),
             ("E", "case-sensitive identifier"),
+            ("sqrt22", "suffixed constant lookalike"),
+            ("foo_bar", "underscore identifier not whitelisted"),
         ],
     )
     def test_rejects_constant_lookalikes(self, expr: str, desc: str) -> None:
@@ -276,3 +281,8 @@ class TestEdgeCaseAST:
         """Attribute-based calls (math.__class__()) are rejected."""
         with pytest.raises(ValueError):
             safe_eval_expression(expr)
+
+    def test_rejects_caret_operator(self) -> None:
+        """Regression: '^' is not a supported operator; only '**' is."""
+        with pytest.raises(ValueError, match="invalid characters"):
+            safe_eval_expression("2^3")
