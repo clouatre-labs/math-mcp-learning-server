@@ -11,6 +11,7 @@ __all__ = [
     "validated_tool",
     "MATH_FUNCTIONS_SINGLE",
     "MATH_FUNCTIONS_ALL",
+    "MATH_CONSTANTS",
     "DANGEROUS_PATTERNS",
     "ALLOWED_OPERATIONS",
     "ALLOWED_TRENDS",
@@ -76,6 +77,7 @@ def validated_tool(func: Callable) -> Callable:
 
 MATH_FUNCTIONS_SINGLE = ["sin", "cos", "tan", "log", "sqrt", "abs"]
 MATH_FUNCTIONS_ALL = {"sin", "cos", "tan", "log", "sqrt", "abs", "pow", "exp"}
+MATH_CONSTANTS = {"pi", "e", "tau"}
 DANGEROUS_PATTERNS = ["import", "exec", "__", "eval", "open", "file"]
 
 ALLOWED_OPERATIONS = {"mean", "median", "mode", "std_dev", "variance"}

@@ -6,6 +6,8 @@ is preserved; these tests verify the new AST layer only (behaviors not already
 covered by existing tests).
 """
 
+import math
+
 import pytest
 
 from math_mcp.eval import safe_eval_expression
@@ -217,6 +219,51 @@ class TestEdgeCaseAST:
         """Non-whitelisted Name identifiers are rejected."""
         with pytest.raises(ValueError, match="disallowed construct"):
             safe_eval_expression(expr)
+
+    @pytest.mark.parametrize(
+        "expr, desc, expected",
+        [
+            ("pi", "pi constant", math.pi),
+            ("e", "e constant", math.e),
+            ("tau", "tau constant", math.tau),
+            ("cos(pi)", "cosine of pi", -1.0),
+            ("2 * sin(pi/4) + sqrt(16)", "tool docstring example", 2 * math.sin(math.pi / 4) + 4),
+        ],
+    )
+    def test_accepts_math_constants(self, expr: str, desc: str, expected: float) -> None:
+        """Regression: math constants (pi, e, tau) evaluate to their values."""
+        assert safe_eval_expression(expr) == pytest.approx(expected)
+
+    @pytest.mark.parametrize(
+        "expr, desc",
+        [
+            ("pie", "lookalike identifier"),
+            ("eta", "lookalike identifier"),
+            ("tau2", "suffixed identifier"),
+            ("PI", "case-sensitive identifier"),
+            ("E", "case-sensitive identifier"),
+        ],
+    )
+    def test_rejects_constant_lookalikes(self, expr: str, desc: str) -> None:
+        """Lookalike identifiers around constants stay rejected."""
+        with pytest.raises(ValueError, match="disallowed construct"):
+            safe_eval_expression(expr)
+
+    @pytest.mark.parametrize(
+        "expr, expected",
+        [
+            ("1e5", 100000.0),
+            ("2E3", 2000.0),
+            ("1.5e-2", 0.015),
+            ("exp(1)", math.e),
+        ],
+        ids=["lower-exp", "upper-exp", "neg-exp", "exp-function"],
+    )
+    def test_scientific_notation_unaffected_by_constant_substitution(
+        self, expr: str, expected: float
+    ) -> None:
+        """Float exponent markers are not mangled by constant substitution."""
+        assert safe_eval_expression(expr) == pytest.approx(expected)
 
     @pytest.mark.parametrize(
         "expr, desc",
