@@ -133,7 +133,6 @@ jobs:
     - name: Scan dependencies for CVEs
       run: uv tool run pip-audit
 
-
   test:
     # Single-version CI: version pinned in env.PYTHON_VERSION above
     needs: changes
@@ -218,46 +217,22 @@ jobs:
           min-severity: medium
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  commitlint:
-    name: commitlint
-    runs-on: ubuntu-26.04-arm
-    timeout-minutes: 5
-    if: github.event_name == 'pull_request'
+  lint-commits:
+    name: Lint Commits
     permissions:
       contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "26"
-      - name: Cache npm
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.npm
-          key: commitlint-${{ hashFiles('.github/workflows/ci.yml') }}
-          restore-keys: commitlint-
-      - name: Install commitlint
-        run: |
-          npm install --no-save \
-            @commitlint/cli@21.2.1 \
-            @commitlint/config-conventional@21.2.0
-      - name: Validate commit messages
-        run: |
-          npx commitlint \
-            --from ${{ github.event.pull_request.base.sha }} \
-            --to ${{ github.event.pull_request.head.sha }} \
-            --verbose
+    uses: clouatre-labs/.github/.github/workflows/lint-commits.yml@fef1bf12f9563d11165b271a8ae0c5640e69e72c # reusable lint-commits
+    with:
+      base-sha: ${{ github.event.pull_request.base.sha }}
+      head-sha: ${{ github.event.pull_request.head.sha }}
+      label: ubuntu-26.04-arm
 
   ci-result:
     name: CI Result
     runs-on: ubuntu-26.04-arm
     timeout-minutes: 2
     if: always()
-    needs: [check-base, lint, security, test, typecheck, test-http-integration, zizmor, commitlint]
+    needs: [check-base, lint, security, test, typecheck, test-http-integration, zizmor, lint-commits]
     permissions: {}
     steps:
       - name: Verify all jobs passed or were skipped
