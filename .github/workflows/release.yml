@@ -119,7 +119,7 @@ jobs:
 
       - name: Create GitHub release
         if: steps.dry_run.outputs.dry_run != 'true'
-        uses: taiki-e/create-gh-release-action@eba8ea96c86cca8a37f1b56e94b4d13301fba651 # v1.11.0
+        uses: taiki-e/create-gh-release-action@045e5c0ed9c50cc1f96de7e891a09ad3daea245f # v1.12.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
