@@ -1,73 +1,25 @@
+# Golden reusable workflow (clouatre-labs/.github#103): OpenSSF Scorecard
+# with the ossf/scorecard#5382 allow-list fallback built in.
 name: Scorecard
 
 on:
+  push:
+    branches: [main]
   schedule:
-    - cron: "30 1 * * 1"
-  workflow_dispatch:
+    - cron: "0 6 * * 1"
+  workflow_dispatch: {}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions: {}
+permissions:
+  contents: read
+  id-token: write
+  security-events: write
 
 jobs:
-  analyze:
-    name: Scorecard analysis
-    # OpenSSF Scorecard only supports public repositories.
-    # Skip on private/internal repos to avoid GITHUB_TOKEN GraphQL access errors.
-    if: github.event.repository.visibility == 'public'
-    runs-on: ubuntu-26.04-arm
-    timeout-minutes: 15
+  scorecard:
+    uses: clouatre-labs/.github/.github/workflows/scorecard.yml@486670d6268671be7b25a7e9cacce6aca47f05a6
+    with:
+      runner_label: ubuntu-26.04-arm
     permissions:
-      security-events: write
       contents: read
-    env:
-      SCORECARD_VERSION: v5.5.0
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
-      - name: Download Scorecard CLI
-        run: |
-          gh release download "${SCORECARD_VERSION}" \
-            --repo ossf/scorecard \
-            --pattern 'scorecard_*_linux_arm64.tar.gz' \
-            --pattern 'scorecard_checksums.txt' \
-            --dir .
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify Scorecard CLI checksum
-        run: |
-          grep '_linux_arm64.tar.gz$' scorecard_checksums.txt | sha256sum -c -
-
-      - name: Extract Scorecard CLI
-        run: tar -xzf scorecard_*_linux_arm64.tar.gz
-
-      - name: Run Scorecard analysis
-        run: |
-          ENABLE_SARIF=1 ./scorecard \
-            --repo=github.com/clouatre-labs/math-mcp-learning-server \
-            --format=sarif \
-            --show-details \
-            --policy=.github/scorecard-policy.yml > results.sarif
-        env:
-          GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload results to Security tab
-        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
-        with:
-          sarif_file: results.sarif
-        continue-on-error: true
-
-      - name: Upload results artifact
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: SARIF file
-          path: results.sarif
-          retention-days: 5
+      id-token: write
+      security-events: write
