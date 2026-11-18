@@ -7,7 +7,6 @@
 [![Python](https://img.shields.io/pypi/pyversions/math-mcp-learning-server?style=for-the-badge)](https://pypi.org/project/math-mcp-learning-server/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=for-the-badge)](LICENSE)
 [![REUSE](https://img.shields.io/reuse/compliance/github.com/clouatre-labs/math-mcp-learning-server?style=for-the-badge)](https://api.reuse.software/info/github.com/clouatre-labs/math-mcp-learning-server)
-[![OpenSSF Best Practices](https://img.shields.io/cii/level/12334?style=for-the-badge)](https://www.bestpractices.dev/projects/12334)
 <!-- markdownlint-enable MD033 -->
 
 **Educational MCP server with 17 tools, persistent workspace, and cloud hosting.** Built with [FastMCP](https://gofastmcp.com) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
@@ -18,11 +17,11 @@ Available on the [MCP Registry](https://registry.modelcontextprotocol.io/) (`io.
 
 <!-- markdownlint-disable MD033 -->
 <p align="center">
-  <img alt="Architecture diagram: MCP clients reach the same FastMCP math-mcp server over HTTP in the hosted deployment or stdio locally, and the server fans out to calculate, matrix, persistence, visualization, and resources sub-servers backed by workspace files" src="docs/diagrams/architecture.svg" width="560">
+  <img alt="Architecture diagram: an MCP client reaches the math-mcp server over stdio or HTTP, whose mounted sub-servers persist results to workspace files" src="docs/diagrams/architecture.svg" width="720">
 </p>
 <!-- markdownlint-enable MD033 -->
 
-*Figure 1: The FastMCP server mounts five sub-servers; the hosted deployment serves HTTP while local runs speak stdio, both backed by persistent workspace files.*
+*Figure 1: An MCP client reaches math-mcp over stdio or HTTP; mounted sub-servers persist results to workspace files.*
 
 The full component map, tool taxonomy, and request lifecycle are documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
