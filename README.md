@@ -1,5 +1,6 @@
 <!-- mcp-name: io.github.clouatre-labs/math-mcp-learning-server -->
 
+<!-- markdownlint-disable MD033 -->
 <h1 align="center">math-mcp-learning-server</h1>
 
 [![PyPI](https://img.shields.io/pypi/v/math-mcp-learning-server?style=for-the-badge&color=3b82f6)](https://pypi.org/project/math-mcp-learning-server/)
@@ -7,6 +8,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=for-the-badge)](LICENSE)
 [![REUSE](https://img.shields.io/reuse/compliance/github.com/clouatre-labs/math-mcp-learning-server?style=for-the-badge)](https://api.reuse.software/info/github.com/clouatre-labs/math-mcp-learning-server)
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/12334?style=for-the-badge)](https://www.bestpractices.dev/projects/12334)
+<!-- markdownlint-enable MD033 -->
 
 **Educational MCP server with 17 tools, persistent workspace, and cloud hosting.** Built with [FastMCP](https://gofastmcp.com) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
 
@@ -14,9 +16,11 @@ Available on the [MCP Registry](https://registry.modelcontextprotocol.io/) (`io.
 
 ## Architecture
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <img alt="Architecture diagram: MCP clients reach the same FastMCP math-mcp server over HTTP in the hosted deployment or stdio locally, and the server fans out to calculate, matrix, persistence, visualization, and resources sub-servers backed by workspace files" src="docs/diagrams/architecture.svg" width="560">
 </p>
+<!-- markdownlint-enable MD033 -->
 
 *Figure 1: The FastMCP server mounts five sub-servers; the hosted deployment serves HTTP while local runs speak stdio, both backed by persistent workspace files.*
 
