@@ -1,0 +1,13 @@
+graph TD
+    CD[Claude Desktop] --> HT[HTTP transport]
+    LV[uvx local run] --> ST[stdio transport]
+    HT --> HS[Hosted server]
+    ST --> LS[Local server]
+    HS --> Root[FastMCP math-mcp]
+    LS --> Root
+    Root --> C[Calculate]
+    Root --> M[Matrix]
+    Root --> P[Persistence]
+    Root --> V[Visualization]
+    Root --> R[Resources]
+    P --> WS[(workspace files)]
