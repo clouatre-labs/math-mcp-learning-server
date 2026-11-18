@@ -7,6 +7,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/math-mcp-learning-server?style=for-the-badge)](https://pypi.org/project/math-mcp-learning-server/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=for-the-badge)](LICENSE)
 [![REUSE](https://img.shields.io/reuse/compliance/github.com/clouatre-labs/math-mcp-learning-server?style=for-the-badge)](https://api.reuse.software/info/github.com/clouatre-labs/math-mcp-learning-server)
+[![OpenSSF Best Practices](https://img.shields.io/cii/level/12334?style=for-the-badge)](https://www.bestpractices.dev/projects/12334)
 <!-- markdownlint-enable MD033 -->
 
 **Educational MCP server with 17 tools, persistent workspace, and cloud hosting.** Built with [FastMCP](https://gofastmcp.com) and the official [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
