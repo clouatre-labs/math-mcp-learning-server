@@ -19,7 +19,7 @@ jobs:
     name: Security Result
     permissions:
       contents: read
-    uses: clouatre-labs/.github/.github/workflows/security-lint.yml@63aaff705d670fd4ba58af006a6ec474562015b0
+    uses: clouatre-labs/.github/.github/workflows/security-lint.yml@9b42cd352620915a6d484806db9ef1b589d65367
     with:
       label: ubuntu-26.04-arm
       secret-scan: false
