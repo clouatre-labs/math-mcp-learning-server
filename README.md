@@ -119,7 +119,6 @@ See [CONTRIBUTING.md](https://github.com/clouatre-labs/math-mcp-learning-server/
 - **gitleaks Secret Scanning** - Detects secrets in code and history
 - **zizmor GitHub Actions Security** - Workflow security scanning
 - **commitlint Enforcement** - Conventional commit validation in CI
-- **OpenSSF Scorecard** - Continuous open source security assessment
 
 <!-- markdownlint-disable MD033 -->
 <details>
